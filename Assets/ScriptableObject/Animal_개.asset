@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f867f80a1edd9f647a9580ab1277cb98, type: 3}
+  m_Name: "Animal_\uAC1C"
+  m_EditorClassIdentifier: Assembly-CSharp::AnimalDefinition
+  displayName: "\uAC1C"
+  description: 
+  prefab: {fileID: 8032463612451626621, guid: 4f16338fb85dfc44ba1d67181f23238e, type: 3}
+  icon: {fileID: 0}
+  minSpeed: 63
+  maxSpeed: 80
+  speedRerollInterval: 15
+  acceleration: 80

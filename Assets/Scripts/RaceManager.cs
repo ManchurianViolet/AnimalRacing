@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Photon.Pun;
 using UnityEngine;
 
 /// <summary>
@@ -26,11 +27,26 @@ public class RaceManager : MonoBehaviour
     private void OnEnable()  => GameEvents.OnPhaseChanged += HandlePhase;
     private void OnDisable() => GameEvents.OnPhaseChanged -= HandlePhase;
 
+    /// <summary>내가 시뮬 권위자인가 (오프라인 또는 방장).</summary>
+    private bool IsAuthority => !PhotonNetwork.InRoom || PhotonNetwork.IsMasterClient;
+
     private void HandlePhase(GamePhase phase)
     {
-        if (phase == GamePhase.Betting) SpawnRacers();
+        if (phase == GamePhase.Betting)
+        {
+            if (IsAuthority) SpawnRacers();
+            else
+            {
+                // 클라: 스폰/파괴는 네트워크가 해줌. 여기선 파괴된 잔재만 정리.
+                // (전체 Clear 금지 — 페이즈 방송이 스폰 메시지보다 늦게 오면
+                //  방금 등록된 새 동물들까지 지워버리는 경쟁이 생김)
+                racers.RemoveAll(r => r == null);
+                lineup.Clear();
+                nextFinishRank = 1;
+            }
+        }
 
-        racing = phase == GamePhase.Racing;
+        racing = phase == GamePhase.Racing && IsAuthority;
         foreach (var r in racers)
         {
             var motor = r != null ? r.GetComponent<RacerMotor>() : null;
@@ -40,7 +56,14 @@ public class RaceManager : MonoBehaviour
 
     private void SpawnRacers()
     {
-        foreach (var r in racers) if (r != null) Destroy(r.gameObject);
+        foreach (var r in racers)
+        {
+            if (r == null) continue;
+            if (PhotonNetwork.InRoom && r.GetComponent<PhotonView>() != null)
+                PhotonNetwork.Destroy(r.gameObject);   // 전 컴퓨터에서 제거
+            else
+                Destroy(r.gameObject);
+        }
         racers.Clear();
         lineup.Clear();
         nextFinishRank = 1;
@@ -54,8 +77,15 @@ public class RaceManager : MonoBehaviour
         {
             var def = animalPool[picks[i]];
             lineup.Add(def);
-            var go = Instantiate(def.prefab, startSlots[i].position,
-                                 Quaternion.LookRotation(path.GetTangent(0f)));
+
+            Vector3 pos = startSlots[i].position;
+            Quaternion rot = Quaternion.LookRotation(path.GetTangent(0f));
+
+            // 네트워크: 방의 모든 컴퓨터에 생성 + 정체(레이서ID/동물/번호)를 데이터로 동봉
+            GameObject go = PhotonNetwork.InRoom
+                ? PhotonNetwork.Instantiate(def.prefab.name, pos, rot, 0,
+                      new object[] { i, picks[i], i + 1 })
+                : Instantiate(def.prefab, pos, rot);
 
             StripAssetControllers(go);
 
@@ -173,6 +203,47 @@ public class RaceManager : MonoBehaviour
     {
         var lead = racers.OrderByDescending(r => r.Progress).FirstOrDefault();
         return lead == null ? 0f : Mathf.Clamp01(lead.Progress / path.TotalLength);
+    }
+
+    // ================= 네트워크 (클라이언트 측 등록) =================
+
+    /// <summary>
+    /// [클라 전용] 네트워크로 스폰된 동물을 표시용으로 등록.
+    /// 시뮬 없음: 위치/애니는 Photon이 받아쓰기, 여기선 정체(Definition)와 외형 정리만.
+    /// NetworkRacerSetup이 호출.
+    /// </summary>
+    public void RegisterNetworkRacer(GameObject go, int racerId, int animalIdx, int postNumber)
+    {
+        // 지난 라운드 잔재/중복 정리 (같은 ID의 죽은 참조 제거)
+        racers.RemoveAll(r => r == null || r.RacerId == racerId);
+
+        StripAssetControllers(go);
+
+        var rb = go.GetComponent<Rigidbody>();
+        if (rb != null) rb.isKinematic = true;   // 물리 계산 금지 — 받아쓰기 전용
+
+        var motor = go.GetComponent<RacerMotor>();
+        if (motor != null) motor.enabled = false;
+
+        var racer = go.GetComponent<Racer>();
+        if (racer == null) racer = go.AddComponent<Racer>();
+        racer.Init(racerId, animalPool[animalIdx], postNumber);
+
+        int racerLayer = LayerMask.NameToLayer("Racer");
+        if (racerLayer >= 0) SetLayerRecursive(go, racerLayer);
+
+        racers.Add(racer);
+        racers.Sort((a, b) => a.RacerId.CompareTo(b.RacerId));
+    }
+
+    /// <summary>[클라] 호스트가 방송한 완주 순위 일괄 반영 (정산판용).</summary>
+    public void ApplyNetworkRanking(int[] orderedRacerIds)
+    {
+        for (int i = 0; i < orderedRacerIds.Length; i++)
+        {
+            var r = GetRacer(orderedRacerIds[i]);
+            if (r != null) r.ApplyNetworkFinish(i + 1);
+        }
     }
 
     /// <summary>완주 순 최종 순위.</summary>

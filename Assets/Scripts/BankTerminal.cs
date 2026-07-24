@@ -21,7 +21,7 @@ public class BankTerminal : MonoBehaviour, IInteractable
     private Quaternion savedLocalRot;
     private Coroutine camRoutine;
 
-    private const int LocalPlayerId = 0;
+    private int LocalPlayerId => NetworkPlayers.LocalPlayerId;
 
     public string Prompt => "E - ATM";
 

@@ -5,7 +5,7 @@ using UnityEngine;
 
 /// <summary>
 /// 매치 순환 + 경제(자동대출/이자/은행) + 베팅 제출 관문 + 배당 스냅샷.
-/// UI가 게임 상태를 쓰는 관문: SubmitBet / TryAtmLoan / TryRepay [멀티: 전부 RPC 지점].
+/// UI가 게임 상태를 쓰는 관문: SubmitBet / TryAtmLoan [멀티: 전부 RPC 지점].
 /// </summary>
 public class MatchManager : MonoBehaviour
 {
@@ -33,6 +33,29 @@ public class MatchManager : MonoBehaviour
 
     public bool HasSubmitted(int playerId) => submitted.Contains(playerId);
 
+    public PlayerState GetPlayer(int playerId) =>
+        players.FirstOrDefault(p => p.PlayerId == playerId);
+
+    /// <summary>[네트워크] 로스터 재구성용 전체 초기화.</summary>
+    public void ClearPlayers() => players.Clear();
+
+    /// <summary>[네트워크] 특정 플레이어 제거 (늦은 입장자에게 봇 자리 양보 등).</summary>
+    public void RemovePlayer(int playerId)
+    {
+        players.RemoveAll(p => p.PlayerId == playerId);
+        submitted.Remove(playerId);
+        GameManager.Instance.SetPlayerCount(players.Count);
+    }
+
+    public int[] GetSubmittedIds() => submitted.ToArray();
+
+    /// <summary>[클라] 호스트가 방송한 제출 상태 반영.</summary>
+    public void ApplyNetworkSubmitted(int[] ids)
+    {
+        submitted.Clear();
+        foreach (var id in ids) submitted.Add(id);
+    }
+
     // ================= 베팅 관문 =================
 
     /// <summary>★ 베팅 제출. 검증 + 즉시 차감. 성공 여부 반환.</summary>
@@ -48,6 +71,7 @@ public class MatchManager : MonoBehaviour
 
         p.SetBet(ticket);
         submitted.Add(playerId);
+        GameEvents.RaiseBetAccepted(playerId, ticket);
         return true;
     }
 
@@ -70,13 +94,17 @@ public class MatchManager : MonoBehaviour
         return true;
     }
 
-    /// <summary>ATM 상환 (베팅 페이즈 중). 실제 상환액 반환.</summary>
-    public int TryRepay(int playerId, int amount)
-    {
-        if (GameManager.Instance.CurrentPhase != GamePhase.Betting) return 0;
-        var p = players.FirstOrDefault(x => x.PlayerId == playerId);
-        return p == null ? 0 : p.Repay(amount);
-    }
+    // ================= 네트워크 수신 (클라 전용 — NetworkMatchSync가 호출) =================
+
+    /// <summary>[클라] 호스트가 방송한 페이즈 타이머 반영.</summary>
+    public void ApplyNetworkPhaseTimer(float remainingSeconds) =>
+        PhaseEndTime = Time.time + Mathf.Max(0f, remainingSeconds);
+
+    /// <summary>[클라] 호스트가 방송한 라운드 반영.</summary>
+    public void ApplyNetworkRound(int round) => CurrentRound = round;
+
+    /// <summary>[클라] 호스트가 방송한 배당 테이블 반영.</summary>
+    public void ApplyNetworkOdds(OddsCalculator.AnimalOdds[] odds) => CurrentOdds = odds;
 
     // ================= 매치 흐름 =================
 
@@ -160,6 +188,7 @@ public class MatchManager : MonoBehaviour
         {
             p.SetBet(ticket);
             submitted.Add(p.PlayerId);
+            GameEvents.RaiseBetAccepted(p.PlayerId, ticket);
         }
     }
 }

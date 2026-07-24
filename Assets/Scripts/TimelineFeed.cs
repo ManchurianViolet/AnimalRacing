@@ -57,6 +57,6 @@ public class TimelineFeed : MonoBehaviour
     private string RacerName(int id)
     {
         var r = raceManager.GetRacer(id);
-        return r != null ? r.DisplayName : $"{id}번";
+        return r != null ? r.DisplayName : $"{id + 1}번";   // 레인 번호는 1부터
     }
 }

@@ -65,20 +65,26 @@ public class PlayerState
         TotalBorrowed += amount;
     }
 
-    /// <summary>상환. 실제 상환된 금액 반환.</summary>
-    public int Repay(int amount)
-    {
-        int pay = Mathf.Min(amount, Mathf.Min(Money, Debt));
-        if (pay <= 0) return 0;
-        Money -= pay;
-        Debt -= pay;
-        return pay;
-    }
-
     /// <summary>라운드 경과 이자 (복리). rate 0.3 = +30%.</summary>
     public void ApplyInterest(float rate)
     {
         if (Debt > 0) Debt = Mathf.CeilToInt(Debt * (1f + rate));
+    }
+
+    // ---- 네트워크 거울 반영 (클라 전용 — 진실은 호스트) ----
+    public void ApplyNetworkEconomy(int money, int debt, bool borrowedThisRound)
+    {
+        Money = money;
+        Debt = debt;
+        BorrowedThisRound = borrowedThisRound;
+    }
+
+    public void ApplyNetworkItems(int boostCount, int slowCount,
+                                  ItemDefinition boostDef, ItemDefinition slowDef)
+    {
+        items.Clear();
+        for (int i = 0; i < boostCount; i++) items.Add(boostDef);
+        for (int i = 0; i < slowCount; i++)  items.Add(slowDef);
     }
 
     // ---- 베팅/아이템 ----

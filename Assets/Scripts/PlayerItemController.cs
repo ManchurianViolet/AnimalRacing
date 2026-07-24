@@ -7,7 +7,7 @@ using UnityEngine;
 /// </summary>
 public class PlayerItemController : MonoBehaviour
 {
-    [SerializeField] private ItemExecutor executor;
+    [SerializeField] private NetworkGateway gateway;
     [SerializeField] private ItemDefinition boostItem;
     [SerializeField] private ItemDefinition slowItem;
 
@@ -51,7 +51,7 @@ public class PlayerItemController : MonoBehaviour
             if (Physics.Raycast(ray, out var hit) &&
                 hit.collider.GetComponentInParent<Racer>() is Racer racer)
             {
-                executor.TryUseItem(Me, Selected, racer.RacerId);
+                gateway.RequestUseItem(Selected, racer.RacerId);
                 Selected = null;
             }
         }

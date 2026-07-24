@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Photon.Pun;
 using UnityEngine;
 
 /// <summary>
@@ -19,11 +20,22 @@ public class PrototypeBootstrap : MonoBehaviour
     [SerializeField] private ItemDefinition boostItem;
     [SerializeField] private ItemDefinition slowItem;
 
-    private PlayerState me;
+    [Header("네트워크")]
+    [SerializeField] private NetworkGateway gateway;
+
+    [Tooltip("매치 정원 (부족분은 봇으로 채움)")]
+    [SerializeField] private int targetPlayerCount = 4;
 
     private void Start()
     {
-        me = new PlayerState(0, "나");
+        GameEvents.OnPhaseChanged += p => { if (p == GamePhase.Betting) AssignBetsAndLoadouts(); };
+        StartCoroutine(StartWhenReady());
+    }
+
+    /// <summary>오프라인 전용: 기존 로컬 등록 (나 + 봇들).</summary>
+    private void RegisterOfflinePlayers()
+    {
+        var me = new PlayerState(0, "나");
         matchManager.RegisterPlayer(me);
         itemController.Bind(me);
 
@@ -33,14 +45,52 @@ public class PrototypeBootstrap : MonoBehaviour
             matchManager.RegisterPlayer(b);
             bots[i].Bind(b);
         }
+    }
 
-        GameEvents.OnPhaseChanged += p => { if (p == GamePhase.Betting) AssignBetsAndLoadouts(); };
+    /// <summary>
+    /// 접속이 진행 중이면 방 입장까지 기다렸다가 시작 (타이밍 경쟁 방지).
+    /// Photon 접속은 비동기라 Start 시점엔 아직 방 밖 — 그때 검사하면 전원이
+    /// 자기를 오프라인 호스트로 착각하고 각자 게임을 돌리는 사고가 남.
+    /// </summary>
+    private System.Collections.IEnumerator StartWhenReady()
+    {
+        // 씬에 런처가 있으면 = 온라인 의도. 방 입장 확정 또는 접속 실패 확정까지 대기.
+        // (타임아웃으로 어설프게 오프라인 시작하면, 뒤늦은 입장과 겹쳐
+        //  로컬 매치 + 네트워크 매치가 공존하는 대참사가 남)
+        bool onlineIntended = FindFirstObjectByType<NetworkLauncher>() != null;
 
-        matchManager.StartMatch();
+        if (onlineIntended)
+        {
+            float timeout = Time.time + 30f;
+            while (!PhotonNetwork.InRoom
+                   && PhotonNetwork.NetworkClientState != Photon.Realtime.ClientState.Disconnected
+                   && Time.time < timeout)
+                yield return null;
+
+            if (!PhotonNetwork.InRoom)
+                Debug.LogWarning("[Bootstrap] 온라인 접속 실패 — 오프라인으로 시작합니다");
+        }
+
+        bool inRoom = PhotonNetwork.InRoom;
+        Debug.Log($"[Bootstrap] 시작 준비 완료 — 방: {inRoom}, 호스트: {NetworkPlayers.IsAuthority}");
+
+        if (!inRoom)
+        {
+            RegisterOfflinePlayers();
+            matchManager.StartMatch();
+        }
+        else if (PhotonNetwork.IsMasterClient)
+        {
+            gateway.BuildHostRoster(targetPlayerCount, bots);
+            matchManager.StartMatch();
+        }
+        // 클라: 로스터는 gateway RPC로, 페이즈는 NetworkMatchSync 방송으로 따라감
     }
 
     private void AssignBetsAndLoadouts()
     {
+        if (!NetworkPlayers.IsAuthority) return;   // 로드아웃/봇 베팅은 호스트 소관
+
         if (boostItem == null || slowItem == null)
         {
             Debug.LogError("[Bootstrap] Boost Item / Slow Item 슬롯이 비어있습니다!");

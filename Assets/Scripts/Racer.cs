@@ -106,6 +106,13 @@ public class Racer : MonoBehaviour
 
     public void AddEffect(StatusEffect effect) => effects.Add(effect);
 
+    /// <summary>[클라] 호스트가 방송한 완주 순위 반영 (이벤트 없이 조용히).</summary>
+    public void ApplyNetworkFinish(int rank)
+    {
+        HasFinished = true;
+        FinishRank = rank;
+    }
+
     public void MarkFinished(int rank)
     {
         HasFinished = true;

@@ -14,6 +14,9 @@ public class BotController : MonoBehaviour
 
     private PlayerState bot;
 
+    /// <summary>바인딩된 플레이어 ID (-1 = 미바인딩). 로스터 관리용.</summary>
+    public int BoundId => bot != null ? bot.PlayerId : -1;
+
     public void Bind(PlayerState state) => bot = state;
 
     private void Update()

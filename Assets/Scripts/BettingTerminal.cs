@@ -23,7 +23,7 @@ public class BettingTerminal : MonoBehaviour, IInteractable
     private Quaternion savedLocalRot;
     private Coroutine camRoutine;
 
-    private const int LocalPlayerId = 0;   // TODO(멀티): 자기 photonView 기준으로
+    private int LocalPlayerId => NetworkPlayers.LocalPlayerId;
 
     public string Prompt =>
         matchManager.HasSubmitted(LocalPlayerId) ? "베팅 완료됨" : "E - 베팅하기";

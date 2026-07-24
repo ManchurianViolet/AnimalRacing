@@ -14,6 +14,7 @@ public class BettingPanel : MonoBehaviour
     [Header("씬 레퍼런스")]
     [SerializeField] private MatchManager matchManager;
     [SerializeField] private RaceManager raceManager;
+    [SerializeField] private NetworkGateway gateway;
 
     [Header("출전표")]
     [SerializeField] private Canvas rootCanvas;
@@ -197,10 +198,18 @@ public class BettingPanel : MonoBehaviour
             lastAmount = amtLast
         };
 
-        if (matchManager.SubmitBet(playerId, ticket))
-            Close();
-        else if (statusText != null)
-            statusText.text = "제출 실패 (시간 초과 또는 잔액 부족)";
+        confirmButton.interactable = false;
+        if (statusText != null) statusText.text = "제출 중...";
+
+        gateway.RequestSubmitBet(ticket, ok =>
+        {
+            if (ok) Close();
+            else
+            {
+                confirmButton.interactable = true;
+                if (statusText != null) statusText.text = "제출 실패 (시간 초과 또는 잔액 부족)";
+            }
+        });
     }
 
     public void Close()

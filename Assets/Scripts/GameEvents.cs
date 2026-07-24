@@ -20,6 +20,10 @@ public static class GameEvents
     public static event Action<int, int> OnRacerFinished;
     public static void RaiseRacerFinished(int rid, int rank) => OnRacerFinished?.Invoke(rid, rank);
 
+    /// <summary>베팅 접수 확정 (수동/자동 공통). 네트워크 관문이 본인에게 영수증 회신용으로 구독.</summary>
+    public static event Action<int, BetTicket> OnBetAccepted;
+    public static void RaiseBetAccepted(int pid, BetTicket t) => OnBetAccepted?.Invoke(pid, t);
+
     public static event Action<RaceResult> OnRaceSettled;
     public static void RaiseRaceSettled(RaceResult r) => OnRaceSettled?.Invoke(r);
 

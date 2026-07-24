@@ -29,7 +29,7 @@ MonoBehaviour:
   autoBetAmount: 100
   oddsSimCount: 1000
   defaultRounds: 3
-  bettingSeconds: 5
+  bettingSeconds: 50
   loadoutSeconds: 2
   countdownSeconds: 2
   resultSeconds: 15

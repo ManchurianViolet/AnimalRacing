@@ -54,10 +54,8 @@ public class PrototypeBootstrap : MonoBehaviour
     /// </summary>
     private System.Collections.IEnumerator StartWhenReady()
     {
-        // 씬에 런처가 있으면 = 온라인 의도. 방 입장 확정 또는 접속 실패 확정까지 대기.
-        // (타임아웃으로 어설프게 오프라인 시작하면, 뒤늦은 입장과 겹쳐
-        //  로컬 매치 + 네트워크 매치가 공존하는 대참사가 남)
-        bool onlineIntended = FindFirstObjectByType<NetworkLauncher>() != null;
+        // 타이틀에서 접속해 들어왔으면 = 온라인 (이미 방 안). 게임 씬 직접 실행 = 오프라인.
+        bool onlineIntended = PhotonNetwork.IsConnected;
 
         if (onlineIntended)
         {
@@ -82,7 +80,12 @@ public class PrototypeBootstrap : MonoBehaviour
         else if (PhotonNetwork.IsMasterClient)
         {
             gateway.BuildHostRoster(targetPlayerCount, bots);
-            matchManager.StartMatch();
+
+            // 방 설정의 라운드 수 반영 (타이틀에서 방장이 정한 값)
+            int rounds = -1;
+            if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue("rounds", out var r))
+                rounds = (int)r;
+            matchManager.StartMatch(rounds);
         }
         // 클라: 로스터는 gateway RPC로, 페이즈는 NetworkMatchSync 방송으로 따라감
     }

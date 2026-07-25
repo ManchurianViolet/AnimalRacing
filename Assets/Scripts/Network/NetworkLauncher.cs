@@ -1,61 +1,139 @@
+using System.Collections.Generic;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
 
 /// <summary>
-/// [멀티 1단계] 접속 검증용 런처.
-/// 실행 → Photon 클라우드 접속 → 방 입장(없으면 생성) → Console 로그로 확인.
-/// 이후 단계에서 로비 UI로 대체될 임시 부품.
+/// [5단계] 접속 관리자 — 타이틀 씬 소속.
+/// 시작 시 Photon 접속 + 로비 입장(방 목록 수신), TitleMenu의 요청으로 방 생성/입장.
+/// 방 입장 성공 → 방장이 게임 씬 로드 (AutomaticallySyncScene으로 전원 따라옴).
+/// 게임 씬에는 이 컴포넌트를 두지 않는다 (거기선 이미 방 안이니까).
 /// </summary>
 public class NetworkLauncher : MonoBehaviourPunCallbacks
 {
-    [Tooltip("같은 버전끼리만 만나게 하는 구분자")]
     [SerializeField] private string gameVersion = "dev";
+    [Tooltip("방 입장 후 로드할 게임(도박장) 씬 이름 — 타이틀 씬 이름 아님!")]
+    [SerializeField] private string gameSceneName = "SampleScene";
 
-    [Tooltip("방 이름 (전원이 같은 이름으로 입장 — 개발용 고정 방)")]
-    [SerializeField] private string roomName = "jebi-dev";
+    /// <summary>방 목록 (방이름 → 정보). TitleMenu가 구독.</summary>
+    public readonly Dictionary<string, RoomInfo> Rooms = new();
+    public System.Action OnRoomsChanged;
+    public System.Action<string> OnStatus;   // 상태/에러 문구
 
-    [SerializeField] private byte maxPlayers = 4;
+    /// <summary>로비 입장 완료 = 방 생성/입장 가능 상태.</summary>
+    public bool Ready => PhotonNetwork.InLobby;
+
+    private void Status(string msg)
+    {
+        if (!string.IsNullOrEmpty(msg)) Debug.Log($"[NET] {msg}");   // UI가 죽어도 Console엔 남게
+        OnStatus?.Invoke(msg);
+    }
+
+    public const string PropPassword = "pw";
+    public const string PropRounds = "rounds";
 
     private void Start()
     {
-        // 마스터(방장)가 씬을 바꾸면 전원 따라오게 하는 설정 (나중에 필수)
         PhotonNetwork.AutomaticallySyncScene = true;
-
         PhotonNetwork.GameVersion = gameVersion;
-        PhotonNetwork.ConnectUsingSettings();   // PhotonServerSettings의 App ID 사용
-        Debug.Log("[NET] Photon 접속 시도...");
+
+        if (!PhotonNetwork.IsConnected)
+        {
+            Status("서버 접속 중...");
+            PhotonNetwork.ConnectUsingSettings();
+        }
+        else if (!PhotonNetwork.InLobby)
+        {
+            PhotonNetwork.JoinLobby();   // 게임에서 타이틀로 돌아온 경우
+        }
     }
 
-    // ---- 접속 흐름 콜백 ----
+    public void SetNickname(string nick)
+    {
+        PhotonNetwork.NickName = nick;
+        PlayerPrefs.SetString("nickname", nick);
+    }
+
+    // ---- 방 생성/입장 (TitleMenu가 호출) ----
+
+    public void CreateRoom(int maxPlayers, int rounds, string password)
+    {
+        if (!Ready) { Status("아직 서버 접속 중입니다 — 잠시 후 다시 시도하세요"); return; }
+
+        string roomName = $"{PhotonNetwork.NickName}의 방 #{Random.Range(100, 1000)}";
+        var props = new ExitGames.Client.Photon.Hashtable
+        {
+            { PropPassword, password ?? "" },
+            { PropRounds, rounds }
+        };
+        var options = new RoomOptions
+        {
+            MaxPlayers = maxPlayers,
+            CustomRoomProperties = props,
+            CustomRoomPropertiesForLobby = new[] { PropPassword, PropRounds }
+        };
+        Status("방 생성 중...");
+        PhotonNetwork.CreateRoom(roomName, options);
+    }
+
+    public void JoinRoom(string roomName)
+    {
+        if (!Ready) { Status("아직 서버 접속 중입니다 — 잠시 후 다시 시도하세요"); return; }
+
+        Status("입장 중...");
+        PhotonNetwork.JoinRoom(roomName);
+    }
+
+    // ---- Photon 콜백 ----
 
     public override void OnConnectedToMaster()
     {
-        Debug.Log($"[NET] 마스터 서버 접속 성공 (지역: {PhotonNetwork.CloudRegion})");
-        // 고정 이름 방에 입장 (없으면 생성) — 랜덤 매칭의 "각자 방 만드는" 경쟁 원천 차단
-        PhotonNetwork.JoinOrCreateRoom(roomName,
-            new RoomOptions { MaxPlayers = maxPlayers }, TypedLobby.Default);
+        Status($"접속 완료 (지역: {PhotonNetwork.CloudRegion})");
+        PhotonNetwork.JoinLobby();
+    }
+
+    public override void OnJoinedLobby()
+    {
+        Status("로비 입장 — 방 목록 수신 중");
+        Rooms.Clear();
+        OnRoomsChanged?.Invoke();
+    }
+
+    public override void OnRoomListUpdate(List<RoomInfo> roomList)
+    {
+        // Photon은 변경분만 보냄 — 캐시에 병합
+        foreach (var info in roomList)
+        {
+            if (info.RemovedFromList) Rooms.Remove(info.Name);
+            else Rooms[info.Name] = info;
+        }
+        OnRoomsChanged?.Invoke();
     }
 
     public override void OnJoinedRoom()
     {
-        Debug.Log($"[NET] 방 입장 완료! 인원 {PhotonNetwork.CurrentRoom.PlayerCount}/{maxPlayers}" +
-                  $" | 내가 방장인가: {PhotonNetwork.IsMasterClient}");
+        Status("입장 완료 — 게임 로드 중...");
+
+        // [진단] 로드 가능 여부까지 출력 — canLoad=False면 빌드 씬 목록/체크박스 문제
+        bool canLoad = Application.CanStreamedLevelBeLoaded(gameSceneName);
+        Debug.Log($"[NET] LoadLevel 시도: '{gameSceneName}' | 방장={PhotonNetwork.IsMasterClient} | 로드가능={canLoad}");
+
+        // 방장만 씬 로드 (AutomaticallySyncScene이 나머지를 끌고 감)
+        if (PhotonNetwork.IsMasterClient)
+            PhotonNetwork.LoadLevel(gameSceneName);
     }
 
-    public override void OnPlayerEnteredRoom(Player newPlayer)
-    {
-        Debug.Log($"[NET] 새 플레이어 입장: {newPlayer.NickName} " +
-                  $"(현재 {PhotonNetwork.CurrentRoom.PlayerCount}명)");
-    }
+    public override void OnCreateRoomFailed(short code, string msg) =>
+        Status($"방 생성 실패: {msg}");
 
-    public override void OnPlayerLeftRoom(Player otherPlayer)
-    {
-        Debug.Log($"[NET] 플레이어 퇴장 (현재 {PhotonNetwork.CurrentRoom.PlayerCount}명)");
-    }
+    public override void OnJoinRoomFailed(short code, string msg) =>
+        Status(code == ErrorCode.GameFull ? "방이 가득 찼습니다"
+             : code == ErrorCode.GameDoesNotExist ? "방이 사라졌습니다"
+             : $"입장 실패: {msg}");
 
     public override void OnDisconnected(DisconnectCause cause)
     {
-        Debug.LogWarning($"[NET] 접속 끊김: {cause}");
+        if (cause != DisconnectCause.DisconnectByClientLogic)
+            Status($"접속 끊김: {cause}");
     }
 }

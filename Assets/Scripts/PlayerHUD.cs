@@ -16,6 +16,13 @@ public class PlayerHUD : MonoBehaviour
     [SerializeField] private PlayerInteractor interactor;
     [SerializeField] private FirstPersonController playerController;
 
+    /// <summary>[5-2] 스폰된 내 아바타 배선 (LocalPlayerBinder가 호출).</summary>
+    public void BindLocalPlayer(FirstPersonController fpc, PlayerInteractor it)
+    {
+        playerController = fpc;
+        interactor = it;
+    }
+
     [Header("UI 레퍼런스")]
     [SerializeField] private TMP_Text walletText;        // 좌상단
     [SerializeField] private TMP_Text phaseTimerText;    // "베팅 중  42" (페이즈 + 남은 초)

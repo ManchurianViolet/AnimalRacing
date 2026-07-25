@@ -12,6 +12,9 @@ public class BettingTerminal : MonoBehaviour, IInteractable
     [SerializeField] private MatchManager matchManager;
     [SerializeField] private FirstPersonController playerController;
 
+    /// <summary>[5-2] 스폰된 내 아바타 배선 (LocalPlayerBinder가 호출).</summary>
+    public void BindLocalPlayer(FirstPersonController fpc) => playerController = fpc;
+
     [Header("카메라 연출")]
     [Tooltip("베팅 중 카메라가 이동할 위치/각도 (단말기 화면을 바라보게 배치)")]
     [SerializeField] private Transform cameraAnchor;

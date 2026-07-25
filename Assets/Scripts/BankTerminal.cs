@@ -11,6 +11,9 @@ public class BankTerminal : MonoBehaviour, IInteractable
     [SerializeField] private MatchManager matchManager;
     [SerializeField] private FirstPersonController playerController;
 
+    /// <summary>[5-2] 스폰된 내 아바타 배선 (LocalPlayerBinder가 호출).</summary>
+    public void BindLocalPlayer(FirstPersonController fpc) => playerController = fpc;
+
     [Header("카메라 연출")]
     [SerializeField] private Transform cameraAnchor;
     [SerializeField] private float cameraMoveSeconds = 0.5f;

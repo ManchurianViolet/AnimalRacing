@@ -2,31 +2,32 @@ using Photon.Pun;
 using UnityEngine;
 
 /// <summary>
-/// [멀티 2단계] 방 입장 완료 시 내 아바타를 네트워크 스폰.
-/// PhotonNetwork.Instantiate = 방의 모든 컴퓨터에 같은 오브젝트 생성.
-/// 프리팹은 반드시 Resources 폴더 안에 있어야 함 (Photon 규칙).
+/// [5-2] 게임 씬 진입 시 내 아바타 스폰 (씬 배치 플레이어 대체).
+/// 온라인: PhotonNetwork.Instantiate (전 컴퓨터에 생성).
+/// 오프라인: 일반 Instantiate (싱글도 같은 프리팹/흐름 — 동작 통일).
 /// </summary>
-public class NetworkPlayerSpawner : MonoBehaviourPunCallbacks
+public class NetworkPlayerSpawner : MonoBehaviour
 {
-    [Tooltip("Resources 폴더 기준 프리팹 이름 (확장자 없이)")]
-    [SerializeField] private string playerPrefabName = "NetPlayer";
+    [Tooltip("Resources 폴더의 프리팹 이름 (오프라인용 직접 참조도 겸함)")]
+    [SerializeField] private GameObject playerPrefab;
 
-    [Tooltip("스폰 위치들 (비우면 원점 주변 랜덤)")]
+    [Tooltip("스폰 위치들 (대기실 안). 접속 순번으로 배정")]
     [SerializeField] private Transform[] spawnPoints;
 
-    public override void OnJoinedRoom()
+    private void Start()
     {
-        // 내 접속 순번으로 스폰 지점 선택 (겹침 방지)
-        int idx = (PhotonNetwork.LocalPlayer.ActorNumber - 1) % Mathf.Max(1, spawnPoints.Length);
+        int idx = PhotonNetwork.InRoom
+            ? (PhotonNetwork.LocalPlayer.ActorNumber - 1) % Mathf.Max(1, spawnPoints.Length)
+            : 0;
 
         Vector3 pos = spawnPoints != null && spawnPoints.Length > 0
-            ? spawnPoints[idx].position
-            : new Vector3(Random.Range(-2f, 2f), 1f, Random.Range(-2f, 2f));
-
+            ? spawnPoints[idx].position : Vector3.up;
         Quaternion rot = spawnPoints != null && spawnPoints.Length > 0
             ? spawnPoints[idx].rotation : Quaternion.identity;
 
-        PhotonNetwork.Instantiate(playerPrefabName, pos, rot);
-        Debug.Log($"[NET] 내 아바타 스폰 완료 (지점 {idx})");
+        if (PhotonNetwork.InRoom)
+            PhotonNetwork.Instantiate(playerPrefab.name, pos, rot);
+        else
+            Instantiate(playerPrefab, pos, rot);   // 오프라인 — IsMine이 true라 동일 흐름
     }
 }

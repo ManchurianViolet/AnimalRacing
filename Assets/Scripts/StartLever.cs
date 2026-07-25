@@ -16,6 +16,9 @@ public class StartLever : MonoBehaviour, IInteractable
     [SerializeField] private MatchManager matchManager;
     [SerializeField] private FirstPersonController playerController;
 
+    /// <summary>[5-2] 스폰된 내 아바타 배선 (LocalPlayerBinder가 호출).</summary>
+    public void BindLocalPlayer(FirstPersonController fpc) => playerController = fpc;
+
     [Header("대기실 벽 (게임 시작 시 숨김, 대기 상태 복귀 시 다시 표시)")]
     [SerializeField] private GameObject[] wallsToHide;
 

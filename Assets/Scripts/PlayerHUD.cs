@@ -33,37 +33,62 @@ public class PlayerHUD : MonoBehaviour
         slotSlow.Init(itemController, itemController.SlowItem, "2");
     }
 
+    private void UpdatePhaseTimer()
+    {
+        if (phaseTimerText == null) return;
+
+        string lobbyLabel = "대기 중";
+        if (Photon.Pun.PhotonNetwork.InRoom)
+        {
+            var room = Photon.Pun.PhotonNetwork.CurrentRoom;
+            lobbyLabel = $"참가자 {room.PlayerCount}/{room.MaxPlayers} — 방장의 시작 대기 중";
+        }
+
+        string label = GameManager.Instance.CurrentPhase switch
+        {
+            GamePhase.Lobby      => lobbyLabel,
+            GamePhase.Betting    => "베팅 중",
+            GamePhase.Loadout    => "준비 중",
+            GamePhase.Countdown  => "출발 준비",
+            GamePhase.Racing     => "경기 중",
+            GamePhase.Settlement => "결과 표시 중",
+            _ => ""
+        };
+        float remain = matchManager != null ? matchManager.PhaseEndTime - Time.time : 0f;
+        phaseTimerText.text = remain > 0f
+            ? $"{label}  {Mathf.CeilToInt(remain)}"
+            : label;
+    }
+
     private void Update()
     {
         var me = itemController.Me;
-        if (me == null) return;
 
-        // 단말기/ATM 등 UI 사용 중엔 게임플레이 HUD(슬롯/크로스헤어/프롬프트) 숨김
+        // 페이즈/타이머는 로스터 없이도 표시 (대기실에서 "참가자 N/M" 등)
+        UpdatePhaseTimer();
+
+        // 로스터 바인딩 전(대기실): 게임플레이 HUD 숨김
+        bool bound = me != null;
         bool uiOpen = playerController != null && !playerController.ControlEnabled;
-        if (slotBoost != null) slotBoost.gameObject.SetActive(!uiOpen);
-        if (slotSlow != null) slotSlow.gameObject.SetActive(!uiOpen);
+        bool showGameplay = bound && !uiOpen;
+
+        if (slotBoost != null) slotBoost.gameObject.SetActive(showGameplay);
+        if (slotSlow != null) slotSlow.gameObject.SetActive(showGameplay);
         if (crosshairText != null) crosshairText.gameObject.SetActive(!uiOpen);
         if (promptText != null) promptText.gameObject.SetActive(!uiOpen);
 
-        if (Input.GetKeyDown(KeyCode.B)) showBet = !showBet;
+        // 상호작용 프롬프트는 로스터 없이도 (대기실 레버 "E - 게임 시작")
+        if (promptText != null)
+            promptText.text = interactor != null ? interactor.CurrentPrompt : "";
 
-        if (phaseTimerText != null)
+        if (!bound)
         {
-            string label = GameManager.Instance.CurrentPhase switch
-            {
-                GamePhase.Lobby      => "대기 중",
-                GamePhase.Betting    => "베팅 중",
-                GamePhase.Loadout    => "준비 중",
-                GamePhase.Countdown  => "출발 준비",
-                GamePhase.Racing     => "경기 중",
-                GamePhase.Settlement => "결과 표시 중",
-                _ => ""
-            };
-            float remain = matchManager != null ? matchManager.PhaseEndTime - Time.time : 0f;
-            phaseTimerText.text = remain > 0f
-                ? $"{label}  {Mathf.CeilToInt(remain)}"
-                : label;
+            if (walletText != null) walletText.text = "";
+            if (betText != null) betText.text = "";
+            return;
         }
+
+        if (Input.GetKeyDown(KeyCode.B)) showBet = !showBet;
 
         if (walletText != null)
         {
@@ -78,8 +103,6 @@ public class PlayerHUD : MonoBehaviour
         if (crosshairText != null)
             crosshairText.color = itemController.Selected != null ? Color.yellow : Color.white;
 
-        if (promptText != null)
-            promptText.text = interactor != null ? interactor.CurrentPrompt : "";
     }
 
     private string BuildBetText(PlayerState me)

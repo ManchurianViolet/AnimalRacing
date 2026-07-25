@@ -92,21 +92,7 @@ public class RaceManager : MonoBehaviour
             var rb = go.GetComponent<Rigidbody>();
             if (rb == null) rb = go.AddComponent<Rigidbody>();
 
-            // 몸통 콜라이더 없으면 렌더러 크기 기반 자동 캡슐 (수제 콜라이더 있으면 스킵)
-            bool hasRealCollider = go.GetComponentsInChildren<Collider>()
-                .Any(c => !(c is CharacterController));
-            if (!hasRealCollider)
-            {
-                var rends = go.GetComponentsInChildren<Renderer>();
-                var b = rends[0].bounds;
-                foreach (var r in rends) b.Encapsulate(r.bounds);
-
-                var cap = go.AddComponent<CapsuleCollider>();
-                cap.direction = 2;
-                cap.center = go.transform.InverseTransformPoint(b.center);
-                cap.radius = Mathf.Min(b.extents.x, b.extents.y) * 0.9f;
-                cap.height = b.size.z * 0.95f;
-            }
+            EnsureBodyCollider(go);
 
             var racer = go.GetComponent<Racer>();
             if (racer == null) racer = go.AddComponent<Racer>();
@@ -218,6 +204,7 @@ public class RaceManager : MonoBehaviour
         racers.RemoveAll(r => r == null || r.RacerId == racerId);
 
         StripAssetControllers(go);
+        EnsureBodyCollider(go);   // 아이템 조준(레이캐스트)에 필요 — 클라에도 필수
 
         var rb = go.GetComponent<Rigidbody>();
         if (rb != null) rb.isKinematic = true;   // 물리 계산 금지 — 받아쓰기 전용
@@ -234,6 +221,28 @@ public class RaceManager : MonoBehaviour
 
         racers.Add(racer);
         racers.Sort((a, b) => a.RacerId.CompareTo(b.RacerId));
+    }
+
+    /// <summary>
+    /// 몸통 콜라이더 보장: 없으면 렌더러 크기 기반 자동 캡슐 (수제 콜라이더 있으면 스킵).
+    /// 호스트(물리/조준)와 클라(조준) 공용.
+    /// </summary>
+    private static void EnsureBodyCollider(GameObject go)
+    {
+        bool hasRealCollider = go.GetComponentsInChildren<Collider>()
+            .Any(c => !(c is CharacterController));
+        if (hasRealCollider) return;
+
+        var rends = go.GetComponentsInChildren<Renderer>();
+        if (rends.Length == 0) return;
+        var b = rends[0].bounds;
+        foreach (var r in rends) b.Encapsulate(r.bounds);
+
+        var cap = go.AddComponent<CapsuleCollider>();
+        cap.direction = 2;
+        cap.center = go.transform.InverseTransformPoint(b.center);
+        cap.radius = Mathf.Min(b.extents.x, b.extents.y) * 0.9f;
+        cap.height = b.size.z * 0.95f;
     }
 
     /// <summary>[클라] 호스트가 방송한 완주 순위 일괄 반영 (정산판용).</summary>

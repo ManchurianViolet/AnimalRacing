@@ -20,12 +20,6 @@ public class PrototypeBootstrap : MonoBehaviour
     [SerializeField] private ItemDefinition boostItem;
     [SerializeField] private ItemDefinition slowItem;
 
-    [Header("네트워크")]
-    [SerializeField] private NetworkGateway gateway;
-
-    [Tooltip("매치 정원 (부족분은 봇으로 채움)")]
-    [SerializeField] private int targetPlayerCount = 4;
-
     private void Start()
     {
         GameEvents.OnPhaseChanged += p => { if (p == GamePhase.Betting) AssignBetsAndLoadouts(); };
@@ -77,17 +71,11 @@ public class PrototypeBootstrap : MonoBehaviour
             RegisterOfflinePlayers();
             matchManager.StartMatch();
         }
-        else if (PhotonNetwork.IsMasterClient)
+        else
         {
-            gateway.BuildHostRoster(targetPlayerCount, bots);
-
-            // 방 설정의 라운드 수 반영 (타이틀에서 방장이 정한 값)
-            int rounds = -1;
-            if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue("rounds", out var r))
-                rounds = (int)r;
-            matchManager.StartMatch(rounds);
+            // 온라인: 자동 시작 없음 — 도박장 대기 상태, 방장이 시작 레버를 당기면 개시
+            Debug.Log("[Bootstrap] 대기 상태 — 시작 레버 대기 중");
         }
-        // 클라: 로스터는 gateway RPC로, 페이즈는 NetworkMatchSync 방송으로 따라감
     }
 
     private void AssignBetsAndLoadouts()

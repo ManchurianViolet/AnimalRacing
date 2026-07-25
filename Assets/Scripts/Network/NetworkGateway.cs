@@ -25,11 +25,13 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
     [SerializeField] private ItemDefinition boostItem;
     [SerializeField] private ItemDefinition slowItem;
 
+    [Header("봇 (이탈자 대타 전용 — 초기 충원 없음)")]
+    [SerializeField] private BotController[] bots;
+
     [Tooltip("경제 상태 방송 주기 (초)")]
     [SerializeField] private float economyInterval = 1f;
 
     private float nextEconomy;
-    private BotController[] hostBots;
     private Action<bool> pendingBetCb;
     private Action<bool> pendingLoanCb;
 
@@ -49,28 +51,37 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
 
     // ================= 로스터 =================
 
-    /// <summary>[호스트] 접속 인원 + 봇으로 명단 구성 후 방송. Bootstrap이 호출.</summary>
-    public void BuildHostRoster(int targetCount, BotController[] bots)
+    /// <summary>
+    /// [5-1b] 게임 시작 요청 — 레버가 호출.
+    /// 오프라인: 즉시 시작(재경기). 호스트: 방 잠금 → 접속 인원만으로 로스터 → 시작.
+    /// </summary>
+    public void RequestStartMatch()
     {
-        hostBots = bots;
-        matchManager.ClearPlayers();
+        if (matchManager.IsMatchRunning) return;
 
+        if (Offline)
+        {
+            matchManager.StartMatch();
+            return;
+        }
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        PhotonNetwork.CurrentRoom.IsOpen = false;   // 진행 중 입장 잠금
+
+        // 로스터 = 이 순간의 접속 인원 (봇 충원 없음 — 봇은 이탈 대타 전용)
+        matchManager.ClearPlayers();
         foreach (var pl in PhotonNetwork.PlayerList.OrderBy(p => p.ActorNumber))
         {
             string name = string.IsNullOrEmpty(pl.NickName) ? $"P{pl.ActorNumber}" : pl.NickName;
             matchManager.RegisterPlayer(new PlayerState(pl.ActorNumber, name));
         }
-
-        int botCount = Mathf.Clamp(targetCount - PhotonNetwork.PlayerList.Length, 0, bots.Length);
-        for (int i = 0; i < botCount; i++)
-        {
-            var b = new PlayerState(NetworkPlayers.BotIdBase + i, $"봇{(char)('A' + i)}", isBot: true);
-            matchManager.RegisterPlayer(b);
-            bots[i].Bind(b);
-        }
-
         itemController.Bind(matchManager.GetPlayer(NetworkPlayers.LocalPlayerId));
         BroadcastRoster(RpcTarget.Others);
+
+        int rounds = -1;
+        if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue("rounds", out var r))
+            rounds = (int)r;
+        matchManager.StartMatch(rounds);
     }
 
     private void BroadcastRoster(RpcTarget target)
@@ -94,36 +105,10 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
         Debug.Log($"[NET] 로스터 수신: {ids.Length}명 (내 ID {NetworkPlayers.LocalPlayerId})");
     }
 
-    /// <summary>[호스트] 중간 입장자 등록: 봇 하나가 자리를 양보하고 사람으로 교체.</summary>
-    public override void OnPlayerEnteredRoom(Player newPlayer)
+    /// <summary>[호스트] 매치 종료 → 방 다시 열기 (재경기 대기).</summary>
+    private void HandleMatchEnded()
     {
-        if (!IsHost) return;
-        if (matchManager.GetPlayer(newPlayer.ActorNumber) != null) return;
-
-        // 봇 자리 양보 (ID 큰 봇부터 은퇴)
-        var bot = matchManager.Players
-            .Where(x => x.IsBot).OrderByDescending(x => x.PlayerId).FirstOrDefault();
-        if (bot != null)
-        {
-            matchManager.RemovePlayer(bot.PlayerId);
-            if (hostBots != null)
-                foreach (var bc in hostBots)
-                    if (bc != null && bc.BoundId == bot.PlayerId) bc.enabled = false;
-        }
-
-        string name = string.IsNullOrEmpty(newPlayer.NickName) ? $"P{newPlayer.ActorNumber}" : newPlayer.NickName;
-        var p = new PlayerState(newPlayer.ActorNumber, name);
-        p.ResetEconomy(GameManager.Instance.Config.startMoney);
-
-        // 중간 입장자 로드아웃 지급 (라운드 시작 일괄 배정을 놓쳤으므로 여기서 직접)
-        var cfg = GameManager.Instance.Config;
-        var loadout = new System.Collections.Generic.List<ItemDefinition>();
-        for (int i = 0; i < cfg.boostCount; i++) loadout.Add(boostItem);
-        for (int i = 0; i < cfg.slowCount; i++)  loadout.Add(slowItem);
-        p.SetLoadout(loadout);
-
-        matchManager.RegisterPlayer(p);
-        BroadcastRoster(RpcTarget.Others);
+        if (IsHost) PhotonNetwork.CurrentRoom.IsOpen = true;
     }
 
     // ================= 경제 방송 (호스트 → 클라) =================
@@ -271,6 +256,7 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
         GameEvents.OnItemRejected += HandleItemRejected;
         GameEvents.OnRaceSettled  += HandleSettled;
         GameEvents.OnBetAccepted  += HandleBetAccepted;
+        GameEvents.OnMatchEnded   += HandleMatchEnded;
     }
 
     public override void OnDisable()
@@ -280,6 +266,7 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
         GameEvents.OnItemRejected -= HandleItemRejected;
         GameEvents.OnRaceSettled  -= HandleSettled;
         GameEvents.OnBetAccepted  -= HandleBetAccepted;
+        GameEvents.OnMatchEnded   -= HandleMatchEnded;
     }
 
     /// <summary>[호스트] 베팅 접수(수동/자동) 시 당사자에게만 영수증 회신 — 비밀 유지하며 본인 HUD 갱신.</summary>

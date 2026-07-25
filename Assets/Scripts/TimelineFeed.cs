@@ -11,6 +11,11 @@ public class TimelineFeed : MonoBehaviour
 
     private readonly LinkedList<string> lines = new();
 
+    private void Start()
+    {
+        if (feedText != null) feedText.text = "";   // 에디터 임시 텍스트 정리
+    }
+
     private void OnEnable()
     {
         GameEvents.OnItemUsed      += HandleItemUsed;

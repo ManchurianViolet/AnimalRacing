@@ -16,6 +16,9 @@ public class MatchManager : MonoBehaviour
     private readonly List<PlayerState> players = new();
     public IReadOnlyList<PlayerState> Players => players;
 
+    /// <summary>매치 진행 중 여부 (레버 중복 방지 / 대기 상태 판정).</summary>
+    public bool IsMatchRunning { get; private set; }
+
     public int CurrentRound { get; private set; }
     public int TotalRounds { get; private set; }
     public float PhaseEndTime { get; private set; }
@@ -110,6 +113,8 @@ public class MatchManager : MonoBehaviour
 
     public void StartMatch(int rounds = -1)
     {
+        if (IsMatchRunning) return;
+        IsMatchRunning = true;
         TotalRounds = rounds > 0 ? rounds : config.defaultRounds;
         foreach (var p in players) p.ResetEconomy(config.startMoney);
         StartCoroutine(MatchFlow());
@@ -170,6 +175,7 @@ public class MatchManager : MonoBehaviour
             yield return new WaitForSeconds(config.resultSeconds);
         }
 
+        IsMatchRunning = false;
         GameEvents.RaiseMatchEnded();
         gm.SetPhase(GamePhase.Lobby);
         PhaseEndTime = 0f;

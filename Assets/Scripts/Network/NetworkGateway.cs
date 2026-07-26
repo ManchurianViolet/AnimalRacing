@@ -105,10 +105,49 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
         Debug.Log($"[NET] 로스터 수신: {ids.Length}명 (내 ID {NetworkPlayers.LocalPlayerId})");
     }
 
-    /// <summary>[호스트] 매치 종료 → 방 다시 열기 (재경기 대기).</summary>
+    /// <summary>[호스트] 매치 종료 → 방 다시 열기 (재경기 대기) + 대타 봇 전원 해제.</summary>
     private void HandleMatchEnded()
     {
-        if (IsHost) PhotonNetwork.CurrentRoom.IsOpen = true;
+        if (!IsHost) return;
+        PhotonNetwork.CurrentRoom.IsOpen = true;
+        if (bots != null)
+            foreach (var b in bots) if (b != null) b.Bind(null);
+    }
+
+    /// <summary>[호스트] 게스트 이탈 → 매치 중이면 그 자리에 봇 대타 투입.</summary>
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        if (!IsHost || !matchManager.IsMatchRunning) return;
+
+        var state = matchManager.GetPlayer(otherPlayer.ActorNumber);
+        if (state == null) return;
+
+        // 이미 이 자리에 봇이 붙어있으면 스킵
+        if (bots != null && bots.Any(b => b != null && b.BoundId == state.PlayerId)) return;
+
+        var freeBot = bots?.FirstOrDefault(b => b != null && b.BoundId < 0);
+        if (freeBot != null)
+        {
+            freeBot.Bind(state);
+            Debug.Log($"[NET] {state.Nickname} 이탈 → 봇 대타 투입 (자리 보존, 복귀 가능)");
+        }
+        // 대타 봇이 없어도 타임아웃 자동베팅이 안전망으로 커버
+    }
+
+    /// <summary>[호스트] 입장/복귀: 매치 중 복귀자면 봇 해제 + 상태 재전송.</summary>
+    public override void OnPlayerEnteredRoom(Player newPlayer)
+    {
+        if (!IsHost || !matchManager.IsMatchRunning) return;
+        if (matchManager.GetPlayer(newPlayer.ActorNumber) == null) return;   // 로스터 밖(이론상 불가)
+
+        // 대타 봇 해제 — 본인 복귀
+        if (bots != null)
+            foreach (var b in bots)
+                if (b != null && b.BoundId == newPlayer.ActorNumber) b.Bind(null);
+
+        // 복귀자에게 로스터 재전송 (거울 재건 → 경제/제출 방송이 다시 꽂히기 시작)
+        BroadcastRoster(RpcTarget.Others);
+        Debug.Log($"[NET] {newPlayer.NickName} 복귀 — 봇 해제 + 로스터 재전송");
     }
 
     // ================= 경제 방송 (호스트 → 클라) =================
@@ -253,6 +292,7 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
     {
         base.OnEnable();
         GameEvents.OnItemUsed     += HandleItemUsed;
+        GameEvents.OnRacerFinished += HandleRacerFinished;
         GameEvents.OnItemRejected += HandleItemRejected;
         GameEvents.OnRaceSettled  += HandleSettled;
         GameEvents.OnBetAccepted  += HandleBetAccepted;
@@ -263,6 +303,7 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
     {
         base.OnDisable();
         GameEvents.OnItemUsed     -= HandleItemUsed;
+        GameEvents.OnRacerFinished -= HandleRacerFinished;
         GameEvents.OnItemRejected -= HandleItemRejected;
         GameEvents.OnRaceSettled  -= HandleSettled;
         GameEvents.OnBetAccepted  -= HandleBetAccepted;
@@ -295,6 +336,17 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
     [PunRPC]
     private void RpcItemUsed(int pid, int itemType, int racerId) =>
         GameEvents.RaiseItemUsed(pid, ItemOf(itemType), racerId);
+
+    /// <summary>[호스트] 결승선 통과 소식을 클라 타임라인으로 중계 (아이템 중계와 같은 패턴).</summary>
+    private void HandleRacerFinished(int racerId, int rank)
+    {
+        if (!IsHost) return;
+        photonView.RPC(nameof(RpcRacerFinished), RpcTarget.Others, racerId, rank);
+    }
+
+    [PunRPC]
+    private void RpcRacerFinished(int racerId, int rank) =>
+        GameEvents.RaiseRacerFinished(racerId, rank);
 
     private void HandleItemRejected(int pid, string reason)
     {

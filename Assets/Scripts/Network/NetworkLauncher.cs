@@ -70,7 +70,8 @@ public class NetworkLauncher : MonoBehaviourPunCallbacks
         {
             MaxPlayers = maxPlayers,
             CustomRoomProperties = props,
-            CustomRoomPropertiesForLobby = new[] { PropPassword, PropRounds }
+            CustomRoomPropertiesForLobby = new[] { PropPassword, PropRounds },
+            PlayerTtl = 60000   // 이탈자 자리 60초 보존 → 재접속 복귀 가능
         };
         Status("방 생성 중...");
         PhotonNetwork.CreateRoom(roomName, options);

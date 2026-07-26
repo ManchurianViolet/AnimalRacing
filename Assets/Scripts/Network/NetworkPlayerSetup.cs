@@ -20,8 +20,9 @@ public class NetworkPlayerSetup : MonoBehaviourPun
 
     private void Awake()
     {
-        // 오프라인(방 밖)에선 IsMine이 true → 싱글도 "내 것" 흐름 그대로
-        bool mine = photonView.IsMine;
+        // 오프라인(미접속)은 무조건 내 것 — 접속이 없으면 PhotonView의 소유자가
+        // null이라 IsMine이 false로 나오는 함정이 있음 (원격 취급 → 카메라/조작 꺼짐)
+        bool mine = !Photon.Pun.PhotonNetwork.IsConnected || photonView.IsMine;
         isRemote = !mine;
 
         if (controller != null) controller.enabled = mine;

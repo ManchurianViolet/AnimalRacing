@@ -42,6 +42,20 @@ public class MatchManager : MonoBehaviour
     /// <summary>[네트워크] 로스터 재구성용 전체 초기화.</summary>
     public void ClearPlayers() => players.Clear();
 
+    /// <summary>
+    /// [5-3] 매치 강제 중단 (방장 이탈 등) — 정산 없이 즉시 대기실 상태로.
+    /// 다음 레버가 로스터를 처음부터 재구성하므로 여기선 전부 비운다.
+    /// </summary>
+    public void AbortMatch()
+    {
+        StopAllCoroutines();          // MatchFlow 정지
+        IsMatchRunning = false;
+        submitted.Clear();
+        players.Clear();
+        PhaseEndTime = 0f;
+        GameManager.Instance.SetPhase(GamePhase.Lobby);   // 벽 복원/레이스 정지 연쇄
+    }
+
     /// <summary>[네트워크] 특정 플레이어 제거 (늦은 입장자에게 봇 자리 양보 등).</summary>
     public void RemovePlayer(int playerId)
     {

@@ -97,6 +97,7 @@ public class RaceManager : MonoBehaviour
             var racer = go.GetComponent<Racer>();
             if (racer == null) racer = go.AddComponent<Racer>();
             racer.Init(i, def, i + 1);
+            go.GetComponentInChildren<RacerNumberPlate>()?.Apply(i + 1);
 
             var motor = go.GetComponent<RacerMotor>();
             if (motor == null) motor = go.AddComponent<RacerMotor>();
@@ -215,6 +216,7 @@ public class RaceManager : MonoBehaviour
         var racer = go.GetComponent<Racer>();
         if (racer == null) racer = go.AddComponent<Racer>();
         racer.Init(racerId, animalPool[animalIdx], postNumber);
+        go.GetComponentInChildren<RacerNumberPlate>()?.Apply(postNumber);
 
         int racerLayer = LayerMask.NameToLayer("Racer");
         if (racerLayer >= 0) SetLayerRecursive(go, racerLayer);
@@ -233,8 +235,14 @@ public class RaceManager : MonoBehaviour
             .Any(c => !(c is CharacterController));
         if (hasRealCollider) return;
 
-        var rends = go.GetComponentsInChildren<Renderer>();
+        // 몸통 크기는 동물 본체(SkinnedMesh)만으로 산출 — 번호판 큐브나
+        // 월드 TMP(렉트가 거대함) 같은 부속이 끼면 캡슐이 왜곡돼 바닥을 뚫음
+        var all = go.GetComponentsInChildren<Renderer>();
+        var rends = all.Where(r => r is SkinnedMeshRenderer).ToArray();
+        if (rends.Length == 0)
+            rends = all.Where(r => r.GetComponent<TMPro.TMP_Text>() == null).ToArray();
         if (rends.Length == 0) return;
+
         var b = rends[0].bounds;
         foreach (var r in rends) b.Encapsulate(r.bounds);
 

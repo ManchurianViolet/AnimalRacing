@@ -20,3 +20,4 @@ MonoBehaviour:
   maxSpeed: 85
   speedRerollInterval: 15
   acceleration: 45
+  skill: 1

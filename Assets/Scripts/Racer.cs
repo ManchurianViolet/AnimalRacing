@@ -30,7 +30,41 @@ public class Racer : MonoBehaviour
 
     private readonly List<StatusEffect> effects = new();
 
-    /// <summary>현재 유효 최고속도 = 리롤된 속도 × 아이템 배율.</summary>
+    // ---- 스킬 상태 ----
+    private float trackLength = 1f;     // RaceManager가 세팅 (진행률 계산용)
+    private float raceTime;             // 이번 레이스 경과 (치킨)
+    private bool isLastPlace;           // RaceManager가 매 틱 세팅 (개)
+    private float activeTriggerRatio;   // 액티브 발동 진행률 (호랑이/고양이)
+    private bool activeConsumed;
+    private float alertPending = -1f;   // 사슴: 발동 대기 타이머
+
+    public float ProgressRatio => Progress / Mathf.Max(1f, trackLength);
+    public bool IsStunned
+    {
+        get { foreach (var e in effects) if (e.type == StatusEffectType.Stun) return true; return false; }
+    }
+
+    public void SetTrackLength(float len) => trackLength = Mathf.Max(1f, len);
+    public void SetLastPlace(bool last) => isLastPlace = last;
+
+    /// <summary>[호랑이] 액티브 발동 시점 도달 & 미사용이면 소비하고 true.</summary>
+    public bool TryConsumeAmbush()
+    {
+        if (Definition.skill != AnimalSkill.Ambush || activeConsumed) return false;
+        if (ProgressRatio < activeTriggerRatio) return false;
+        activeConsumed = true;
+        return true;
+    }
+
+    /// <summary>[사슴] 근처 아이템 폭발 감지 — 지연 후 도주 가속.</summary>
+    public void TriggerAlert()
+    {
+        if (Definition.skill != AnimalSkill.Alert || HasFinished) return;
+        if (alertPending >= 0f) return;   // 이미 대기 중
+        alertPending = SkillTuning.AlertDelay;
+    }
+
+    /// <summary>현재 유효 최고속도 = 리롤 속도 × 아이템 배율 × 스킬 배율 (스턴 = 0).</summary>
     public float CurrentMaxSpeed
     {
         get
@@ -38,10 +72,28 @@ public class Racer : MonoBehaviour
             float m = 1f;
             foreach (var e in effects)
             {
+                if (e.type == StatusEffectType.Stun) return 0f;
                 if (e.type == StatusEffectType.Boost) m *= e.magnitude;
                 if (e.type == StatusEffectType.Slow)  m *= e.magnitude;
             }
-            return smoothedSpeed * m;
+            return smoothedSpeed * m * SkillMultiplier();
+        }
+    }
+
+    /// <summary>자기 완결형 패시브 배율 (말/개/치킨).</summary>
+    private float SkillMultiplier()
+    {
+        switch (Definition.skill)
+        {
+            case AnimalSkill.FinalSprint:
+                return ProgressRatio >= SkillTuning.FinalSprintZone ? SkillTuning.FinalSprintMult : 1f;
+            case AnimalSkill.Loyalty:
+                return isLastPlace ? SkillTuning.LoyaltyMult : 1f;
+            case AnimalSkill.Dash:
+                if (raceTime < SkillTuning.DashTime) return SkillTuning.DashMult;
+                if (raceTime < SkillTuning.DashTime + SkillTuning.DashFatigueTime) return SkillTuning.DashFatigueMult;
+                return 1f;
+            default: return 1f;
         }
     }
 
@@ -61,6 +113,13 @@ public class Racer : MonoBehaviour
 
         RollSpeed();
         smoothedSpeed = rolledSpeed;   // 시작은 즉시 적용
+
+        // 스킬 상태 초기화
+        raceTime = 0f;
+        isLastPlace = false;
+        activeConsumed = false;
+        alertPending = -1f;
+        activeTriggerRatio = Random.Range(SkillTuning.ActiveMinRatio, SkillTuning.ActiveMaxRatio);
     }
 
     private void RollSpeed()
@@ -73,6 +132,33 @@ public class Racer : MonoBehaviour
 
     public void SimTick(float dt)
     {
+        raceTime += dt;
+
+        // [고양이] 액티브: 발동 지점 도달 시 ±30% 셀프 효과
+        if (Definition.skill == AnimalSkill.Whim && !activeConsumed
+            && ProgressRatio >= activeTriggerRatio && !HasFinished)
+        {
+            activeConsumed = true;
+            bool up = Random.value < 0.5f;
+            effects.Add(new StatusEffect(
+                up ? StatusEffectType.Boost : StatusEffectType.Slow,
+                SkillTuning.WhimDuration,
+                up ? SkillTuning.WhimUp : SkillTuning.WhimDown));
+            GameEvents.RaiseSkillProc($"{DisplayName}의 변덕! {(up ? "폭주한다!" : "드러누웠다...")}");
+        }
+
+        // [사슴] 경계 발동 대기 → 도주 가속
+        if (alertPending >= 0f)
+        {
+            alertPending -= dt;
+            if (alertPending < 0f)
+            {
+                effects.Add(new StatusEffect(StatusEffectType.Boost,
+                    SkillTuning.AlertDuration, SkillTuning.AlertMult));
+                GameEvents.RaiseSkillProc($"{DisplayName}이(가) 놀라서 내달린다!");
+            }
+        }
+
         // 상태이상 갱신
         for (int i = effects.Count - 1; i >= 0; i--)
         {
@@ -104,7 +190,12 @@ public class Racer : MonoBehaviour
         animator.speed = Mathf.Lerp(1.0f, 1.8f, animVert);
     }
 
-    public void AddEffect(StatusEffect effect) => effects.Add(effect);
+    public void AddEffect(StatusEffect effect)
+    {
+        // [펭귄] 무관심: 모든 외부 효과 면역 (이로운 것 포함)
+        if (Definition != null && Definition.skill == AnimalSkill.Apathy) return;
+        effects.Add(effect);
+    }
 
     /// <summary>[클라] 호스트가 방송한 완주 순위 반영 (이벤트 없이 조용히).</summary>
     public void ApplyNetworkFinish(int rank)

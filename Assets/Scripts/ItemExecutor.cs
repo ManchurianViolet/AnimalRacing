@@ -24,6 +24,14 @@ public class ItemExecutor : MonoBehaviour
         var type = item.kind == ItemKind.Boost ? StatusEffectType.Boost : StatusEffectType.Slow;
         target.AddEffect(new StatusEffect(type, item.duration, item.magnitude));
 
+        // [사슴] 근처(대상 포함) 경계 본능 트리거
+        foreach (var r in raceManager.Racers)
+        {
+            if (r == null || r.HasFinished) continue;
+            if (Mathf.Abs(r.Progress - target.Progress) <= SkillTuning.AlertRadius)
+                r.TriggerAlert();
+        }
+
         player.ConsumeItem(item);
         player.StartCooldown(config.GetCooldownFor(GameManager.Instance.PlayerCount));
         GameEvents.RaiseItemUsed(player.PlayerId, item, targetRacerId);

@@ -17,6 +17,10 @@ public static class GameEvents
     public static event Action<int, string> OnItemRejected;
     public static void RaiseItemRejected(int pid, string reason) => OnItemRejected?.Invoke(pid, reason);
 
+    /// <summary>스킬 발동 소식 (타임라인용, 호스트 발생 → 네트워크 중계).</summary>
+    public static event Action<string> OnSkillProc;
+    public static void RaiseSkillProc(string line) => OnSkillProc?.Invoke(line);
+
     public static event Action<int, int> OnRacerFinished;
     public static void RaiseRacerFinished(int rid, int rank) => OnRacerFinished?.Invoke(rid, rank);
 

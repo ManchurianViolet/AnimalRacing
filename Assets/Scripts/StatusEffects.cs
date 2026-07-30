@@ -1,4 +1,4 @@
-public enum StatusEffectType { Boost, Slow }
+public enum StatusEffectType { Boost, Slow, Stun }
 
 [System.Serializable]
 public class StatusEffect

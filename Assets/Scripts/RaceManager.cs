@@ -97,6 +97,7 @@ public class RaceManager : MonoBehaviour
             var racer = go.GetComponent<Racer>();
             if (racer == null) racer = go.AddComponent<Racer>();
             racer.Init(i, def, i + 1);
+            racer.SetTrackLength(path.TotalLength);
             go.GetComponentInChildren<RacerNumberPlate>()?.Apply(i + 1);
 
             var motor = go.GetComponent<RacerMotor>();
@@ -164,6 +165,8 @@ public class RaceManager : MonoBehaviour
         if (!racing) return;
         float dt = Time.deltaTime;
 
+        UpdateSkillContext();
+
         foreach (var r in racers)
         {
             r.SetProgress(path.GetProgress(r.transform.position));
@@ -216,6 +219,7 @@ public class RaceManager : MonoBehaviour
         var racer = go.GetComponent<Racer>();
         if (racer == null) racer = go.AddComponent<Racer>();
         racer.Init(racerId, animalPool[animalIdx], postNumber);
+        racer.SetTrackLength(path.TotalLength);
         go.GetComponentInChildren<RacerNumberPlate>()?.Apply(postNumber);
 
         int racerLayer = LayerMask.NameToLayer("Racer");
@@ -231,8 +235,9 @@ public class RaceManager : MonoBehaviour
     /// </summary>
     private static void EnsureBodyCollider(GameObject go)
     {
+        // 꺼진 콜라이더는 없는 셈 (장식 오브젝트의 콜라이더는 체크 해제로 무시 가능)
         bool hasRealCollider = go.GetComponentsInChildren<Collider>()
-            .Any(c => !(c is CharacterController));
+            .Any(c => c.enabled && !(c is CharacterController));
         if (hasRealCollider) return;
 
         // 몸통 크기는 동물 본체(SkinnedMesh)만으로 산출 — 번호판 큐브나
@@ -251,6 +256,49 @@ public class RaceManager : MonoBehaviour
         cap.center = go.transform.InverseTransformPoint(b.center);
         cap.radius = Mathf.Min(b.extents.x, b.extents.y) * 0.9f;
         cap.height = b.size.z * 0.95f;
+    }
+
+    /// <summary>
+    /// 전역 시야가 필요한 스킬 처리 (매 시뮬 틱, 호스트 전용):
+    /// [개] 꼴등 판정 세팅, [호랑이] 습격 발동 (최근접 탐색 + 스턴).
+    /// </summary>
+    private void UpdateSkillContext()
+    {
+        Racer last = null;
+        foreach (var r in racers)
+        {
+            if (r == null || r.HasFinished) continue;
+            if (last == null || r.Progress < last.Progress) last = r;
+        }
+        foreach (var r in racers)
+        {
+            if (r == null) continue;
+            r.SetLastPlace(r == last);
+        }
+
+        foreach (var tiger in racers)
+        {
+            if (tiger == null || tiger.HasFinished) continue;
+            if (!tiger.TryConsumeAmbush()) continue;
+
+            // 사거리 무제한 — 가장 가까운 주자를 무조건 문다
+            Racer prey = null;
+            float best = float.MaxValue;
+            foreach (var other in racers)
+            {
+                if (other == null || other == tiger || other.HasFinished) continue;
+                float d = Mathf.Abs(other.Progress - tiger.Progress);
+                if (d < best) { best = d; prey = other; }
+            }
+
+            if (prey != null)
+            {
+                prey.AddEffect(new StatusEffect(StatusEffectType.Stun, SkillTuning.AmbushStun, 0f));
+                GameEvents.RaiseSkillProc(prey.IsStunned
+                    ? $"{tiger.DisplayName}이(가) {prey.DisplayName}을(를) 덮쳤다!"
+                    : $"{tiger.DisplayName}이(가) {prey.DisplayName}을(를) 덮쳤지만... 꿈쩍도 안 한다!");
+            }
+        }
     }
 
     /// <summary>[클라] 호스트가 방송한 완주 순위 일괄 반영 (정산판용).</summary>

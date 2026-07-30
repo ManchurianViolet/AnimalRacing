@@ -293,6 +293,7 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
         base.OnEnable();
         GameEvents.OnItemUsed     += HandleItemUsed;
         GameEvents.OnRacerFinished += HandleRacerFinished;
+        GameEvents.OnSkillProc    += HandleSkillProc;
         GameEvents.OnItemRejected += HandleItemRejected;
         GameEvents.OnRaceSettled  += HandleSettled;
         GameEvents.OnBetAccepted  += HandleBetAccepted;
@@ -304,6 +305,7 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
         base.OnDisable();
         GameEvents.OnItemUsed     -= HandleItemUsed;
         GameEvents.OnRacerFinished -= HandleRacerFinished;
+        GameEvents.OnSkillProc    -= HandleSkillProc;
         GameEvents.OnItemRejected -= HandleItemRejected;
         GameEvents.OnRaceSettled  -= HandleSettled;
         GameEvents.OnBetAccepted  -= HandleBetAccepted;
@@ -347,6 +349,15 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
     [PunRPC]
     private void RpcRacerFinished(int racerId, int rank) =>
         GameEvents.RaiseRacerFinished(racerId, rank);
+
+    private void HandleSkillProc(string line)
+    {
+        if (!IsHost) return;
+        photonView.RPC(nameof(RpcSkillProc), RpcTarget.Others, line);
+    }
+
+    [PunRPC]
+    private void RpcSkillProc(string line) => GameEvents.RaiseSkillProc(line);
 
     private void HandleItemRejected(int pid, string reason)
     {

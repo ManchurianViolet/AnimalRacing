@@ -20,6 +20,7 @@ public class TimelineFeed : MonoBehaviour
     {
         GameEvents.OnItemUsed      += HandleItemUsed;
         GameEvents.OnRacerFinished += HandleFinished;
+        GameEvents.OnSkillProc     += HandleSkill;
         GameEvents.OnPhaseChanged  += HandlePhase;
     }
 
@@ -27,6 +28,7 @@ public class TimelineFeed : MonoBehaviour
     {
         GameEvents.OnItemUsed      -= HandleItemUsed;
         GameEvents.OnRacerFinished -= HandleFinished;
+        GameEvents.OnSkillProc     -= HandleSkill;
         GameEvents.OnPhaseChanged  -= HandlePhase;
     }
 
@@ -44,6 +46,8 @@ public class TimelineFeed : MonoBehaviour
         => Push($"<b>[{PlayerName(pid)}]</b> {RacerName(rid)}에게 <color=#FFB020>{item.itemName}</color>!");
     private void HandleFinished(int rid, int rank)
         => Push($"{RacerName(rid)} <b>{rank}위</b> 결승선 통과");
+    private void HandleSkill(string line)
+        => Push($"<color=#8FD3FF>{line}</color>");
 
     private void Push(string line)
     {

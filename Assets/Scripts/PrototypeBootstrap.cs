@@ -96,7 +96,7 @@ public class PrototypeBootstrap : MonoBehaviour
         foreach (var p in matchManager.Players)
         {
             p.SetLoadout(loadout);
-            // 봇: 관문(SubmitBet) 경유 — 사람과 동일하게 잔액에서 차감됨
+            // 봇: 관문(SubmitBet) 경유 — 사람과 동일한 검증
             if (p.IsBot)
                 matchManager.SubmitBet(p.PlayerId, RandomBet(p));
         }
@@ -105,14 +105,8 @@ public class PrototypeBootstrap : MonoBehaviour
     private BetTicket RandomBet(PlayerState p)
     {
         var ids = Enumerable.Range(0, GameManager.Instance.Config.racerCount)
-                            .OrderBy(_ => Random.value).Take(2).ToArray();
-        // 봇 베팅 규모: 잔액의 5~25%씩 ($10 단위, 최소 $10)
-        int a = To10(p.Money * Random.Range(0.05f, 0.25f));
-        int b = To10(p.Money * Random.Range(0.05f, 0.25f));
-        if (a + b > p.Money) { a = To10(p.Money / 2f); b = Mathf.Max(10, (p.Money - a) / 10 * 10); }
-        return new BetTicket { firstId = ids[0], lastId = ids[1], firstAmount = a, lastAmount = b };
+                            .OrderBy(_ => Random.value).Take(3).ToArray();
+        return new BetTicket { firstId = ids[0], secondId = ids[1], thirdId = ids[2] };
     }
-
-    private static int To10(float v) => Mathf.Max(10, Mathf.FloorToInt(v / 10f) * 10);
 
 }

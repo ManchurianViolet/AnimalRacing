@@ -98,11 +98,7 @@ public class PlayerHUD : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.B)) showBet = !showBet;
 
         if (walletText != null)
-        {
-            walletText.text = me.Debt > 0
-                ? $"$ {me.Money:N0}   <color=#FF6B6B>빚 -${me.Debt:N0}</color>"
-                : $"$ {me.Money:N0}";
-        }
+            walletText.text = $"{me.Points:N0} P";
 
         if (betText != null)
             betText.text = BuildBetText(me);
@@ -114,12 +110,13 @@ public class PlayerHUD : MonoBehaviour
 
     private string BuildBetText(PlayerState me)
     {
-        if (!showBet) return "[B] 내 베팅 보기";
-        if (!me.Bet.IsValid(GameManager.Instance.Config.racerCount)) return "베팅 미제출  [B] 숨기기";
+        if (!showBet) return "[B] 내 예측 보기";
+        if (!me.Bet.IsValid(GameManager.Instance.Config.racerCount)) return "예측 미제출  [B] 숨기기";
 
         var sb = new StringBuilder();
         sb.Append("1등  ").Append(RacerName(me.Bet.firstId)).Append('\n');
-        sb.Append("꼴등  ").Append(RacerName(me.Bet.lastId)).Append('\n');
+        sb.Append("2등  ").Append(RacerName(me.Bet.secondId)).Append('\n');
+        sb.Append("3등  ").Append(RacerName(me.Bet.thirdId)).Append('\n');
         sb.Append("[B] 숨기기");
         return sb.ToString();
     }

@@ -32,8 +32,14 @@ public static class GameEvents
     public static void RaiseRaceSettled(RaceResult r) => OnRaceSettled?.Invoke(r);
 
     // ---- 배당 (베팅 페이즈 시작 시 계산 완료 알림 — 베팅 UI가 구독) ----
-    public static event Action<OddsCalculator.AnimalOdds[]> OnOddsReady;
-    public static void RaiseOddsReady(OddsCalculator.AnimalOdds[] odds) => OnOddsReady?.Invoke(odds);
 }
 
 public enum GamePhase { Lobby, Betting, Loadout, Countdown, Racing, Settlement }
+
+/// <summary>라운드 정산 결과 (포인트제): 상위 3두 + 플레이어별 획득 포인트.</summary>
+public class RaceResult
+{
+    public int round;
+    public int firstId, secondId, thirdId;
+    public System.Collections.Generic.Dictionary<int, int> pointsGained = new();   // playerId → 획득
+}

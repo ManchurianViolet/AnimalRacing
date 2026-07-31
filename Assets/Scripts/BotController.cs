@@ -30,19 +30,10 @@ public class BotController : MonoBehaviour
         if (running.Count < 2) return;
 
         var myFirst = raceManager.GetRacer(bot.Bet.firstId);
-        var myLast  = raceManager.GetRacer(bot.Bet.lastId);
         var slow  = bot.Items.FirstOrDefault(i => i.kind == ItemKind.Slow);
         var boost = bot.Items.FirstOrDefault(i => i.kind == ItemKind.Boost);
 
-        // 1순위: 꼴등픽 관리
-        if (slow != null && myLast != null && !myLast.HasFinished &&
-            running[^1].RacerId != bot.Bet.lastId)
-        {
-            executor.TryUseItem(bot, slow, bot.Bet.lastId);
-            return;
-        }
-
-        // 2순위: 1등픽 밀어주기
+        // 1순위: 1등픽이 선두가 아니면 밀어주기
         if (boost != null && myFirst != null && !myFirst.HasFinished &&
             running[0].RacerId != bot.Bet.firstId)
         {
@@ -50,8 +41,12 @@ public class BotController : MonoBehaviour
             return;
         }
 
-        // 3순위: 남는 감속은 현재 선두 견제
-        if (slow != null && running[0].RacerId != bot.Bet.firstId)
-            executor.TryUseItem(bot, slow, running[0].RacerId);
+        // 2순위: 내 픽이 아닌 침입자가 선두면 감속 견제
+        int leaderId = running[0].RacerId;
+        bool leaderIsMyPick = leaderId == bot.Bet.firstId
+                           || leaderId == bot.Bet.secondId
+                           || leaderId == bot.Bet.thirdId;
+        if (slow != null && !leaderIsMyPick)
+            executor.TryUseItem(bot, slow, leaderId);
     }
 }

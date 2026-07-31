@@ -17,21 +17,26 @@ MonoBehaviour:
   slowCount: 3
   itemCooldown: 5
   cooldownFor2P: 5
-  startMoney: 1000
-  autoLoanThreshold: 2
-  autoLoanAmount: 200
-  atmLoanThreshold: 100
-  atmLoanSmall: 300
-  atmLoanLarge: 500
-  totalBorrowLimit: 1000
-  atmAvailableFromRound: 2
-  interestRate: 0.3
-  autoBetAmount: 100
-  oddsSimCount: 1000
+  pointsFirst: 100
+  pointsSecond: 50
+  pointsThird: 30
   defaultRounds: 3
-  bettingSeconds: 80
+  bettingSeconds: 5
   loadoutSeconds: 2
   countdownSeconds: 2
   resultSeconds: 15
   lookAhead: 4
   maxAssistAccel: 20
+  racingLineLookAhead: 9
+  insideBiasStrength: 0.7
+  curvatureSaturation: 6
+  roadMargin: 1.2
+  avoidLookAhead: 2.6
+  bodyClearance: 1.1
+  overtakeShift: 1.6
+  blockedSpeedFactor: 0.9
+  lateralSmoothTime: 0.45
+  lateralMaxSpeed: 3.5
+  sideBySideRange: 1.5
+  debugMotorGizmos: 1
+  debugProgressLog: 1

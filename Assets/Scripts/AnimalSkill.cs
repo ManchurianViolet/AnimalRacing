@@ -1,7 +1,7 @@
 /// <summary>
 /// 동물 스킬 목록 + 튜닝 상수 (단일 출처).
 /// 확장 규칙: 새 동물은 기존 스킬 재사용 가능, 새 스킬은 enum 추가 + 세 곳 반영
-/// (Racer/RaceManager 본 시뮬, OddsCalculator 몬테카를로, 안내판 문구).
+/// (Racer/RaceManager 본 시뮬, 안내판 문구).
 /// </summary>
 public enum AnimalSkill
 {

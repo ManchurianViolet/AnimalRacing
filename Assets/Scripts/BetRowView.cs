@@ -14,20 +14,19 @@ public class BetRowView : MonoBehaviour
     [SerializeField] private RectTransform ghostTemplate;
     [SerializeField] private Image iconImage;
 
-    [Header("배당")]
-    [SerializeField] private TMP_Text winOddsText;
-    [SerializeField] private TMP_Text lastOddsText;
-
-    private static readonly Color WinPickColor  = new Color32(0xFF, 0xD7, 0x00, 0xFF); // 노랑
-    private static readonly Color LastPickColor = new Color32(0xC9, 0x8D, 0x4B, 0xFF); // 갈색
+    private static readonly Color[] SlotColors =
+    {
+        new Color32(0xFF, 0xD7, 0x00, 0xFF),   // 1등 금
+        new Color32(0xC0, 0xC0, 0xC0, 0xFF),   // 2등 은
+        new Color32(0xCD, 0x7F, 0x32, 0xFF),   // 3등 동
+    };
 
     public int RacerId { get; private set; } = -1;
 
-    private Color winDefaultColor;
-    private Color lastDefaultColor;
+    private Color nameDefaultColor;
     private bool colorsCached;
 
-    public void Bind(Racer racer, Canvas rootCanvas, OddsCalculator.AnimalOdds? odds)
+    public void Bind(Racer racer, Canvas rootCanvas)
     {
         var def = racer.Definition;
         RacerId = racer.RacerId;
@@ -41,25 +40,18 @@ public class BetRowView : MonoBehaviour
 
         if (!colorsCached)
         {
-            if (winOddsText != null) winDefaultColor = winOddsText.color;
-            if (lastOddsText != null) lastDefaultColor = lastOddsText.color;
+            if (nameLabel != null) nameDefaultColor = nameLabel.color;
             colorsCached = true;
         }
 
-        if (winOddsText != null)
-            winOddsText.text = odds.HasValue ? $"×{odds.Value.winOdds:F1}" : "—";
-        if (lastOddsText != null)
-            lastOddsText.text = odds.HasValue ? $"×{odds.Value.lastOdds:F1}" : "—";
-
-        SetHighlight(false, false);
+        SetHighlight(-1);
     }
 
-    /// <summary>패널이 선택 상태에 맞춰 호출. 우승픽=노랑, 꼴등픽=갈색.</summary>
-    public void SetHighlight(bool pickedAsWin, bool pickedAsLast)
+    /// <summary>패널이 선택 상태에 맞춰 호출. slot: -1=없음, 0=1등(금), 1=2등(은), 2=3등(동).</summary>
+    public void SetHighlight(int slot)
     {
-        if (winOddsText != null)
-            winOddsText.color = pickedAsWin ? WinPickColor : winDefaultColor;
-        if (lastOddsText != null)
-            lastOddsText.color = pickedAsLast ? LastPickColor : lastDefaultColor;
+        if (nameLabel == null) return;
+        nameLabel.color = slot >= 0 && slot < SlotColors.Length ? SlotColors[slot] : nameDefaultColor;
+        nameLabel.fontStyle = slot >= 0 ? FontStyles.Bold : FontStyles.Normal;
     }
 }

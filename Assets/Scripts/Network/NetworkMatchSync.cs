@@ -1,5 +1,4 @@
 using Photon.Pun;
-using Photon.Realtime;
 using UnityEngine;
 
 /// <summary>
@@ -20,29 +19,6 @@ public class NetworkMatchSync : MonoBehaviourPunCallbacks
 
     private bool IsHost => PhotonNetwork.InRoom && PhotonNetwork.IsMasterClient;
 
-    public override void OnEnable()
-    {
-        base.OnEnable();
-        GameEvents.OnOddsReady += HandleOddsReady;
-    }
-
-    public override void OnDisable()
-    {
-        base.OnDisable();
-        GameEvents.OnOddsReady -= HandleOddsReady;
-    }
-
-    /// <summary>[호스트] 라운드 중간 입장자에게 이번 라운드 배당 재전송.</summary>
-    public override void OnPlayerEnteredRoom(Player newPlayer)
-    {
-        if (!IsHost || matchManager.CurrentOdds == null) return;
-        var odds = matchManager.CurrentOdds;
-        int n = odds.Length;
-        float[] win = new float[n], last = new float[n];
-        for (int i = 0; i < n; i++) { win[i] = odds[i].winOdds; last[i] = odds[i].lastOdds; }
-        photonView.RPC(nameof(RpcOdds), newPlayer, win, last);
-    }
-
     // ---- 호스트: 주기 방송 ----
 
     private void Update()
@@ -55,15 +31,6 @@ public class NetworkMatchSync : MonoBehaviourPunCallbacks
             (int)GameManager.Instance.CurrentPhase, remaining, matchManager.CurrentRound);
     }
 
-    private void HandleOddsReady(OddsCalculator.AnimalOdds[] odds)
-    {
-        if (!IsHost || odds == null) return;
-
-        int n = odds.Length;
-        float[] win = new float[n], last = new float[n];
-        for (int i = 0; i < n; i++) { win[i] = odds[i].winOdds; last[i] = odds[i].lastOdds; }
-        photonView.RPC(nameof(RpcOdds), RpcTarget.Others, win, last);
-    }
 
     // ---- 클라: 수신 반영 ----
 
@@ -88,22 +55,4 @@ public class NetworkMatchSync : MonoBehaviourPunCallbacks
         matchManager.ApplyNetworkPhaseTimer(remaining);
     }
 
-    [PunRPC]
-    private void RpcOdds(float[] win, float[] last)
-    {
-        int n = win.Length;
-        var odds = new OddsCalculator.AnimalOdds[n];
-        for (int i = 0; i < n; i++)
-        {
-            odds[i] = new OddsCalculator.AnimalOdds
-            {
-                winOdds = win[i],
-                lastOdds = last[i],
-                winProbability = 0.9f / Mathf.Max(1.1f, win[i]),
-                lastProbability = 0.9f / Mathf.Max(1.1f, last[i])
-            };
-        }
-        matchManager.ApplyNetworkOdds(odds);
-        GameEvents.RaiseOddsReady(odds);
-    }
 }

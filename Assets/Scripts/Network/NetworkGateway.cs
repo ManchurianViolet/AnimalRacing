@@ -33,7 +33,6 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
 
     private float nextEconomy;
     private Action<bool> pendingBetCb;
-    private Action<bool> pendingLoanCb;
 
     private bool IsHost => PhotonNetwork.InRoom && PhotonNetwork.IsMasterClient;
     private bool Offline => !PhotonNetwork.InRoom;
@@ -159,20 +158,19 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
 
         var ps = matchManager.Players;
         int n = ps.Count;
-        var ids = new int[n]; var money = new int[n]; var debt = new int[n];
-        var borrowed = new bool[n]; var boost = new int[n]; var slow = new int[n];
+        var ids = new int[n]; var points = new int[n];
+        var boost = new int[n]; var slow = new int[n];
 
         for (int i = 0; i < n; i++)
         {
             var p = ps[i];
-            ids[i] = p.PlayerId; money[i] = p.Money; debt[i] = p.Debt;
-            borrowed[i] = p.BorrowedThisRound;
+            ids[i] = p.PlayerId; points[i] = p.Points;
             boost[i] = p.Items.Count(it => it == boostItem);
             slow[i]  = p.Items.Count(it => it == slowItem);
         }
 
         photonView.RPC(nameof(RpcEconomy), RpcTarget.Others,
-            ids, money, debt, borrowed, boost, slow, matchManager.GetSubmittedIds());
+            ids, points, boost, slow, matchManager.GetSubmittedIds());
 
         // [진단] 아이템 개수 방송 내용 (변화 시에만 출력)
         string snap = string.Join(", ", System.Linq.Enumerable.Range(0, n)
@@ -187,18 +185,14 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
     private string lastItemSnap;
 
     [PunRPC]
-    private void RpcEconomy(int[] ids, int[] money, int[] debt, bool[] borrowed,
+    private void RpcEconomy(int[] ids, int[] points,
                             int[] boost, int[] slow, int[] submittedIds)
     {
         for (int i = 0; i < ids.Length; i++)
         {
             var p = matchManager.GetPlayer(ids[i]);
-            if (p == null)
-            {
-                Debug.LogWarning($"[진단/클라] 경제 방송의 ID {ids[i]}가 내 거울 명단에 없음!");
-                continue;
-            }
-            p.ApplyNetworkEconomy(money[i], debt[i], borrowed[i]);
+            if (p == null) continue;
+            p.ApplyNetworkEconomy(points[i]);
             p.ApplyNetworkItems(boost[i], slow[i], boostItem, slowItem);
         }
         matchManager.ApplyNetworkSubmitted(submittedIds);
@@ -215,13 +209,13 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
         }
         pendingBetCb = callback;
         photonView.RPC(nameof(RpcRequestBet), RpcTarget.MasterClient,
-            t.firstId, t.lastId, t.firstAmount, t.lastAmount);
+            t.firstId, t.secondId, t.thirdId);
     }
 
     [PunRPC]
-    private void RpcRequestBet(int f, int l, int fa, int la, PhotonMessageInfo info)
+    private void RpcRequestBet(int f, int s, int t, PhotonMessageInfo info)
     {
-        var ticket = new BetTicket { firstId = f, lastId = l, firstAmount = fa, lastAmount = la };
+        var ticket = new BetTicket { firstId = f, secondId = s, thirdId = t };
         bool ok = matchManager.SubmitBet(info.Sender.ActorNumber, ticket);
         photonView.RPC(nameof(RpcBetResult), info.Sender, ok);
     }
@@ -230,33 +224,6 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
     private void RpcBetResult(bool ok)
     {
         var cb = pendingBetCb; pendingBetCb = null;
-        cb?.Invoke(ok);
-    }
-
-    // ================= 은행 요청 =================
-
-    public void RequestLoan(int amount, Action<bool> callback)
-    {
-        if (Offline || IsHost)
-        {
-            callback?.Invoke(matchManager.TryAtmLoan(NetworkPlayers.LocalPlayerId, amount));
-            return;
-        }
-        pendingLoanCb = callback;
-        photonView.RPC(nameof(RpcRequestLoan), RpcTarget.MasterClient, amount);
-    }
-
-    [PunRPC]
-    private void RpcRequestLoan(int amount, PhotonMessageInfo info)
-    {
-        bool ok = matchManager.TryAtmLoan(info.Sender.ActorNumber, amount);
-        photonView.RPC(nameof(RpcLoanResult), info.Sender, ok);
-    }
-
-    [PunRPC]
-    private void RpcLoanResult(bool ok)
-    {
-        var cb = pendingLoanCb; pendingLoanCb = null;
         cb?.Invoke(ok);
     }
 
@@ -318,15 +285,14 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
         if (!IsHost) return;
         var target = PhotonNetwork.PlayerList.FirstOrDefault(pl => pl.ActorNumber == pid);
         if (target != null && !target.IsMasterClient)
-            photonView.RPC(nameof(RpcYourBet), target,
-                t.firstId, t.lastId, t.firstAmount, t.lastAmount);
+            photonView.RPC(nameof(RpcYourBet), target, t.firstId, t.secondId, t.thirdId);
     }
 
     [PunRPC]
-    private void RpcYourBet(int f, int l, int fa, int la)
+    private void RpcYourBet(int f, int s, int t)
     {
         var me = matchManager.GetPlayer(NetworkPlayers.LocalPlayerId);
-        me?.SetBet(new BetTicket { firstId = f, lastId = l, firstAmount = fa, lastAmount = la });
+        me?.SetBet(new BetTicket { firstId = f, secondId = s, thirdId = t });
     }
 
     private void HandleItemUsed(int pid, ItemDefinition item, int racerId)
@@ -380,35 +346,41 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
         var ranked = raceManager.GetFinalRanking().Select(x => x.RacerId).ToArray();
         var ps = matchManager.Players;
         int n = ps.Count;
-        var pids = new int[n]; var bf = new int[n]; var bl = new int[n];
-        var af = new int[n]; var al = new int[n]; var pay = new int[n];
+        var pids = new int[n];
+        var p1 = new int[n]; var p2 = new int[n]; var p3 = new int[n];
+        var gained = new int[n];
 
         for (int i = 0; i < n; i++)
         {
             var p = ps[i];
             pids[i] = p.PlayerId;
-            bf[i] = p.Bet.firstId; bl[i] = p.Bet.lastId;
-            af[i] = p.Bet.firstAmount; al[i] = p.Bet.lastAmount;
-            pay[i] = r.payouts.TryGetValue(p.PlayerId, out int v) ? v : 0;
+            p1[i] = p.Bet.firstId; p2[i] = p.Bet.secondId; p3[i] = p.Bet.thirdId;
+            gained[i] = r.pointsGained.TryGetValue(p.PlayerId, out int v) ? v : 0;
         }
 
         photonView.RPC(nameof(RpcSettled), RpcTarget.Others,
-            r.round, r.firstId, r.lastId, ranked, pids, bf, bl, af, al, pay);
+            r.round, ranked, pids, p1, p2, p3, gained);
     }
 
     [PunRPC]
-    private void RpcSettled(int round, int firstId, int lastId, int[] rankedIds,
-                            int[] pids, int[] bf, int[] bl, int[] af, int[] al, int[] pay)
+    private void RpcSettled(int round, int[] rankedIds,
+                            int[] pids, int[] p1, int[] p2, int[] p3, int[] gained)
     {
         raceManager.ApplyNetworkRanking(rankedIds);
 
-        var result = new RaceResult { round = round, firstId = firstId, lastId = lastId };
+        var result = new RaceResult
+        {
+            round = round,
+            firstId  = rankedIds.Length > 0 ? rankedIds[0] : -1,
+            secondId = rankedIds.Length > 1 ? rankedIds[1] : -1,
+            thirdId  = rankedIds.Length > 2 ? rankedIds[2] : -1
+        };
         for (int i = 0; i < pids.Length; i++)
         {
             var p = matchManager.GetPlayer(pids[i]);
             if (p != null)
-                p.SetBet(new BetTicket { firstId = bf[i], lastId = bl[i], firstAmount = af[i], lastAmount = al[i] });
-            result.payouts[pids[i]] = pay[i];
+                p.SetBet(new BetTicket { firstId = p1[i], secondId = p2[i], thirdId = p3[i] });
+            result.pointsGained[pids[i]] = gained[i];
         }
 
         GameEvents.RaiseRaceSettled(result);   // 클라 정산판이 그대로 렌더

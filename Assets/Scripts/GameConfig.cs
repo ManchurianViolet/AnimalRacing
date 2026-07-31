@@ -13,27 +13,10 @@ public class GameConfig : ScriptableObject
     public float itemCooldown = 12f;
     public float cooldownFor2P = 8f;
 
-    [Header("경제")]
-    public int startMoney = 1000;
-    [Tooltip("라운드 시작 시 잔액이 이 값 미만이면 자동 대출 발동 (최소베팅 $1+$1 기준 = 2)")]
-    public int autoLoanThreshold = 2;
-    public int autoLoanAmount = 200;
-    [Tooltip("ATM 추가 대출 자격: 총 자산(보유-빚)이 이 값 미만")]
-    public int atmLoanThreshold = 200;
-    public int atmLoanSmall = 300;
-    public int atmLoanLarge = 500;
-    [Tooltip("누적 대출 원금 상한")]
-    public int totalBorrowLimit = 1000;
-    [Tooltip("ATM 대출 가능 시작 라운드")]
-    public int atmAvailableFromRound = 2;
-    [Tooltip("라운드 경과당 빚 이자율 (0.3 = 복리 30%)")]
-    public float interestRate = 0.3f;
-    [Tooltip("타임아웃 자동 베팅 금액 (픽당)")]
-    public int autoBetAmount = 100;
-
-    [Header("배당")]
-    [Tooltip("몬테카를로 시뮬 횟수")]
-    public int oddsSimCount = 1000;
+    [Header("포인트 (예측 적중 보상 — 슬롯별 독립 채점)")]
+    public int pointsFirst = 100;
+    public int pointsSecond = 50;
+    public int pointsThird = 30;
 
     [Header("매치")]
     public int defaultRounds = 3;
@@ -42,9 +25,41 @@ public class GameConfig : ScriptableObject
     public float countdownSeconds = 3f;
     public float resultSeconds = 8f;
 
-    [Header("주행")]
+    [Header("주행 — 기본")]
     public float lookAhead = 4f;
     public float maxAssistAccel = 20f;
+
+    [Header("주행 — 레이싱 라인 (인코스 수렴)")]
+    [Tooltip("몇 m 앞의 코너를 미리 읽나")]
+    public float racingLineLookAhead = 9f;
+    [Tooltip("인코스로 붙는 강도 (0=직진성향, 1=풀 인코스)")]
+    [Range(0f, 1f)] public float insideBiasStrength = 0.7f;
+    [Tooltip("이 곡률(도/m)이면 풀 인코스로 판단")]
+    public float curvatureSaturation = 6f;
+    [Tooltip("도로 가장자리 여유 (m)")]
+    public float roadMargin = 1.2f;
+
+    [Header("주행 — 회피/자리다툼")]
+    [Tooltip("전방 몇 m의 앞 주자를 장애물로 보나")]
+    public float avoidLookAhead = 2.6f;
+    [Tooltip("이 횡간격(m) 미만이면 같은 라인으로 판단")]
+    public float bodyClearance = 1.1f;
+    [Tooltip("추월 시 옆으로 비키는 폭 (m)")]
+    public float overtakeShift = 1.6f;
+    [Tooltip("갇혔을 때 앞 주자 속도의 몇 배로 추종하나")]
+    [Range(0.5f, 1f)] public float blockedSpeedFactor = 0.9f;
+    [Tooltip("횡 이동 반응 시간 (작을수록 민첩, 너무 작으면 진동)")]
+    public float lateralSmoothTime = 0.45f;
+    [Tooltip("횡 이동 최고 속도 (m/s)")]
+    public float lateralMaxSpeed = 3.5f;
+    [Tooltip("이 진행도 차이(m) 안이면 '나란히'로 보고 횡간격을 유지")]
+    public float sideBySideRange = 1.5f;
+
+    [Header("디버그")]
+    [Tooltip("Scene 뷰에 동물별 조향 목표/상태 라벨 표시")]
+    public bool debugMotorGizmos = true;
+    [Tooltip("진행도 점프/NaN 콘솔 감시")]
+    public bool debugProgressLog = true;
 
     public float GetCooldownFor(int playerCount) =>
         playerCount <= 2 ? cooldownFor2P : itemCooldown;

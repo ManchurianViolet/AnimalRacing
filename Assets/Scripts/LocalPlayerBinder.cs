@@ -11,7 +11,6 @@ public class LocalPlayerBinder : MonoBehaviour
     [Header("내 플레이어를 넘겨받을 소비처들")]
     [SerializeField] private PlayerHUD hud;
     [SerializeField] private BettingTerminal[] bettingTerminals;
-    [SerializeField] private BankTerminal[] bankTerminals;
     [SerializeField] private StartLever startLever;
 
     public void BindLocalPlayer(GameObject playerGo)
@@ -22,8 +21,6 @@ public class LocalPlayerBinder : MonoBehaviour
         if (hud != null) hud.BindLocalPlayer(fpc, interactor);
         if (bettingTerminals != null)
             foreach (var t in bettingTerminals) if (t != null) t.BindLocalPlayer(fpc);
-        if (bankTerminals != null)
-            foreach (var t in bankTerminals) if (t != null) t.BindLocalPlayer(fpc);
         if (startLever != null) startLever.BindLocalPlayer(fpc);
 
         Debug.Log("[Binder] 내 아바타 배선 완료");

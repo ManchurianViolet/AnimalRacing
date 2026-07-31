@@ -98,11 +98,12 @@ public class RaceManager : MonoBehaviour
             if (racer == null) racer = go.AddComponent<Racer>();
             racer.Init(i, def, i + 1);
             racer.SetTrackLength(path.TotalLength);
+            ApplyFrictionless(go);
             go.GetComponentInChildren<RacerNumberPlate>()?.Apply(i + 1);
 
             var motor = go.GetComponent<RacerMotor>();
             if (motor == null) motor = go.AddComponent<RacerMotor>();
-            motor.Init(racer, path, config);
+            motor.Init(racer, path, config, this);
             motor.SimEnabled = false;
 
             racers.Add(racer);
@@ -169,7 +170,15 @@ public class RaceManager : MonoBehaviour
 
         foreach (var r in racers)
         {
-            r.SetProgress(path.GetProgress(r.transform.position));
+            float newProg = path.GetProgressNear(r.transform.position, r.Progress);
+            if (config.debugProgressLog)
+            {
+                if (float.IsNaN(newProg))
+                    Debug.LogError($"[투영] {r.DisplayName} 진행도 NaN! pos={r.transform.position}");
+                else if (Mathf.Abs(newProg - r.Progress) > 8f)
+                    Debug.LogWarning($"[투영점프] {r.DisplayName} {r.Progress:F1}m → {newProg:F1}m");
+            }
+            r.SetProgress(newProg);
             r.SimTick(dt);
 
             if (!r.HasFinished && r.Progress >= path.TotalLength - 0.1f)
@@ -220,6 +229,7 @@ public class RaceManager : MonoBehaviour
         if (racer == null) racer = go.AddComponent<Racer>();
         racer.Init(racerId, animalPool[animalIdx], postNumber);
         racer.SetTrackLength(path.TotalLength);
+        ApplyFrictionless(go);
         go.GetComponentInChildren<RacerNumberPlate>()?.Apply(postNumber);
 
         int racerLayer = LayerMask.NameToLayer("Racer");
@@ -256,6 +266,27 @@ public class RaceManager : MonoBehaviour
         cap.center = go.transform.InverseTransformPoint(b.center);
         cap.radius = Mathf.Min(b.extents.x, b.extents.y) * 0.9f;
         cap.height = b.size.z * 0.95f;
+    }
+
+    private static PhysicsMaterial frictionlessMat;
+
+    /// <summary>
+    /// 동물끼리 밀착 시 마찰 쐐기(교착)로 박히지 않게 — 무마찰 재질 적용.
+    /// 부딪히되 미끄러져 분리되는 몸싸움.
+    /// </summary>
+    private static void ApplyFrictionless(GameObject go)
+    {
+        if (frictionlessMat == null)
+        {
+            frictionlessMat = new PhysicsMaterial("RacerSlick")
+            {
+                dynamicFriction = 0f,
+                staticFriction = 0f,
+                frictionCombine = PhysicsMaterialCombine.Minimum
+            };
+        }
+        foreach (var c in go.GetComponentsInChildren<Collider>())
+            if (c.enabled) c.material = frictionlessMat;
     }
 
     /// <summary>

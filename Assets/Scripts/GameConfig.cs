@@ -14,9 +14,9 @@ public class GameConfig : ScriptableObject
     public float cooldownFor2P = 8f;
 
     [Header("포인트 (예측 적중 보상 — 슬롯별 독립 채점)")]
-    public int pointsFirst = 100;
+    public int pointsFirst = 70;
     public int pointsSecond = 50;
-    public int pointsThird = 30;
+    public int pointsThird = 10;
 
     [Header("매치")]
     public int defaultRounds = 3;

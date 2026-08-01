@@ -4,9 +4,9 @@
     "trackLength": 187.0115966796875,
     "config": {
         "racerCount": 8,
-        "pointsFirst": 100,
+        "pointsFirst": 70,
         "pointsSecond": 50,
-        "pointsThird": 30,
+        "pointsThird": 10,
         "maxAssistAccel": 20.0,
         "curvatureSaturation": 6.0,
         "cornerDecelEnabled": true,

@@ -17,11 +17,11 @@ MonoBehaviour:
   slowCount: 3
   itemCooldown: 5
   cooldownFor2P: 5
-  pointsFirst: 100
+  pointsFirst: 70
   pointsSecond: 50
-  pointsThird: 30
+  pointsThird: 10
   defaultRounds: 3
-  bettingSeconds: 5
+  bettingSeconds: 30
   loadoutSeconds: 2
   countdownSeconds: 2
   resultSeconds: 15
@@ -31,6 +31,10 @@ MonoBehaviour:
   insideBiasStrength: 0.7
   curvatureSaturation: 6
   roadMargin: 1.2
+  cornerDecelEnabled: 1
+  cornerDecelRate: 0.22
+  cornerSenseAhead: 6
+  cornerBrakeGain: 4.5
   avoidLookAhead: 2.6
   bodyClearance: 1.1
   overtakeShift: 1.6

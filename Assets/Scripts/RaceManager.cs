@@ -47,10 +47,14 @@ public class RaceManager : MonoBehaviour
         }
 
         racing = phase == GamePhase.Racing && IsAuthority;
+        // 정산 중에도 모터는 살려둔다 — 완주자는 모터의 완주 분기(산개/정지 연출)만 탄다.
+        // 여기서 꺼버리면 마지막 완주자가 감속을 못 받고 무마찰로 영원히 미끄러진다.
+        bool motorsAlive = IsAuthority &&
+            (phase == GamePhase.Racing || phase == GamePhase.Settlement);
         foreach (var r in racers)
         {
             var motor = r != null ? r.GetComponent<RacerMotor>() : null;
-            if (motor != null) motor.SimEnabled = racing;
+            if (motor != null) motor.SimEnabled = motorsAlive;
         }
     }
 

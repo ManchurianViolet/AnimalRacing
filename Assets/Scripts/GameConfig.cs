@@ -49,6 +49,14 @@ public class GameConfig : ScriptableObject
     [Tooltip("상한 초과 시(코너 진입·스턴·감속 아이템) 제동 게인. 최대 가속 게인(스탯 100 = 4.0)보다 커야 '제동은 전원 동일, 탈출 가속만 스탯 무대'가 성립")]
     public float cornerBrakeGain = 4.5f;
 
+    [Header("주행 — 완주 연출 (결승선 통과 후)")]
+    [Tooltip("완주 후 관성 주행으로 더 나아가는 거리 최소 (m) — 동물마다 랜덤")]
+    public float finishCoastMin = 3f;
+    [Tooltip("완주 후 관성 주행으로 더 나아가는 거리 최대 (m)")]
+    public float finishCoastMax = 8f;
+    [Tooltip("완주 후 좌우로 흩어지는 폭 (중심선 기준 ± m)")]
+    public float finishSpread = 2.2f;
+
     [Header("주행 — 회피/자리다툼")]
     [Tooltip("전방 몇 m의 앞 주자를 장애물로 보나")]
     public float avoidLookAhead = 2.6f;

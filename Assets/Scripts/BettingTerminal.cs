@@ -28,6 +28,12 @@ public class BettingTerminal : MonoBehaviour, IInteractable
 
     private int LocalPlayerId => NetworkPlayers.LocalPlayerId;
 
+    // 단말기 복제 시 인스펙터 배선 누락 사고 방지 — 비어 있으면 씬에서 자동 탐색
+    private void Awake()
+    {
+        if (matchManager == null) matchManager = FindFirstObjectByType<MatchManager>();
+    }
+
     public string Prompt =>
         matchManager.HasSubmitted(LocalPlayerId) ? "베팅 완료됨" : "E - 베팅하기";
 

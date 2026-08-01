@@ -27,6 +27,11 @@ public class RacerMotor : MonoBehaviour
 
     private float stuckTimer;     // 교착 감시견
 
+    // ---- 완주 연출 상태 ----
+    private bool restPicked;      // 휴식 지점을 이미 뽑았나
+    private Vector3 restPoint;    // 결승선 너머의 개인 휴식 지점
+    private Vector3 groundUp = Vector3.up;   // 평활화된 지면 법선 (경사 정렬용)
+
     // ---- 디버그 계기판 상태 (기즈모용 스냅샷) ----
     private Vector3 dbgTarget;
     private float dbgCurv, dbgCornerT, dbgDesiredLat;
@@ -65,7 +70,7 @@ public class RacerMotor : MonoBehaviour
 
         if (racer.HasFinished)
         {
-            rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, Vector3.zero, 3f * dt);
+            FinishCoast(dt);
             return;
         }
 
@@ -217,10 +222,59 @@ public class RacerMotor : MonoBehaviour
 
         // 회전: FreezeRotation이 MoveRotation까지 막으므로 (Unity 6) transform 직접 회전.
         // 물리에서 회전을 완전 몰수한 축이라 충돌 없음.
-        if (to.sqrMagnitude > 0.01f)
-            transform.rotation = Quaternion.Slerp(transform.rotation,
-                Quaternion.LookRotation(to.normalized),
-                racer.Definition.AccelGain * 1.6f * dt);
+        RotateToward(to, racer.Definition.AccelGain * 1.6f, dt);
+    }
+
+    // ---- 완주 연출: 결승선을 지나 저마다 랜덤 거리를 더 달리다 좌우로 흩어져 멈춤 ----
+    private void FinishCoast(float dt)
+    {
+        if (!restPicked)
+        {
+            restPicked = true;
+            float extra = Random.Range(cfg.finishCoastMin, cfg.finishCoastMax);
+            float lat = Random.Range(-cfg.finishSpread, cfg.finishSpread);
+            restPoint = path.GetTargetOnSection((racer.Progress + extra) % path.TotalLength, lat);
+        }
+
+        Vector3 toRest = restPoint - rb.position; toRest.y = 0f;
+        float dist = toRest.magnitude;
+        if (dist < 0.5f)
+        {
+            rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, Vector3.zero, 6f * dt);
+            return;
+        }
+
+        // 남은 거리에 비례해 잦아드는 속도 — 전력질주가 서서히 걸음으로
+        float coast = Mathf.Min(Mathf.Max(rb.linearVelocity.magnitude, 2f), Mathf.Max(1.2f, dist * 1.2f));
+        Vector3 dv = toRest.normalized * coast - rb.linearVelocity; dv.y = 0f;
+        rb.AddForce(Vector3.ClampMagnitude(dv * 3f, cfg.maxAssistAccel), ForceMode.Acceleration);
+        RotateToward(toRest, 4f, dt);
+    }
+
+    // ---- 회전 공통: 발밑 지면 법선에 몸을 정렬 — 다리/경사로에서 수평 부양 방지 ----
+    private void RotateToward(Vector3 dir, float gain, float dt)
+    {
+        groundUp = Vector3.Slerp(groundUp, SampleGroundUp(), 10f * dt);   // 이음새에서 법선 튐 완화
+        Vector3 fwd = Vector3.ProjectOnPlane(dir, groundUp);
+        if (fwd.sqrMagnitude < 1e-4f) return;
+        transform.rotation = Quaternion.Slerp(transform.rotation,
+            Quaternion.LookRotation(fwd.normalized, groundUp), gain * dt);
+    }
+
+    private Vector3 SampleGroundUp()
+    {
+        var hits = Physics.RaycastAll(rb.position + Vector3.up * 1.5f, Vector3.down, 4f,
+                                      ~0, QueryTriggerInteraction.Ignore);
+        float best = float.MaxValue;
+        Vector3 up = Vector3.up;
+        foreach (var h in hits)
+        {
+            // 동물(자신 포함)은 지면이 아님. 벽면(법선이 눕는 면)도 제외
+            if (h.collider.GetComponentInParent<Racer>() != null) continue;
+            if (h.normal.y < 0.4f) continue;
+            if (h.distance < best) { best = h.distance; up = h.normal; }
+        }
+        return up;
     }
 
 #if UNITY_EDITOR

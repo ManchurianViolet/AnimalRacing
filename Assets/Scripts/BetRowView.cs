@@ -1,12 +1,13 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
-/// 출전표 한 행: [레인번호칸] [아이콘] [이름] [우승배당] [꼴등배당]
-/// 선택 시 해당 배당 숫자가 색으로 표시됨 (우승픽=노랑, 꼴등픽=갈색).
+/// 출전표 한 행: [번호] [아이콘] [이름] — 드래그로 예측 슬롯에 배치,
+/// 짧은 클릭으로 상세 안내 팝업. 선택 시 이름이 금/은/동으로 표시.
 /// </summary>
-public class BetRowView : MonoBehaviour
+public class BetRowView : MonoBehaviour, IPointerClickHandler
 {
     [SerializeField] private TMP_Text laneLabel;
     [SerializeField] private TMP_Text nameLabel;
@@ -23,13 +24,18 @@ public class BetRowView : MonoBehaviour
 
     public int RacerId { get; private set; } = -1;
 
+    private Racer racer;
+    private AnimalInfoPopup infoPopup;
+
     private Color nameDefaultColor;
     private bool colorsCached;
 
-    public void Bind(Racer racer, Canvas rootCanvas)
+    public void Bind(Racer racer, Canvas rootCanvas, AnimalInfoPopup infoPopup)
     {
         var def = racer.Definition;
         RacerId = racer.RacerId;
+        this.racer = racer;
+        this.infoPopup = infoPopup;
 
         laneLabel.text = (racer.RacerId + 1).ToString();
         nameLabel.text = def.displayName;
@@ -53,5 +59,11 @@ public class BetRowView : MonoBehaviour
         if (nameLabel == null) return;
         nameLabel.color = slot >= 0 && slot < SlotColors.Length ? SlotColors[slot] : nameDefaultColor;
         nameLabel.fontStyle = slot >= 0 ? FontStyles.Bold : FontStyles.Normal;
+    }
+
+    /// <summary>짧은 클릭 = 상세 안내 팝업. 드래그 시엔 발동 안 함 (EventSystem이 클릭 무효화).</summary>
+    public void OnPointerClick(PointerEventData e)
+    {
+        if (infoPopup != null && racer != null) infoPopup.Show(racer);
     }
 }

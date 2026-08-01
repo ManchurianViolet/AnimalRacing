@@ -25,6 +25,9 @@ public class BettingPanel : MonoBehaviour
     [SerializeField] private BetDropZone zoneSecond;
     [SerializeField] private BetDropZone zoneThird;
 
+    [Header("안내판 팝업")]
+    [SerializeField] private AnimalInfoPopup infoPopup;
+
     [Header("하단")]
     [SerializeField] private TMP_Text balanceText;         // 내 포인트
     [SerializeField] private Button confirmButton;
@@ -63,7 +66,12 @@ public class BettingPanel : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape)) Close();
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            // 팝업이 열려 있으면 팝업만 닫고, 아니면 패널을 닫는다
+            if (infoPopup != null && infoPopup.IsOpen) infoPopup.Hide();
+            else Close();
+        }
     }
 
     public void Open(int playerId, System.Action onClose)
@@ -71,6 +79,7 @@ public class BettingPanel : MonoBehaviour
         this.playerId = playerId;
         this.onClose = onClose;
         gameObject.SetActive(true);
+        if (infoPopup != null) infoPopup.Hide();   // 지난 세션 잔상 방지
         BuildRows();
         Refresh();
     }
@@ -84,7 +93,7 @@ public class BettingPanel : MonoBehaviour
         foreach (var racer in raceManager.Racers)
         {
             var row = Instantiate(rowPrefab, rowsParent);
-            row.Bind(racer, rootCanvas);
+            row.Bind(racer, rootCanvas, infoPopup);
             rows.Add(row);
         }
     }
@@ -158,6 +167,7 @@ public class BettingPanel : MonoBehaviour
 
     public void Close()
     {
+        if (infoPopup != null) infoPopup.Hide();
         gameObject.SetActive(false);
         var cb = onClose; onClose = null;
         cb?.Invoke();

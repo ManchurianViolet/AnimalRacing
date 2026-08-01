@@ -39,6 +39,16 @@ public class GameConfig : ScriptableObject
     [Tooltip("도로 가장자리 여유 (m)")]
     public float roadMargin = 1.2f;
 
+    [Header("주행 — 코너 감속 (가속 스탯의 무대)")]
+    [Tooltip("끄면 기존 주행과 동일 (A/B 비교용)")]
+    public bool cornerDecelEnabled = true;
+    [Tooltip("풀 코너(포화 곡률)에서 깎는 속도 비율 (0.22 = 22% 감속)")]
+    [Range(0f, 0.5f)] public float cornerDecelRate = 0.22f;
+    [Tooltip("몇 m 앞의 코너부터 감속하나 — 레이싱 라인(9m)보다 짧아야 탈출 가속이 코너 '끝'에서 터짐")]
+    public float cornerSenseAhead = 6f;
+    [Tooltip("상한 초과 시(코너 진입·스턴·감속 아이템) 제동 게인. 최대 가속 게인(스탯 100 = 4.0)보다 커야 '제동은 전원 동일, 탈출 가속만 스탯 무대'가 성립")]
+    public float cornerBrakeGain = 4.5f;
+
     [Header("주행 — 회피/자리다툼")]
     [Tooltip("전방 몇 m의 앞 주자를 장애물로 보나")]
     public float avoidLookAhead = 2.6f;

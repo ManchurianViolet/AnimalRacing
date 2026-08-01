@@ -5,7 +5,9 @@ using UnityEngine;
 ///  · 레인은 출발 그리드일 뿐, 주행 중엔 자유 횡위치 (lateral)
 ///  · 코너 전방 곡률을 읽어 인코스로 수렴 (레이싱 라인)
 ///  · 전방의 느린 주자는 빈 쪽으로 비켜 추월, 양쪽이 막히면 감속 추종 (자리다툼)
-/// 속도/스킬/진행도는 Racer.SimTick 소관 — 여기는 "어디로 조향하느냐"만.
+///  · 코너 감속: 전방 곡률만큼 속도 상한을 깎음 — 제동은 전원 동일(강한 고정 게인),
+///    탈출에서 상한을 되찾는 속도만 가속 스탯(AccelGain) 소관
+/// 속도/스킬/진행도는 Racer.SimTick 소관 — 여기는 "조향 + 코너 속도 상한"만.
 /// 호스트 전용 시뮬 (클라 동물은 TransformView 받아쓰기).
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
@@ -28,6 +30,7 @@ public class RacerMotor : MonoBehaviour
     // ---- 디버그 계기판 상태 (기즈모용 스냅샷) ----
     private Vector3 dbgTarget;
     private float dbgCurv, dbgCornerT, dbgDesiredLat;
+    private float dbgSpeed, dbgCap;
     private bool dbgBlocked;
 
     public float Lateral => lateral;
@@ -67,12 +70,25 @@ public class RacerMotor : MonoBehaviour
         }
 
         float myProg = racer.Progress;
-        float speedCap = racer.CurrentMaxSpeed;
+        float baseCap = racer.CurrentMaxSpeed;
         Vector3 flatVel = rb.linearVelocity; flatVel.y = 0f;
 
         // ---- 1) 레이싱 라인: 전방 곡률 → 인코스 목표 ----
         float curv = path.GetSignedCurvatureAhead(myProg, cfg.racingLineLookAhead);
         float cornerT = Mathf.Clamp01(Mathf.Abs(curv) / Mathf.Max(0.1f, cfg.curvatureSaturation));
+
+        // ---- 1.5) 코너 감속: 상한 = 최고속 × (1 − 코너강도 × 감속률) ----
+        // 감지 창(6m)은 레이싱 라인(9m)보다 짧게 — 코너를 거의 다 돌았을 때
+        // 상한이 먼저 회복되기 시작해 "탈출 가속"이 코너 끝에서 터진다.
+        float cornerFactor = 1f;
+        if (cfg.cornerDecelEnabled)
+        {
+            float senseCurv = path.GetSignedCurvatureAhead(myProg, cfg.cornerSenseAhead);
+            float senseT = Mathf.Clamp01(Mathf.Abs(senseCurv)
+                                         / Mathf.Max(0.1f, cfg.curvatureSaturation));
+            cornerFactor = 1f - senseT * cfg.cornerDecelRate;
+        }
+        float speedCap = baseCap * cornerFactor;
 
         // 안쪽 한계 = 빌드 때 구운 접힘 클리핑 표 (전방 구간의 최솟값 — 미리 좁힘)
         float sign = Mathf.Sign(curv);
@@ -116,7 +132,7 @@ public class RacerMotor : MonoBehaviour
             }
 
             if (dp < 0.1f || dp > cfg.avoidLookAhead) continue;          // 이하: 내 전방 근접만
-            if (other.CurrentMaxSpeed > speedCap * 1.02f) continue;      // 더 빠른 놈은 곧 사라짐
+            if (other.CurrentMaxSpeed > baseCap * 1.02f) continue;      // 더 빠른 놈은 곧 사라짐
 
             if (Mathf.Abs(dLat) < cfg.bodyClearance)
             {
@@ -184,10 +200,18 @@ public class RacerMotor : MonoBehaviour
         // 계기판 스냅샷
         dbgTarget = target; dbgCurv = curv; dbgCornerT = cornerT;
         dbgDesiredLat = desiredLat; dbgBlocked = blockedCenter;
+        dbgSpeed = flatVel.magnitude; dbgCap = speedCap;
         Vector3 to = target - rb.position; to.y = 0f;
 
+        // 제동/가속 게인 분리: 상한 초과(코너 진입·스턴·Slow 피격)는 전원 동일한
+        // 강한 제동. 대칭 거버너면 "굼뜬 가속 = 굼뜬 제동"이라 코너 진입에서 번
+        // 거리가 탈출 손해와 정확히 상쇄되어 가속 스탯이 도로 무의미해진다.
+        float gain = racer.Definition.AccelGain;
+        if (flatVel.magnitude > speedCap + 0.15f)
+            gain = Mathf.Max(cfg.cornerBrakeGain, gain);
+
         Vector3 desiredVel = to.normalized * speedCap;
-        Vector3 assist = (desiredVel - flatVel) * racer.Definition.AccelGain;
+        Vector3 assist = (desiredVel - flatVel) * gain;
         assist = Vector3.ClampMagnitude(assist, cfg.maxAssistAccel);
         rb.AddForce(assist, ForceMode.Acceleration);
 
@@ -213,7 +237,7 @@ public class RacerMotor : MonoBehaviour
         UnityEditor.Handles.Label(transform.position + Vector3.up * 2.2f,
             $"#{racer.RacerId} prog {racer.Progress:F1}\n" +
             $"lat {lateral:F1}→{dbgDesiredLat:F1}\n" +
-            $"curv {dbgCurv:F1} T{dbgCornerT:F2}{(dbgBlocked ? " 막힘" : "")}");
+            $"v {dbgSpeed:F1}/{dbgCap:F1}  curv {dbgCurv:F1} T{dbgCornerT:F2}{(dbgBlocked ? " 막힘" : "")}");
     }
 #endif
 }

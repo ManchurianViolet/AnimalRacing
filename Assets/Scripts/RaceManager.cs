@@ -240,7 +240,7 @@ public class RaceManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 몸통 콜라이더 보장: 없으면 렌더러 크기 기반 자동 캡슐 (수제 콜라이더 있으면 스킵).
+    /// 몸통 콜라이더 보장: 없으면 렌더러 크기 기반 자동 캡슐 — 바닥을 발끝에 정렬 (수제 콜라이더 있으면 스킵).
     /// 호스트(물리/조준)와 클라(조준) 공용.
     /// </summary>
     private static void EnsureBodyCollider(GameObject go)
@@ -261,10 +261,21 @@ public class RaceManager : MonoBehaviour
         var b = rends[0].bounds;
         foreach (var r in rends) b.Encapsulate(r.bounds);
 
+        // 바닥이 평평한 박스는 도로 타일 이음새의 유령 모서리 충돌에 걸려 급정지한다.
+        // 캡슐의 둥근 바닥은 이음새를 썰매처럼 타넘음 (수제 캡슐인 사슴으로 검증됨).
+        // 반지름=몸 반높이: 캡슐 바닥이 발끝과 일치(다리 파묻힘 방지)하고 조준 표적도 몸통까지.
+        // 바닥은 루트 아래 0.05까지만 인정 — 바인드 포즈 메시가 루트 밑으로 뻗은 모델(펭귄 -0.3)이
+        // 그대로면 그만큼 공중에 떠 보인다.
+        float rootY = go.transform.position.y;
+        float bottom = Mathf.Max(b.min.y, rootY - 0.05f);
+        float radius = Mathf.Min(b.extents.y, (b.max.y - bottom) * 0.5f) * 0.9f;
+        var capCenter = b.center;
+        capCenter.y = bottom + radius;
+
         var cap = go.AddComponent<CapsuleCollider>();
         cap.direction = 2;
-        cap.center = go.transform.InverseTransformPoint(b.center);
-        cap.radius = Mathf.Min(b.extents.x, b.extents.y) * 0.9f;
+        cap.center = go.transform.InverseTransformPoint(capCenter);
+        cap.radius = radius;
         cap.height = b.size.z * 0.95f;
     }
 

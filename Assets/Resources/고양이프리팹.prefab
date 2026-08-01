@@ -507,6 +507,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 9151071233230724974}
+  - {fileID: 1122967775450829211}
+  - {fileID: 6158363307182712696}
   m_Father: {fileID: 2818957064641233702}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3064277400016393426
@@ -535,12 +537,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3064277400016393426}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: 0.0019989014, y: 0.245, z: -0.027999878}
-  m_LocalScale: {x: 0.010389999, y: 0.16568998, z: 0.16568999}
+  m_LocalRotation: {x: -0.47385654, y: -0.47385687, z: -0.5248423, w: 0.52484304}
+  m_LocalPosition: {x: -0.0020743744, y: -0.010295357, z: 0.024713606}
+  m_LocalScale: {x: 0.0103899995, y: 0.16568999, z: 0.16568995}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 5965439909609968835}
+  m_Father: {fileID: 770348799129486151}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
 --- !u!33 &7740968483062969065
 MeshFilter:
@@ -914,16 +916,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5550791233607168201}
-  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: -0.026992798}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0.00000053485985, y: -0.9986994, z: -0.050986007, w: 0.00000020624903}
+  m_LocalPosition: {x: 0, y: 0, z: 0.036753803}
+  m_LocalScale: {x: 0.99999976, y: 1, z: 0.9999999}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 5965439909609968835}
+  m_Father: {fileID: 770348799129486151}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0.25700003}
+  m_AnchoredPosition: {x: -0.00007600252, y: -0.010519326}
   m_SizeDelta: {x: 0.5, y: 0.5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &2707477998724927270
@@ -1234,8 +1236,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2268134112362631560}
-  - {fileID: 1122967775450829211}
-  - {fileID: 6158363307182712696}
   - {fileID: 587391923539601558}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

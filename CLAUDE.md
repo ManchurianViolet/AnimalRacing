@@ -1,14 +1,15 @@
-「짜고 치는 레이스」(가제) — Claude Code 인수인계 문서 (v3)
+「짜고 치는 레이스」(가제, 영문 후보 Dirty Derby — §8) — Claude Code 인수인계 문서 (v4)
 > 이 문서는 이전 Claude 세션이 다음 세션에게 넘기는 완전 인수인계서다.
 > 독자(Claude Code)는 프로젝트 파일에 직접 접근할 수 있다 — 이 문서는 코드의 지도이자 맥락이다.
 > 코드와 문서가 어긋나면 **코드가 진실**이다 (실제로 문서-코드 불일치 사고 이력 있음).
-> v3 세션(Claude Code + Unity MCP)에서 실맵 트랙 구축·전광판·완주 연출 등 대규모 갱신 — §6 참조.
+> v3 세션(Claude Code + Unity MCP)에서 실맵 트랙 구축·전광판·완주 연출 등 대규모 갱신.
+> v4 세션에서 미니맵 전광판·옆구리 번호판·플레이어-동물 충돌 오프·구름 컨베이어 등 — §6 참조. MCP 검증 루프(플레이 진입→계측→캡처→종료)가 표준 작업 방식으로 정착.
 ---
 0. 유저와 협업 규칙 (가장 먼저 숙지)
 유저 = 제비스튜디오 솔로 인디 개발자 (HorSteal, The DeadLine, Outta Space 출시 경력). AI 협업(vibe coding) 중심 — 코드는 Claude가 전부 작성, 유저는 Unity 에디터 작업 + 테스트 담당.
 에디터 작업 지시는 클릭 단위로 상세하게 (어느 오브젝트, 어느 슬롯, 어떤 순서). 유저는 에디터에 능숙하지만 "무엇을 해야 하는지"는 코드를 모르니 알 수 없다.
 파일 수정 규칙 (Claude Code용): 수정 후 "이번 배치: N개 파일" + 각각 한 줄 사유로 요약 보고. 파일 삭제가 포함되면 삭제 목록을 보고 맨 위에 눈에 띄게 (놓치면 중복 정의 컴파일 에러 — 실제 사고 이력). 컴파일 성공 여부는 유저가 에디터 콘솔로 확인해 준다.
-씬(.unity)/프리팹(.prefab)/메타 파일은 직접 편집 금지 — YAML 수동 수정은 Photon 컴포넌트/GUID 오염 위험. 전부 에디터 지시로 해결할 것.
+씬(.unity)/프리팹(.prefab)/메타 파일은 직접 편집 금지 — YAML 수동 수정은 Photon 컴포넌트/GUID 오염 위험. 씬/프리팹 작업은 Unity MCP(에디터 API라 안전)로 직접 수행이 기본 (v3~), MCP 불가 상황에만 에디터 지시로 폴백. 뮤테이션 전 Application.productName == "AnimalRacing" 검증 습관 필수.
 Unity 6 (6.3): `rb.velocity` 금지 → 반드시 `rb.linearVelocity`. `PhysicMaterial` → `PhysicsMaterial`.
 코드 수정 후 중괄호/소괄호 짝 검증 습관 유지. 정규식 치환 시 `\n` 이스케이프 해석 사고 이력(PlayerHUD 파괴) — 문자열 replace 우선, 치환 후 결과 검증 필수. 기존 파일의 줄바꿈(CRLF/LF 혼재)은 파일별로 보존.
 코드 주석은 한국어. 튜닝 값은 하드코딩하지 말고 GameConfig에 [Tooltip]과 함께 노출.
@@ -81,10 +82,11 @@ SO	min/max/accel	1등	2등	3등	꼴등	EV	캐릭터
 크래시 방장의 유령 자리 60초 점유(4/4로 보임)는 수용된 한계.
 3-6. 기타 확정
 베팅 슬롯: 드래그 교체만, 클릭 취소 없음. 같은 동물 다른 존 이동 시 기존 존 자동 비움.
-안내판(B) 확정: 출전표 행 클릭 → 중앙 팝업 (구현+조립 완료, v3에서 카드 600×500으로 확대). 짧은 탭=팝업, 드래그=베팅 (EventSystem이 드래그 시 클릭 자동 무효화 — DraggableBetIcon이 IPointerDown을 안 먹어서 가능한 구조).
+안내판(B) 확정: 출전표 행 클릭 → 중앙 팝업 (구현+조립 완료, v3에서 카드 600×500 확대, v4에서 Card 스케일 1.5 = 체감 900×750 — 양쪽 tablet 모두). 짧은 탭=팝업, 드래그=베팅 (EventSystem이 드래그 시 클릭 자동 무효화 — DraggableBetIcon이 IPointerDown을 안 먹어서 가능한 구조).
 단말기 2대, 점유 비동기화 수용(점유 RPC는 백로그).
-등번호판: 새들클로스 팔레트(1흰2검3빨4파5노6초7주황8분홍), RacerColors가 단일 출처 — 안내판 팝업 배지도 이것 참조(구현됨), 미래 전광판도 참조할 것.
+등번호판: 새들클로스 팔레트(1흰2검3빨4파5노6초7주황8분홍), RacerColors가 단일 출처 — 안내판 팝업 배지·전광판(대형/미니맵)·미니맵 마커 전부 이것 참조. v4: 등 1판 → 양 옆구리 2판 (등에선 잘 안 보인다는 유저 결정 — §5 프리팹 참조).
 동물끼리 물리 충돌 전면 오프 (원본 문서 누락이었음): RaceManager가 스폰 후 "Racer" 레이어 상호 무시(레이어 없으면 쌍별 IgnoreCollision 폴백). 몸싸움은 물리가 아니라 RacerMotor의 sideRepel 스프링+회피 행동으로만 연출. ApplyFrictionless(무마찰)는 벽/지면 대상 잔존. → "충돌 순간 감속" 류 기능은 물리 이벤트로 못 만들고 근접 판정 기반으로 해야 함.
+플레이어-동물 충돌 오프 확정 (v4 — §8의 F 결정 완료, 유령 통과 채택): RaceManager.IgnorePlayerCollisions()가 씬의 모든 CharacterController × 동물 콜라이더를 쌍별 IgnoreCollision. 호출 3곳 = 호스트 스폰 직후 + RegisterNetworkRacer(클라 등록 — 미러 동물도 CC를 밀어내서 필수) + NetworkPlayerSetup.Awake(재접속 복귀 아바타 커버). 중복 호출 무해. 레이어 방식 불가 사유: 플레이어가 Default 레이어라 Default↔Racer를 끄면 동물이 도로(Default)까지 뚫고 떨어짐.
 3-7. 실맵 1호 트랙 (v3 세션 구축) ★
 유저가 모듈 도로 에셋(Road 오브젝트, 조각 54개)으로 깐 서킷을 InnerLine/OuterLine 웨이포인트로 자동 변환 (MCP 에디터 스크립트 — 각 조각의 차선 라인 메시 정점을 읽어 가장자리 추출 → 조각 연결 그래프 → 루프 워크). 결과: 단면 177쌍, 총 519m, 폭 6.6m(S커브 구간 최대 9.8 — 단면 기울기 과대치, 잔디 밟으면 조임 필요).
 구조 특징: 8자(figure-8) 자기 교차 + 터널 + 다리(터널 지붕 램프, 최고 y≈3) — GetProgressNear 연속성 투영이 자기 교차를 처리, 전역 안/밖 구분 없음(좌우 레일 길이 동일이 정상).
@@ -92,7 +94,7 @@ SO	min/max/accel	1등	2등	3등	꼴등	EV	캐릭터
 테마: 사실상 "레이싱 서킷"으로 진행 중 (타이어 배리어/피트스톱/관중석/터레인 에셋 배치됨). 맵 수정 시 웨이포인트 재생성은 MCP로 재실행 가능(§11 MCP 지식 참조).
 ⚠ V7 밸런스는 구맵 187m 기준 — 새 맵 확정 시 BalanceExport 재추출→시뮬 검증 필요 (§3-4 루프).
 ---
-4. 파일별 상세 (50개 = v2의 49 + v3 신규 1: ScoreboardBoard.cs)
+4. 파일별 상세 (52개 = v3의 50 + v4 신규 2: MinimapBoard.cs, CloudField.cs)
 Core — 게임 흐름
 GameConfig.cs (SO): 전 튜닝의 집. 포인트(100/50/30), 페이즈 시간, racerCount=8, 주행 기본(lookAhead=4/maxAssistAccel=20), 레이싱라인(racingLineLookAhead=9/insideBiasStrength=0.7/curvatureSaturation=6/roadMargin=1.2), 코너 감속(cornerDecelEnabled/Rate=0.22/SenseAhead=6/BrakeGain=4.5), 완주 연출(finishCoastMin=3/Max=8/finishSpread=2.2 — v3), 회피(avoidLookAhead=2.6/bodyClearance=1.1/overtakeShift=1.6/blockedSpeedFactor=0.9/lateralSmoothTime=0.45/lateralMaxSpeed=3.5/sideBySideRange=1.5), 디버그 토글.
 GameManager.cs: 페이즈 상태머신 껍데기(싱글턴). 실질 진행은 MatchManager.
@@ -108,8 +110,8 @@ RacerMotor.cs: 진짜 레이스 주행(호스트 전용). ① 레이싱 라인(�
 Racer.cs: 시뮬 두뇌(리롤 15초, 상태이상, 스킬 상태, 펭귄 면역=AddEffect 관문). CurrentMaxSpeed=리롤×효과×스킬(스턴=0).
 StatusEffects.cs: Boost/Slow/Stun.
 AnimalSkill.cs: 스킬 enum+SkillTuning 상수 단일 출처+DisplayName/Description (안내판 팝업이 사용 중).
-RacerColors.cs / RacerNumberPlate.cs: 번호 색 단일 출처 / 등번호판(SkinnedMesh 제외 자동 탐색).
-RaceManager.cs: 스폰(랜덤 7종+중복1, InstantiationData), 스폰 후 동물 간 충돌 전면 오프(§3-6), 시뮬 루프(연속성 투영+투영점프/NaN 감시, UpdateSkillContext=개 꼴등+호랑이 습격), GetFinalRanking, EnsureBodyCollider(v3 개정: SkinnedMesh 바운즈 기반 "바닥 정렬 캡슐" — 바닥=발끝, 반지름=몸 반높이, 루트 아래 0.05 클램프(펭귄 바인드포즈 -0.3 부양 방지). 박스는 이음새 고스트 충돌로 급정지해서 금지 — §11), ApplyFrictionless. v3: 정산 페이즈에도 모터 SimEnabled 유지(완주 산개 연출 재생 — 끄면 꼴등이 무마찰로 영원히 미끄러짐).
+RacerColors.cs / RacerNumberPlate.cs: 번호 색 단일 출처 / 번호판 — v4 재작성: 자식의 일반 MeshRenderer 전부(=판 큐브들)+TMP 전부에 일괄 적용. 판 개수 가정 없음(현재 옆구리 2판), 직렬화 슬롯 제거·순수 자동 탐색. 컴포넌트는 프리팹 루트에 있음.
+RaceManager.cs: 스폰(랜덤 7종+중복1, InstantiationData), 스폰 후 동물 간 충돌 전면 오프(§3-6), 시뮬 루프(연속성 투영+투영점프/NaN 감시, UpdateSkillContext=개 꼴등+호랑이 습격), GetFinalRanking, EnsureBodyCollider(v3 개정: SkinnedMesh 바운즈 기반 "바닥 정렬 캡슐" — 바닥=발끝, 반지름=몸 반높이, 루트 아래 0.05 클램프(펭귄 바인드포즈 -0.3 부양 방지). 박스는 이음새 고스트 충돌로 급정지해서 금지 — §11. v4: radius/height를 lossyScale로 나눔 — 콜라이더 값은 로컬 단위라 스케일된 프리팹(치킨/고양이 1.5배)에서 겹으로 곱해져 몸이 떠오르던 버그 픽스), ApplyFrictionless. v3: 정산 페이즈에도 모터 SimEnabled 유지(완주 산개 연출 재생 — 끄면 꼴등이 무마찰로 영원히 미끄러짐). v4: IgnorePlayerCollisions(§3-6 플레이어-동물 충돌 오프).
 Content — SO
 AnimalDefinition.cs: 이름/프리팹/스탯(100단위, 100=6.0m/s)/리롤/skill/icon(Sprite — 안내판 팝업 초상화로 자동 연동, 비면 숨김).
 ItemDefinition.cs: Boost/Slow, duration/magnitude, 아이콘.
@@ -124,29 +126,33 @@ BetDropZone.cs / DraggableBetIcon.cs(IBeginDrag/IDrag/IEndDrag만 구현 — IPo
 SettlementPanel.cs / ResultRowView.cs / BetChipView.cs("① 이름 +100P", 적중 초록).
 Scoreboard.cs: 월드스페이스 소형 전광판(페이즈/타이머/라운드) — 원본 문서의 "Tab 현황" 서술은 오류였음. Tab UI는 존재하지 않음.
 ScoreboardBoard.cs (v3 신규): 거대 전광판 두뇌 — 러닝타임 시계(Racing 시작 리셋/정산 정지) + 실시간 순위표(레인 배지=RacerColors, 아이콘=AnimalDefinition.icon 자동, 이름, 현재 속도) + 순위 변동 시 행 슬라이드(anchoredPosition Lerp) + 완주 시 속도→최종 기록 전환(OnRacerFinished 이벤트 — Gateway 중계라 클라도 동작). 진행도·속도는 로컬 위치 기반 계산(GetProgressNear 연속성 투영 — 클라는 미러 위치로 동일 계산). 라인업 변동 자동 감지→행 재구성. 씬의 전광판 오브젝트는 통째로 복붙 가능(내부 참조 자동 리매핑, 로컬 전용이라 네트워크 무관). 튜닝: rowMoveSpeed/speedSmooth 인스펙터.
+MinimapBoard.cs (v4 신규): 미니맵 전광판 두뇌 (전광판1·2에 부착). 좌측 = 트랙 실루엣 미니맵: TrackPath 중심선을 0.4m 간격 샘플→반폭 원 스탬핑으로 640px 텍스처를 런타임 1회 굽기(트랙 정적) + 출발선 표시. 동물마다 "가운데 빈 원"(도넛) 마커가 실시간 이동 — 도넛 스프라이트도 코드 생성(64px, rOut 29/rIn 8/검정 테두리 3.5 — 테두리를 검정으로 구워서 흰/검 레인도 어떤 배경에서든 보임. v4 중 유저 요청으로 rIn 15→8 구멍 축소). 우측 = 간단 순위표(배지+이름만, 행 슬라이드). 진행도는 ScoreboardBoard와 동일한 로컬 위치 기반(GetProgressNear 연속성 투영) — 클라 동작, 네트워크 무관. 라인업 변동 자동 재구성. 튜닝 인스펙터: textureSize/trackColor/startLineColor/markerSize(48)/rowHeight/rowMoveSpeed. ⚠ 전광판2는 몸체가 180° 돌아 있어 미니맵 방향도 반대로 보임(보는 방향 기준) — 유저가 통일 원하면 한쪽 뒤집기 옵션 필요.
+CloudField.cs (v4 신규): 구름 컨베이어 (씬 Clouds에 부착, 자식 25개). 표류 축 driftAxis(기본 월드 Z), 방향 부호는 방 이름 수제 해시(31곱 누적)의 홀짝 — 방 파질 때 확정·전 클라 동일·통신 불필요, 오프라인은 판마다 랜덤. 영역(초기 배치에서 역산)을 margin(60m) 넘게 벗어나면 반대편 가장자리에서 횡위치/높이/크기/회전/속도 재추첨 후 재등장 = 보기엔 절차 생성, 실제론 재활용(스폰/GC 0). 구름별 속도 편차 ±35%로 시차감. 순수 장식 로컬 처리. ⚠ Clouds는 움직이므로 Batching Static 금지.
 TimelineFeed.cs(우측 사건 피드) / ItemSlotView.cs / StartLever.cs(방장 레버, wallsToHide) / PixelBorder.cs([유저 자작] 건드리지 말 것).
 Network
 NetworkLauncher.cs(타이틀: 접속 kr/방 목록/CreateRoom PlayerTtl=60000/LoadLevel) / TitleMenu.cs / RoomListItem.cs.
 NetworkPlayers.cs(LocalPlayerId, IsAuthority, BotIdBase=100).
 NetworkGateway.cs: 요청/중계 허브. RequestSubmitBet→호스트 검증→RpcBetResult+개인 영수증. 경제 방송 1초(ids/points/boost/slow/submitted). RpcSettled→클라 RaceResult 재조립. 5-3(봇 대타/해제/방 재개방/로스터).
-NetworkMatchSync.cs(1초 페이즈/타이머/라운드) / NetworkPlayerSpawner.cs(입장 확정 대기) / NetworkPlayerSetup.cs(미접속=내 것) / LocalPlayerBinder.cs(HUD/단말기/레버 배선) / NetworkRacerSetup.cs(동물 클라 등록) / NetworkSessionGuard.cs(ReconnectAndRejoin, 방장 교체→AbortMatch).
+NetworkMatchSync.cs(1초 페이즈/타이머/라운드) / NetworkPlayerSpawner.cs(입장 확정 대기) / NetworkPlayerSetup.cs(미접속=내 것. v4: Awake 끝에 RaceManager.IgnorePlayerCollisions 호출 — 재접속 복귀 아바타 커버) / LocalPlayerBinder.cs(HUD/단말기/레버 배선) / NetworkRacerSetup.cs(동물 클라 등록) / NetworkSessionGuard.cs(ReconnectAndRejoin, 방장 교체→AbortMatch).
 Editor 전용
 BalanceExporter.cs (신규): §3-4 파이프라인의 유니티 쪽 절반. #if UNITY_EDITOR 전체 래핑(빌드 무포함). 씬 GameManager.config/RaceManager.animalPool을 SerializedObject로 읽음(비공개 필드 접근) — 우선순위: 씬 참조 > 프로젝트 검색.
 ---
 5. 씬/프리팹 배선 현황
-SampleScene: Manager 오브젝트(GameManager+MatchManager+RaceManager+Gateway+MatchSync+SessionGuard+Binder+Spawner+PlayerItemController+Bootstrap), Road(모듈 도로 54조각 — §3-7), Track(신 InnerLine/OuterLine 177점 + 구 라인 _OLD 비활성 보관), Gates(스타트 슬롯 8개 — 출발선 뒤 z=0, 0.8m 간격), 전광판(ScreenBody 큐브 21×13 + 월드 캔버스 + ScoreboardBoard — 트랙 북쪽 상공에서 스폰 방향, Assets/ScoreboardScreen.mat), 레이싱 환경 에셋(타이어 배리어/피트스톱/관중석/터레인/나무), 대기실+벽(StartLever.wallsToHide), 베팅 단말기 2대(tablet/tablet(1) — v3에서 tablet(1) matchManager·Binder[1] 배선 완료), HUD 캔버스, 출발선 오브젝트(라인 위 이동됨)/끝선(비활성 — 통일로 불필요), BotA×3.
+SampleScene: Manager 오브젝트(GameManager+MatchManager+RaceManager+Gateway+MatchSync+SessionGuard+Binder+Spawner+PlayerItemController+Bootstrap), Road(모듈 도로 54조각 — §3-7), Track(신 InnerLine/OuterLine 177점 + 구 라인 _OLD 비활성 보관), Gates(스타트 슬롯 8개 — 출발선 뒤 z=0, 0.8m 간격), 전광판 3대: 대형전광판(x≈80 상공, ScreenBody 21×13 + ScoreboardBoard — 러닝타임/속도형 순위표 유지) + 전광판1(z≈59)·전광판2(z≈-57, 180° 회전) — v4에서 둘 다 ScoreboardBoard 제거→MinimapBoard로 교체 (캔버스 2000×1200: 좌 MapImage 1080×1080+Markers, 우 RowContainer 760폭·배지+이름 행. TimeText/Icon/ValueText 삭제됨. MapImage는 에디터에서 알파 0.04 — 런타임에 텍스처 굽고 흰색 복원), 레이싱 환경 에셋(타이어 배리어/피트스톱/관중석/터레인/나무), Clouds(자식 25개 + CloudField — v4), 대기실+벽(StartLever.wallsToHide), 베팅 단말기 2대(tablet/tablet(1) — 팝업 Card 스케일 1.5), HUD 캔버스, 끝선(비활성 — 통일로 불필요. 출발선 오브젝트는 v4에서 삭제됨 — 회색 큐브 2+초록 큐브 1짜리 장식, 미니맵 출발선은 웨이포인트 기준이라 무관), BotA×3.
 TitleScene(빌드 0): NetworkLauncher+TitleMenu+방 목록 UI.
 NetPlayer 프리팹(Resources): FPC+카메라+PlayerInteractor+PhotonView+TransformView+AnimatorView+NetworkPlayerSetup+NameLabel.
-동물 프리팹 7종(Resources): 모델+Animator+Rigidbody(FreezeRotation)+Racer+RacerMotor+PhotonView+TransformView+AnimatorView+NetworkRacerSetup+RacerNumberPlate+번호판 Cube+TMP. v3: 번호판 Cube+TMP를 전 종 등뼈 본 밑으로 재부모화(사슴 방식 통일 — 달릴 때 등 애니를 따라 출렁임. 리그별 본: 개 spine.005/고양이 spine.006/말 spine.006/치킨 spine.003/펭귄 spine.005/호랑이 spine.010).
-Run In Background 설정됨. 동기화 컴포넌트 변경 시 재빌드 철칙 (v3 변경분은 전부 동기화 무변경 — 단 멀티 테스트는 빌드 갱신 필요).
+동물 프리팹 7종(Resources): 모델+Animator+Rigidbody(FreezeRotation)+Racer+RacerMotor+PhotonView+TransformView+AnimatorView+NetworkRacerSetup+RacerNumberPlate(루트)+번호판. v4: 등 1판 → 양 옆구리 2세트(PlateCubeL/R + PlateNumL/R, 형제 구조)로 교체 — 부모는 v3 그대로 등뼈 본(개 spine.005/고양이 spine.006/말 spine.006/치킨 spine.003/펭귄 spine.005/호랑이 spine.010/사슴 spine.004)이라 달릴 때 출렁임 유지. 옆구리 x오프셋은 스킨드메시 정점 실측(뿔/날개로 바운즈 과대인 사슴·펭귄 대응), TMP는 LookRotation(±x, up)으로 좌우 각각 바깥면·숫자 직립 보장. v4: 치킨·고양이 루트 스케일 1.5배(유저 요청 — 몸통 콜라이더는 스폰 시 자동 산출이라 무추가작업, 대신 §11 콜라이더 로컬 단위 법칙 참조).
+Run In Background 설정됨. 동기화 컴포넌트 변경 시 재빌드 철칙 (v3·v4 변경분은 전부 동기화 무변경 — 단 프리팹 비주얼 변경(번호판/크기)은 클라 로컬 스폰이라 멀티 테스트 시 빌드 갱신 필요).
 ---
-6. 최근 완료 (v3 세션 하이라이트 — Unity MCP 첫 실전 투입)
-실맵 1호 트랙 구축 (§3-7): Road 54조각→웨이포인트 자동 추출, 빈 구간 직선 7타일 자동 배치(gap0~6), 출발선=결승선 통일, 스타트 슬롯 이동. 519m 8자+터널+다리.
-몸통 콜라이더 사가 (§11 지식 2건 획득): 배높이 캡슐(다리 파묻힘) → 박스(이음새 고스트 충돌 급정지+펭귄 부양) → 최종 "바닥 정렬 캡슐". MCP 플레이 모드 자동 검증 루프로 원인 특정(끼인 순간 OverlapBox 접촉 덤프).
-경사 정렬 + 완주 연출 + 꼴등 무한질주 픽스 (RacerMotor/RaceManager/GameConfig): 다리에서 몸 기울임, 결승 후 3~8m 산개 정지, 정산 중 모터 유지.
-거대 전광판 (백로그 C 완료): ScoreboardBoard.cs + 씬 조립 전부 MCP로. 러닝타임+실시간 순위+완주 기록, 레이스 1판 풀 자동 검증 통과.
-번호판 등뼈 본 부착 (프리팹 6종), 안내판 팝업 확대(600×500), tablet(1) 배선 누락 NRE 픽스+폴백.
-아이템 로드아웃 개편 기획 논의 (§8 신규 항목 — 결정 대기).
+6. 최근 완료 (v4 세션 하이라이트 — MCP 검증 루프 정착: 매 작업을 플레이 진입→계측→캡처→종료로 자동 검증)
+미니맵 전광판 (MinimapBoard.cs + 씬 조립): 전광판1·2를 미니맵+간단 순위표로 교체 (대형전광판은 유지). 트랙 실루엣 굽기·도넛 마커·순위 슬라이드 전부 자동 검증+캡처 확인.
+번호판 옆구리 2판 (프리팹 7종 + RacerNumberPlate 재작성): 등판이 잘 안 보인다는 유저 지적 → 좌우 옆구리 각 1판. 정점 실측 배치+TMP 방향 직립. 7종 좌/우 캡처 검증.
+플레이어-동물 충돌 오프 (§8 F 결정 완료): IgnorePlayerCollisions 쌍별 무시, 훅 3곳(호스트 스폰/클라 등록/아바타 스폰). 8쌍 전부 GetIgnoreCollision=true 실측.
+구름 컨베이어 (CloudField.cs): Clouds 25개 재활용 순환, 방 이름 해시로 방향 확정. 1800m 강제 순환 검증.
+치킨·고양이 1.5배 + 부양 버그 픽스: 확대 후 공중부양 → EnsureBodyCollider가 콜라이더 로컬 단위에 스케일 미반영이 원인(§11 신규 법칙). lossyScale 나눔으로 해결, 발끝-지면 3cm 실측 확인.
+자잘: 출발선 오브젝트 삭제, 안내판 팝업 카드 1.5배, 도넛 구멍 축소(rIn 15→8).
+성능 진단 (처방 대기 — §7): URP+SRP Batcher ON, SetPass 76(건강). 문제 = 씬 렌더러 1337개 중 Batching Static 0개(배경745/Track354/Road184가 전부 비정적) + Shadow casters 1279(Shadow Distance 50m). 에디터 147FPS라 당장 문제없으나 저사양 대비 여지 큼.
+게임 제목 논의: 영문 Dirty Derby 추천(§8), 스플래시아트 AI 생성 프롬프트 세트 전달됨.
 ---
 7. ★ 다음 작업 큐 (우선순위순)
 아이템 로드아웃 개편 확정 (§8 첫 항목 — 유저 고민 중): 확정되면 로드아웃/특수권 구현.
@@ -154,13 +160,16 @@ Run In Background 설정됨. 동기화 컴포넌트 변경 시 재빌드 철칙 
 V7 SO 입력 여부 확인 — 미입력이면 §3-3 표대로 입력 안내(7종×3필드).
 치킨 꼴등 39.8% 승인 확인 (§3-3 ⚠) — 처형권 논의(§8)와도 얽힘.
 멀티 실기 테스트 (여전히 0회 — 최대 미검증 리스크): 최신 빌드 1개 뽑고 에디터=호스트로 ① 포인트제 풀사이클(게스트 3픽 제출→영수증→정산 공개→최종 순위) ② 5-3 삼종(게스트 창닫기→봇 대타/재입장→해제, 호스트 창닫기→대기실 복귀+레버 승계+방 재개방, 인터넷 차단→60초 내 복귀) ③ 클라 화면 코너 감속 대열 + 전광판/완주 연출 확인.
-킥 결정 대기: "관전 90초 밀도 패키지" — 전광판(C)은 v3에서 완료됨. 잔여: 익명 저격("누군가 3번을 저격했다!") + 호랑이 습격 연출(포효/흔들림). 유저 ㄱ 답 오면 즉시 구현. 플레이어-동물 충돌(F)도 이때 연동 결정.
-유저 육안 확인 잔여: 다리 오르막에서 동물 기울기(경사 정렬 — 수치 검증 못 함), 완주 산개 체감(밋밋하면 finishCoastMax/finishSpread 조절), S커브 잔디 밟기 여부.
+킥 결정 대기: "관전 90초 밀도 패키지" — 전광판(C)·미니맵 전광판·플레이어-동물 충돌(F, v4 완료)은 해결됨. 잔여: 익명 저격("누군가 3번을 저격했다!") + 호랑이 습격 연출(포효/흔들림). 유저 ㄱ 답 오면 즉시 구현.
+성능 최적화 실행 대기 (v4 진단 완료 — §6): ① 배경/Track/Road에 Batching Static 일괄 체크 (MCP로 가능. ⚠ Clouds는 이제 움직이니 제외, Gates/동물/단말기 등 게임플레이 오브젝트 제외) — 유저 ㄱ 대기. ② Shadow Distance 50→25~30 — 그림이 달라지니 유저가 보면서 결정.
+⚠ 포인트값 문서-코드 불일치 발견 (v4): 문서 §1은 100/50/30인데 GameConfig.cs 필드 기본값은 70/50/10 — SO 실값이 어느 쪽인지 유저 확인 필요 (코드가 진실 원칙이지만 SO 값은 인스펙터에만 있음).
+유저 육안 확인 잔여: 다리 오르막에서 동물 기울기(경사 정렬 — 수치 검증 못 함), 완주 산개 체감(밋밋하면 finishCoastMax/finishSpread 조절), S커브 잔디 밟기 여부, 미니맵 전광판·옆구리 번호판·구름 흐름·치킨/고양이 1.5배 체감(전부 v4 자동 검증은 통과, 감성 판단만 남음), 구름 속도 4m/s 체감(느리면 speed만 ↑).
 ---
 8. 미결 기획 (결정 대기)
 아이템 로드아웃 개편 (v3 논의 — 유저 고민 중): 재화 없이 판마다 공평 5개 = 자유 조합 4개(슬로우/부스터 4:0~0:4) + 특수 1개(발동권 vs 처형권 택1). Claude 평가: 자유 조합 4개 승인 권장(비밀 베팅과 연계된 정보전, 단 519m 트랙에 4개는 밀도 확인 필요 — 개수는 GameConfig로). 발동권은 스킬별 "즉시 발동" 정의표 선행 필요(호랑이=습격 타이밍 조작이 본체, 펭귄=꽝 유지 추천). 처형권은 원안 반대 — "꼴등" 키가 치킨(슬럼프 꼴등이 설계)·개(충성심=꼴등 엔진)와 구조 충돌 + 4인 연쇄 처형 문제. 역제안 A: 진행 70%+ & 판 전체 1회 한정. 역제안 B: 처형권→봉인권(지정 동물 스킬 1회 무효 — 발동권과 공수 대칭).
 킥(최대 난제): 패키지 중 전광판(C)은 완료. 잔여 = 익명 저격 + 호랑이 습격 연출. 진단 = "레이스 관전 90초가 죽은 시간".
-플레이어-동물 충돌(F): 유령 통과 vs 몸 개입+옐로카드. 킥과 연동. (현재 동물끼리는 충돌 오프 — 플레이어와의 충돌은 별개 결정)
+~~플레이어-동물 충돌(F)~~ — v4에서 유령 통과로 확정+구현 완료 (§3-6).
+게임 제목 (v4 논의): 영문 유력 후보 = **Dirty Derby** (Claude 톱픽 — 동물 경마+베팅+반칙이 한 이름에, 검색 안전). Racing Casino는 기각 권고(스팀 "casino" 검색 오염+동물/훅 부재), 우마무스메 변형명은 강력 반대(Cygames 상표 리스크+아류작 인상). 한국명 「짜고 치는 레이스」 유지 투트랙 안 제시됨. 미확정 — 확정 시 스팀 동명 선점 검색 먼저.
 1호 맵 테마: 씬은 사실상 레이싱 서킷 테마로 진행 중(§3-7) — 열대 섬/산골짜기 안은 2호 맵 후보로 이월.
 치킨 꼴등 40% 승인 (§3-3).
 오프라인 자동 시작 vs 레버 통일(표류 중).
@@ -185,6 +194,8 @@ V7 스탯 실전 체감("매 판 우승자가 바뀌는가", 개가 코너 탈�
 스킬 인게임 체감(특히 호랑이 무는 순간)
 코너 감속·완주 연출·전광판의 멀티 화면 검증(TransformView 받아쓰기라 이론상 동일, 전광판은 클라 로컬 계산)
 v3 자동 검증 완료분 (재확인 불요): 신트랙 전원 완주, 이음새 무정지, 펭귄 착지, 완주 산개·기록 전환, 전광판 풀사이클, 순위 슬라이드
+v4 자동 검증 완료분 (재확인 불요): 미니맵 텍스처 굽기·마커 8색 이동·순위 행 재구성(캡처 2회), 옆구리 번호판 7종 좌/우 위치·숫자 직립(캡처 3회), 플레이어×동물 8쌍 충돌 무시 실측, 구름 1800m 순환·영역 유지, 치킨/고양이 착지(발끝-지면 3cm)
+v4 미검증: 옆구리 번호판이 달리기 애니에서 몸을 뚫는지(정지 자세로만 캡처 — 육안 확인 필요), 미니맵 마커의 멀티 클라 화면(로컬 계산이라 이론상 동일)
 ---
 11. 지식 아카이브 (버그/설계 패턴 사전)
 멀티 증상 "온라인인데 오프라인처럼/한쪽에만 존재" = 타이밍 경쟁 1순위 의심. 처방 = "입장 확정까지 대기" (3회 실전).
@@ -201,11 +212,15 @@ Unity 6: FreezeRotation이 MoveRotation까지 차단 → transform 직접 회전
 UI 클릭/드래그 공존: 드래그 핸들러가 IPointerDown을 구현하지 않으면 부모의 IPointerClickHandler와 자연 공존(EventSystem이 드래그 시 클릭 무효화). DraggableBetIcon에 IPointerDown 추가 금지.
 이음새 고스트 충돌 법칙 (v3 세션): 바닥이 평평한 콜라이더(박스)가 지면 콜라이더 이음새(타일 경계)를 끌면 유령 모서리 충돌로 급정지한다 — 지면에 닿는 동적 콜라이더는 바닥이 둥근 캡슐/스피어 필수(썰매처럼 타넘음). 역으로 콜라이더가 지면에 안 닿으면(배높이 캡슐) 이음새 문제는 없지만 시각적 파묻힘 발생. 해법 = "바닥 정렬 캡슐". 스킨드메시 바인드 포즈가 루트 아래로 뻗은 모델(펭귄 -0.3)은 바운즈 기반 콜라이더가 그만큼 떠 보이니 루트 기준 클램프 필요.
 Unity MCP 운용 (v3 세션): ① 유니티 에디터 2개 열려 있으면 최신 디스커버리 파일 쪽에 복불복 연결 — 작업 프로젝트만 열어두고, 뮤테이션 전 Application.productName 검증 습관 필수 (실제로 딴 프로젝트에 붙은 사고 있음, 읽기만 해서 무해했음). ② 도메인 리로드(코드 저장/컴파일) 중 브리지 일시 사망 — "Unity not detected"는 재시도하거나 에디터 포커스 주면 복구. ③ 플레이 모드 진입→페이즈 폴링→끼임 순간 OverlapBox/상태 덤프→종료의 자동 검증 루프가 실전 검증됨 — 레이스류 버그는 이 루프로 재현·특정 가능. ④ 씬 오브젝트 생성·UI 조립·프리팹 구조 변경(PrefabUtility)·SerializedObject 배선 전부 가능 — "에디터 지시" 대신 MCP 직접 수행이 기본이 됨 (YAML 수동 편집 금지 규칙은 여전히 유효, MCP는 에디터 API라 안전).
-프리팹 일괄 수정: PrefabUtility.LoadPrefabContents→수정→SaveAsPrefabAsset 패턴 (번호판 본 부착에 사용). 부착 본은 이름이 아니라 "대상과 최근접 본 탐색"으로 골라야 리그별 번호 차이를 흡수한다.
+프리팹 일괄 수정: PrefabUtility.LoadPrefabContents→수정→SaveAsPrefabAsset 패턴 (번호판 본 부착·옆구리 2판 교체·크기 조정에 사용). 부착 본은 이름이 아니라 "대상과 최근접 본 탐색"으로 골라야 리그별 번호 차이를 흡수한다.
+콜라이더 로컬 단위 법칙 (v4 세션): Collider의 radius/height/center 수치는 로컬 단위 — 유니티가 트랜스폼 스케일을 곱해서 최종 크기를 만든다. 월드 크기(렌더러 바운즈)로 계산한 값을 그대로 넣으면 스케일된 프리팹에서 겹으로 곱해짐 (치킨/고양이 1.5배 → 캡슐 1.5배 → 바닥이 발끝보다 낮아져 공중부양 실사고). 처방 = lossyScale로 나눠 넣기 (center는 InverseTransformPoint가 알아서 처리). 동물 크기를 또 만질 일 있으면 이제 자동으로 맞음.
+바운즈 vs 정점 실측 (v4 세션): 부위(뿔/날개)가 튀어나온 모델은 렌더러 바운즈가 몸통보다 크게 잡힌다 (사슴 뿔 x, 펭귄 날개 x) — 몸 표면에 뭔가 붙일 땐 스킨드메시 sharedMesh.vertices를 높이/구간 밴드로 필터해 실측할 것 (옆구리 번호판에 사용, localToWorldMatrix 변환).
+MCP 플레이 검증 시 SO 주의 (v4 세션): 플레이 모드 중 GameConfig 같은 SO 에셋 값 변경(예: bettingSeconds 30→4로 단축해 레이스 빨리 돌리기)은 씬 오브젝트와 달리 플레이 종료 후에도 남는다 — 검증 끝나면 반드시 원값 복원. 씬 오브젝트/컴포넌트 값 변경은 종료 시 자동 롤백이라 자유. 에디트 모드에서 renderer.material 접근 시 "Instantiating material" 에러 로그 = 무해(임시 오브젝트면 삭제로 정리됨).
+전광판1 정면 캡처 팁 (v4): 임시 카메라 (7.3, 15.9, 33)에서 +z 방향, FOV 46 — 단 +x 원거리에 대형전광판이 걸려 배경에 검은 판이 찍히는 건 정상.
 ---
 12. 디버그 도구 (켜져 있음 — 출시 전 끌 것)
 GameConfig.debugMotorGizmos: Scene 뷰 동물 목표선+라벨 `#id prog / lat→desired / v 현재속도/상한 / curv T 막힘` — v의 상한이 코너에서 내려가고 탈출에서 회복을 동물별 다른 기울기로 쫓아가면 코너 감속 정상 작동.
 GameConfig.cornerDecelEnabled: 코너 감속 A/B 토글.
 GameConfig.debugProgressLog: [투영점프]/NaN 감시.
 TrackPath 빌드 검진 로그+기즈모.
-— 끝. 코드가 진실, 이 문서는 지도다. 첫 안건은 §7 순서대로: 아이템 개편 확정 → 새 맵 밸런스 검증 → V7 입력 확인 → 치킨 40% → 멀티 실기 → 킥 ㄱ/아니오.
+— 끝. 코드가 진실, 이 문서는 지도다. 첫 안건은 §7 순서대로: 아이템 개편 확정 → 새 맵 밸런스 검증 → V7 입력 확인 → 치킨 40% → 멀티 실기(프리팹 변경분 있으니 빌드 새로) → 킥 ㄱ/아니오 → 성능 최적화 ㄱ(정적 배칭) → 포인트값 SO 확인.

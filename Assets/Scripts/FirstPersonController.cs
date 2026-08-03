@@ -19,6 +19,13 @@ public class FirstPersonController : MonoBehaviour
     [SerializeField] private float pitchMin = -80f;
     [SerializeField] private float pitchMax = 80f;
 
+    [Header("시점 — 눈 위치를 머리에 물리기")]
+    [Tooltip("눈이 될 머리 본. 비우면 이름으로 자동 탐색(Head). " +
+             "루트에 고정하면 달리기 애니가 상체를 숙일 때 카메라가 몸 안으로 들어가 몸통이 뚫려 보인다")]
+    [SerializeField] private Transform headBone;
+    [Tooltip("머리 본 기준 눈 위치 (몸 기준축: z=앞, y=위). z는 얼굴 앞면보다 앞이어야 머리 속이 안 보인다")]
+    [SerializeField] private Vector3 eyeOffset = new Vector3(0f, 0.05f, 0.25f);
+
     [Header("애니메이터 (에셋 규약)")]
     [SerializeField] private Animator animator;
     [SerializeField] private string horID = "Hor";
@@ -42,7 +49,23 @@ public class FirstPersonController : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         if (animator == null) animator = GetComponentInChildren<Animator>();
+        if (headBone == null)
+        {
+            foreach (var t in GetComponentsInChildren<Transform>(true))
+                if (t.name == "Head") { headBone = t; break; }
+        }
         ApplyCursor();
+    }
+
+    /// <summary>
+    /// 눈을 머리 본에 따라붙인다. 애니메이터가 본을 갱신한 뒤여야 하므로 LateUpdate.
+    /// 회전은 건드리지 않는다 — 시점은 마우스(pitch)와 몸통(yaw)이 결정하고,
+    /// 머리 본에서는 위치만 빌려온다 (애니메이션 고갯짓이 화면을 흔들면 멀미남).
+    /// </summary>
+    private void LateUpdate()
+    {
+        if (cameraPivot == null || headBone == null) return;
+        cameraPivot.position = headBone.position + transform.rotation * eyeOffset;
     }
 
     /// <summary>UI 사용 중 조작 잠금/해제. 커서 상태도 함께 전환.</summary>

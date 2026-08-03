@@ -73,6 +73,22 @@ public class GameConfig : ScriptableObject
     [Tooltip("이 진행도 차이(m) 안이면 '나란히'로 보고 횡간격을 유지")]
     public float sideBySideRange = 1.5f;
 
+    [Header("연출 — 부스트 먼지구름")]
+    [Tooltip("먼지 파티클 머티리얼. 비우면 런타임 자동 생성하지만, 빌드 셰이더 스트립을 피하려면 채워두는 게 안전")]
+    public Material boostDustMaterial;
+    [Tooltip("초당 먼지 개수 (속도에 따라 0.5~1.6배 가감). 너무 많으면 뭉개져서 카툰 느낌이 죽는다")]
+    public float dustRate = 14f;
+    [Tooltip("먼지 하나가 사는 시간 (초) — 길수록 꼬리가 길게 남는다")]
+    public float dustLifetime = 0.7f;
+    [Tooltip("먼지 크기 배율 (기본 크기는 동물 몸 높이에 비례)")]
+    public float dustSize = 1f;
+    [Tooltip("먼지 색")]
+    public Color dustColor = new Color(0.95f, 0.90f, 0.78f, 1f);
+    [Tooltip("이 속도(m/s) 미만이면 먼지 안 남김 — 스턴/정지 중 헛김 방지")]
+    public float dustMinSpeed = 1.5f;
+    [Tooltip("부스트 시작 순간 터지는 큰 먼지 개수")]
+    public int dustBurst = 8;
+
     [Header("디버그")]
     [Tooltip("Scene 뷰에 동물별 조향 목표/상태 라벨 표시")]
     public bool debugMotorGizmos = true;

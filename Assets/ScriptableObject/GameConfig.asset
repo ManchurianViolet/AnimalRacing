@@ -35,6 +35,9 @@ MonoBehaviour:
   cornerDecelRate: 0.22
   cornerSenseAhead: 6
   cornerBrakeGain: 4.5
+  finishCoastMin: 3
+  finishCoastMax: 8
+  finishSpread: 2.2
   avoidLookAhead: 2.6
   bodyClearance: 1.1
   overtakeShift: 1.6
@@ -42,5 +45,12 @@ MonoBehaviour:
   lateralSmoothTime: 0.45
   lateralMaxSpeed: 3.5
   sideBySideRange: 1.5
+  boostDustMaterial: {fileID: 2100000, guid: bab8abd6abc931541958923820f8326d, type: 2}
+  dustRate: 14
+  dustLifetime: 0.7
+  dustSize: 1
+  dustColor: {r: 0.95, g: 0.9, b: 0.78, a: 1}
+  dustMinSpeed: 1.5
+  dustBurst: 7
   debugMotorGizmos: 1
   debugProgressLog: 1

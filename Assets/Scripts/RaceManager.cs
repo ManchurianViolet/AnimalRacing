@@ -110,6 +110,8 @@ public class RaceManager : MonoBehaviour
             motor.Init(racer, path, config, this);
             motor.SimEnabled = false;
 
+            EnsureDustFx(go, racer);
+
             racers.Add(racer);
         }
 
@@ -258,6 +260,7 @@ public class RaceManager : MonoBehaviour
         racer.SetTrackLength(path.TotalLength);
         ApplyFrictionless(go);
         go.GetComponentInChildren<RacerNumberPlate>()?.Apply(postNumber);
+        EnsureDustFx(go, racer);   // 먼지는 순수 로컬 연출 — 클라도 자기 화면에서 직접 재생
 
         int racerLayer = LayerMask.NameToLayer("Racer");
         if (racerLayer >= 0) SetLayerRecursive(go, racerLayer);
@@ -267,6 +270,14 @@ public class RaceManager : MonoBehaviour
 
         // 클라에도 플레이어-동물 충돌 무시 필요 (미러 동물은 kinematic이지만 CC가 밀려남)
         IgnorePlayerCollisions();
+    }
+
+    /// <summary>부스트 먼지구름 연출 부착 (호스트·클라 공용, 순수 로컬 재생).</summary>
+    private void EnsureDustFx(GameObject go, Racer racer)
+    {
+        var fx = go.GetComponent<BoostDustFx>();
+        if (fx == null) fx = go.AddComponent<BoostDustFx>();
+        fx.Init(racer, config);
     }
 
     /// <summary>

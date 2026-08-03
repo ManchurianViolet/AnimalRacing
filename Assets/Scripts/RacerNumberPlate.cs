@@ -2,37 +2,25 @@ using TMPro;
 using UnityEngine;
 
 /// <summary>
-/// 동물 몸의 등번호판: 배경(큐브) 색 + 번호 텍스트를 출전 번호에 맞게 세팅.
-/// 슬롯을 비워두면 자동 탐색: TMP는 자식에서, 배경은 자식 중 MeshRenderer
-/// (동물 몸은 SkinnedMesh라 일반 MeshRenderer = 번호판 큐브라는 가정).
+/// 동물 몸의 등번호판 (양 옆구리 2개): 배경(큐브) 색 + 번호 텍스트를 출전 번호에 맞게 세팅.
+/// 자동 탐색으로 자식의 판 전부 적용: 일반 MeshRenderer 전부 = 번호판 큐브
+/// (동물 몸은 SkinnedMesh라는 가정), TMP 전부 = 번호 텍스트. 판이 몇 개든 동일 적용.
 /// RaceManager가 스폰/등록 시 Apply 호출 — 호스트/클라 공통.
 /// </summary>
 public class RacerNumberPlate : MonoBehaviour
 {
-    [Header("비워두면 자동 탐색")]
-    [SerializeField] private Renderer plateRenderer;
-    [SerializeField] private TMP_Text numberText;
-
     public void Apply(int postNumber)
     {
-        if (numberText == null) numberText = GetComponentInChildren<TMP_Text>(true);
-        if (plateRenderer == null)
+        foreach (var r in GetComponentsInChildren<MeshRenderer>(true))
         {
-            foreach (var r in GetComponentsInChildren<MeshRenderer>(true))
-            {
-                if (r.GetComponent<TMP_Text>() != null) continue;   // TMP 자체 렌더러 제외
-                plateRenderer = r;
-                break;
-            }
+            if (r.GetComponent<TMP_Text>() != null) continue;   // TMP 자체 렌더러 제외
+            r.material.color = RacerColors.Of(postNumber);
         }
 
-        if (plateRenderer != null)
-            plateRenderer.material.color = RacerColors.Of(postNumber);
-
-        if (numberText != null)
+        foreach (var t in GetComponentsInChildren<TMP_Text>(true))
         {
-            numberText.text = postNumber.ToString();
-            numberText.color = RacerColors.TextOn(postNumber);
+            t.text = postNumber.ToString();
+            t.color = RacerColors.TextOn(postNumber);
         }
     }
 }

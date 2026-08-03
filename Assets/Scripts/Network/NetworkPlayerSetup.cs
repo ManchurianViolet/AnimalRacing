@@ -49,6 +49,9 @@ public class NetworkPlayerSetup : MonoBehaviourPun
         {
             gameObject.name = $"Player(원격 {photonView.Owner?.NickName})";
         }
+
+        // 플레이어-동물 충돌 무시 (기획 확정: 유령 통과) — 매치 중 재접속 복귀 아바타도 커버
+        FindFirstObjectByType<RaceManager>()?.IgnorePlayerCollisions();
     }
 
     private void LateUpdate()

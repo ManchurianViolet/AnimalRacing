@@ -129,6 +129,9 @@ public class RaceManager : MonoBehaviour
                 "임시로 쌍별 IgnoreCollision을 사용합니다.");
             StartCoroutine(IgnorePairsNextFrame());
         }
+
+        // 플레이어와 동물 충돌 전면 무시 (기획 확정: 유령 통과)
+        IgnorePlayerCollisions();
     }
 
     private void SetLayerRecursive(GameObject go, int layer)
@@ -150,6 +153,26 @@ public class RaceManager : MonoBehaviour
                     foreach (var cb in racers[b].GetComponentsInChildren<Collider>())
                         if (ca != null && cb != null)
                             Physics.IgnoreCollision(ca, cb, true);
+            }
+    }
+
+    /// <summary>플레이어 아바타와 동물 충돌 전면 무시 (기획 확정: 유령 통과).
+    /// 동물 스폰 직후와 아바타 스폰 시(매치 중 재접속 복귀 포함) 양쪽에서 호출된다. 중복 호출 무해.</summary>
+    public void IgnorePlayerCollisions()
+    {
+        StartCoroutine(IgnorePlayersNextFrame());
+    }
+
+    // 다음 프레임 등록: 에셋 잔여 컴포넌트가 프레임 끝에 제거되는 타이밍 회피 (쌍별 폴백과 동일)
+    private System.Collections.IEnumerator IgnorePlayersNextFrame()
+    {
+        yield return null;
+        foreach (var cc in FindObjectsByType<CharacterController>(FindObjectsSortMode.None))
+            foreach (var racer in racers)
+            {
+                if (racer == null) continue;
+                foreach (var col in racer.GetComponentsInChildren<Collider>())
+                    if (col != null && col != cc) Physics.IgnoreCollision(cc, col, true);
             }
     }
 
@@ -241,6 +264,9 @@ public class RaceManager : MonoBehaviour
 
         racers.Add(racer);
         racers.Sort((a, b) => a.RacerId.CompareTo(b.RacerId));
+
+        // 클라에도 플레이어-동물 충돌 무시 필요 (미러 동물은 kinematic이지만 CC가 밀려남)
+        IgnorePlayerCollisions();
     }
 
     /// <summary>
@@ -276,11 +302,14 @@ public class RaceManager : MonoBehaviour
         var capCenter = b.center;
         capCenter.y = bottom + radius;
 
+        // 콜라이더 radius/height는 로컬 단위 — 루트가 스케일된 프리팹(치킨/고양이 1.5배)은
+        // 월드 값을 그대로 넣으면 스케일이 겹으로 곱해져 캡슐이 커지고 그만큼 몸이 떠오른다
+        var s = go.transform.lossyScale;
         var cap = go.AddComponent<CapsuleCollider>();
         cap.direction = 2;
         cap.center = go.transform.InverseTransformPoint(capCenter);
-        cap.radius = radius;
-        cap.height = b.size.z * 0.95f;
+        cap.radius = radius / Mathf.Max(1e-4f, Mathf.Max(Mathf.Abs(s.x), Mathf.Abs(s.y)));
+        cap.height = b.size.z * 0.95f / Mathf.Max(1e-4f, Mathf.Abs(s.z));
     }
 
     private static PhysicsMaterial frictionlessMat;

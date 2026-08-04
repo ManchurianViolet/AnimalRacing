@@ -18,6 +18,16 @@ public class GameConfig : ScriptableObject
     public int pointsSecond = 50;
     public int pointsThird = 30;
 
+    [Header("플레이어 전투 — 빠따 (전 페이즈 허용, 맞으면 한 방에 쓰러짐)")]
+    [Tooltip("타격 판정 사거리 (m)")]
+    public float meleeRange = 2.2f;
+    [Tooltip("타격 판정 부채꼴 전체 각도 (도) — 바라보는 방향 기준")]
+    public float meleeArcAngle = 150f;
+    [Tooltip("스윙 시작 후 판정(임팩트)까지 지연 (초) — 빠따가 휙 돌아가는 타이밍")]
+    public float meleeImpactDelay = 0.45f;
+    [Tooltip("기상 후 무적 시간 (초) — 무한 스턴 방지")]
+    public float knockdownInvulnSeconds = 3f;
+
     [Header("매치")]
     public int defaultRounds = 3;
     public float bettingSeconds = 60f;

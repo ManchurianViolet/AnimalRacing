@@ -64,6 +64,9 @@ public class CharacterCustomization : MonoBehaviour
             {
                 if (r.name != want) continue;
                 slotRenderers[i] = r;
+                // 컬링 박스를 매 프레임 실제 뼈 위치로 재계산 — 고정 박스는 서 있는 자세 기준이라
+                // 쓰러짐 같은 큰 자세 변화에서 부위(머리카락 등)가 화면 밖 판정으로 사라진다
+                r.updateWhenOffscreen = true;
                 break;
             }
             if (slotRenderers[i] == null)

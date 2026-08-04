@@ -44,6 +44,12 @@ public class FirstPersonController : MonoBehaviour
     /// <summary>현재 시선 상하각 (위=음수). PlayerHeadAim이 아바타 머리 본에 반영.</summary>
     public float Pitch => pitch;
 
+    /// <summary>쓰러짐 등 강제 입력 잠금 — SetControlEnabled와 달리 커서는 잠긴 채 유지.</summary>
+    public bool InputLocked { get; set; }
+
+    /// <summary>카메라 피벗 (PlayerKnockdown이 쓰러짐 연출에 사용).</summary>
+    public Transform CameraPivot => cameraPivot;
+
     private Vector2 animAxis;
     private float animState;
     private const float AnimFlow = 4.5f;
@@ -87,7 +93,7 @@ public class FirstPersonController : MonoBehaviour
 
     private void Update()
     {
-        if (!controlEnabled) return;
+        if (!controlEnabled || InputLocked) return;
         LookUpdate();
         MoveUpdate();
     }

@@ -59,6 +59,10 @@ public class PlayerItemController : MonoBehaviour
         // 커서가 풀려 있으면(베팅 패널 등 UI 조작 중) 슬롯/휘두르기 입력을 먹지 않는다
         if (Cursor.lockState != CursorLockMode.Locked) return;
 
+        // 쓰러져 있는 동안엔 아이템/공격 입력 전면 차단 (기상 키는 PlayerKnockdown이 처리)
+        var eqLocal = PlayerEquipment.Local;
+        if (eqLocal != null && eqLocal.TryGetComponent<PlayerKnockdown>(out var kd) && kd.IsDown) return;
+
         if (Input.GetKeyDown(KeyCode.Alpha1)) SelectSlot(PlayerEquipment.SlotBat);
         if (Input.GetKeyDown(KeyCode.Alpha2)) SelectSlot(PlayerEquipment.SlotBoost);
         if (Input.GetKeyDown(KeyCode.Alpha3)) SelectSlot(PlayerEquipment.SlotSlow);

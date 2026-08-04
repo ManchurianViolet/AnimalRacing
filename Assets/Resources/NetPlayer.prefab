@@ -1677,6 +1677,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 39ca3f5f903246e79dac11707013e4e8, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8277510727008925932}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 39ca3f5f903246e79dac11707013e4e8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7564259254387528355}
   m_SourcePrefab: {fileID: 100100000, guid: 39ca3f5f903246e79dac11707013e4e8, type: 3}
 --- !u!4 &32120300570592361 stripped
 Transform:
@@ -2100,6 +2103,24 @@ MonoBehaviour:
   fpc: {fileID: 77205421806465511}
   maxPitch: 55
   remoteFollowSpeed: 360
+--- !u!114 &7564259254387528355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8758046529069211445}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 749295d26a3716c44a575d2519ae5615, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerKnockdown
+  fpc: {fileID: 77205421806465511}
+  equipment: {fileID: 5151545962407639968}
+  interactor: {fileID: 704971295103294544}
+  animator: {fileID: 2603406669749608437}
+  getUpSpeed: 2
+  cameraTiltSpeed: 2.5
 --- !u!4 &8883440529124987854 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1009913675706003882, guid: 39ca3f5f903246e79dac11707013e4e8, type: 3}

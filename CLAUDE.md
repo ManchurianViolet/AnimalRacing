@@ -1,11 +1,12 @@
-「짜고 치는 레이스」(가제, 영문 후보 Dirty Derby — §8) — Claude Code 인수인계 문서 (v5)
+「짜고 치는 레이스」(가제, 영문 후보 Dirty Derby — §8) — Claude Code 인수인계 문서 (v6)
 > 이 문서는 이전 Claude 세션이 다음 세션에게 넘기는 완전 인수인계서다.
 > 독자(Claude Code)는 프로젝트 파일에 직접 접근할 수 있다 — 이 문서는 코드의 지도이자 맥락이다.
 > 코드와 문서가 어긋나면 **코드가 진실**이다 (실제로 문서-코드 불일치 사고 이력 있음).
 > v3 세션(Claude Code + Unity MCP)에서 실맵 트랙 구축·전광판·완주 연출 등 대규모 갱신.
 > v4 세션에서 미니맵 전광판·옆구리 번호판·플레이어-동물 충돌 오프·구름 컨베이어 등. MCP 검증 루프(플레이 진입→계측→캡처→종료)가 표준 작업 방식으로 정착.
-> **v5 세션에서 부스트 먼지 연출·캐릭터 커스터마이징(타이틀+인게임+네트워크 동기화)·빌드 실패 수정·MPPM 멀티 실기 테스트 — §6 참조.**
-> **v5의 최대 사건: Multiplayer Play Mode(MPPM)로 빌드 없이 멀티 테스트가 가능해져, 그동안 0회였던 멀티 실기 검증이 처음으로 실행됐다 (§10).**
+> v5 세션에서 부스트 먼지 연출·캐릭터 커스터마이징(타이틀+인게임+네트워크 동기화)·빌드 실패 수정·MPPM 멀티 실기 테스트. MPPM으로 빌드 없이 멀티 테스트 가능해짐.
+> **v6 세션(이번)에서 게임의 결이 크게 바뀜: ① 아이템 4슬롯(빠따/주사기2/무전기) + 든 것 시스템 ② 빠따 PvP 피격(부채꼴 판정→한 방 쓰러짐→아무 키 기상) ③ 채점 개편(1등/2등이상/3등이상, 90/50/30) ④ 커마 폴백 버그 픽스 ⑤ 타이틀 아이들 연기 ⑥ 뷰티파이 두 씬 적용. — §6 참조.**
+> **v6의 최대 미해결: 기상(일어나기) 때 1인칭 카메라가 몸을 뚫고 보이는 현상 — 다음 세션 1순위 (§7).**
 ---
 0. 유저와 협업 규칙 (가장 먼저 숙지)
 유저 = 제비스튜디오 솔로 인디 개발자 (HorSteal, The DeadLine, Outta Space 출시 경력). AI 협업(vibe coding) 중심 — 코드는 Claude가 전부 작성, 유저는 Unity 에디터 작업 + 테스트 담당.
@@ -20,9 +21,9 @@ Unity 6 (6.3): `rb.velocity` 금지 → 반드시 `rb.linearVelocity`. `PhysicMa
 ---
 1. 게임 정체성 (확정 컨셉)
 Unity 6.3 / PUN2 / Steam 지향 / 2~4인 온라인 파티게임.
-플레이어(1인칭)는 비밀 도박장에서 동물 8마리 레이스의 1·2·3등을 예측하고, 레이스 중 아이템(부스트/감속)을 동물에게 직접 조준 사격으로 개입한다. 예측은 비밀, 정산 때 공개. 포인트 최다 획득자가 매치 우승.
+플레이어(1인칭)는 비밀 도박장에서 동물 8마리 레이스의 1등/2등이상/3등이상을 예측하고, 레이스 중 아이템(부스트/감속 주사기)을 동물에게 직접 조준 사격으로 개입한다. **빠따로 다른 플레이어를 때려 쓰러뜨리는 PvP 견제도 전 페이즈 허용** (v6 — §3-9). 예측은 비밀, 정산 때 공개. 포인트 최다 획득자가 매치 우승.
 무대(확정): 자연 경관(열대 섬/산골짜기 등) 속 주회 트랙 — F1식, 레인 없음.
-경제(확정): 포인트제. **1등 예측 적중 +70 / 2등 +50 / 3등 +10** (슬롯별 독립 채점) — v5에서 실행 중 SO 실값 계측으로 확정. 이전 문서의 100/50/30은 오기였고, GameConfig.cs 기본값(70/50/10)이 맞다. 인게임 정산 130점(70+50+10) 지급까지 실측 확인됨. 아이템은 현재 무료 로드아웃 3+3.
+경제(확정, v6 개편): 포인트제 + **"이상" 채점**. 1등 슬롯 = 정확히 1등이어야 +90 / 2등 슬롯 = **2등 이상**(1·2등)이면 +50 / 3등 슬롯 = **3등 이상**(1·2·3등)이면 +30 — 하위 슬롯이 보험 역할. SO 실값·코드 기본값 모두 90/50/30, 가속 레이스 실전 검증으로 지급 일치 확인됨(만점 170). UI 표기: 베팅 존 "2등 이상/3등 이상", 정산 칩 ①/②↑/③↑, HUD "2등↑/3등↑". ⚠ 이 개편으로 동물 메타 변동(시상대형 개·펭귄 상향) — 시뮬 EV 공식 갱신 필요 (§7). 아이템은 현재 무료 로드아웃 3+3 (상점 기획 §8).
 캐릭터 커스터마이징(v5 확정+구현): 타이틀 화면에서 부위 10종을 골라 확정 → PlayerPrefs 저장 + Photon 커스텀 속성으로 방송 → 인게임 아바타(내 것/남의 것 모두)에 반영. §3-8 참조.
 로비(확정): 리썰컴퍼니식 — 게임 씬 안이 곧 대기실, 방장 전용 3D 레버(E)로 시작, 벽은 페이즈 연동.
 방 시스템(확정): 타이틀 씬(빌드 0)에서 공개 방 목록 + 선택적 비밀번호, 인원 2~4/라운드 수 설정. Fixed Region kr 고정. 닉네임은 타이틀 입력(PlayerPrefs), 스팀 연동 시 GetPersonaName 대체 예정.
@@ -105,13 +106,22 @@ SO	min/max/accel	1등	2등	3등	꼴등	EV	캐릭터
 비활성 슬롯은 정점 4개짜리 빈 껍데기 메시(Base_Mesh 기본값)라 렌더 비용 0.
 미지원: 전신 코스튬(FullBody, 2벌) — 여러 슬롯을 한 번에 덮어쓰는 구조라 별도 처리가 필요해 1차에서 제외.
 ⚠ 에셋팩 커스터마이징 툴(Tools > ithappy > ... > Character Customization)은 **에디터 전용**이다. 그 툴은 프리팹을 굽는 용도고, 우리 인게임 커마와는 무관하게 공존한다.
+v6 보강: ① **원격 아바타 폴백 버그 수정** — `loadSavedOnAwake` 플래그(타이틀 전시용=켬/NetPlayer=끔)로 남의 아바타가 내 PlayerPrefs 옷장을 여는 경로 차단, 착용은 NetworkPlayerSetup.ApplyLook→`ApplyCode()`(빈 코드면 defaultCode) 전담. ② **신규 유저 자동 랜덤**: 타이틀 진입 시 저장값 없으면 랜덤 차림을 뽑아 즉시 저장 — "빈 외형 코드인 사람"이 세상에서 사라짐. ③ 슬롯 렌더러 전부 `updateWhenOffscreen=true` — 고정 컬링 박스가 쓰러짐 같은 큰 자세 변화에서 부위(머리카락)를 사라지게 하던 버그 픽스.
+3-9. 아이템 4슬롯 + 빠따 PvP (v6 세션 구축) ★
+슬롯 구성(확정): **1=빠따 / 2=부스트 주사기 / 3=감속 주사기 / 4=무전기(미구현·빈 슬롯, 선택 시 맨손)**. 키 1~4로 "들기", 좌클릭 = 빠따면 휘두르기·주사기면 기존 조준 발사(레이싱 중만). 준비 페이즈가 없어서 스폰 시 1번(빠따)을 들고 시작. 슬롯 들기는 전 페이즈 허용.
+애니 구조(중요 — 시행착오 끝의 결론): **다리(+머리)는 항상 에셋팩 원본 이동 애니**(속도 궁합 검증됨), **빠따 관련은 상체 전용 레이어(ArmedUpper: 몸통+양팔 마스크, 머리 제외)**에만 얹는다. 전신 무장 이동 애니로 갈아타는 방식은 발 미끄러짐(클립 보폭≠실제 속도)과 이동 중 공격 다리 굳음으로 실패했음. 머리를 마스크에서 뺀 덕에 휘두를 때 1인칭 카메라가 안 흔들린다. 주사기 들기는 오른팔 전용 레이어(HoldRight, 1H 전투 아이들 포즈).
+애니 소스: **Kevin Iglesias Human Melee Animations 2.0 FREE** (Assets/Kevin Iglesias/ — 휴머노이드+루프 사전 설정 완비, Fab Standard 라이선스 상업 가능). 사용 중: CombatIdle2H01(무장 아이들)/Attack2H01(휘두르기)/CombatIdle1H01(주사기 팔). 꺼내기/집어넣기는 믹사모 Equip/Disarm Over Shoulder(ExternalAssets/Anims/). 쓰러짐/기상은 믹사모 Stunned/Getting Up(ExternalAssets/Anims2/, **Y 굽기** — §11). 피격 리액션 필요해지면 Kevin 팩의 CombatDamage01/Death01이 대기 중.
+소품: 빠따(0.87m)/주사기 2종(부스트 주황·슬로우 파랑) 전부 **코드 생성**(프리팹 에셋 없음), RightHand 본에 부착. 위치/회전은 PlayerEquipment 인스펙터 필드로 플레이 중 실시간 튜닝 가능 — 현재 값은 유저가 직접 잡은 것(프리팹에 저장됨).
+빠따 PvP(확정): 스윙 후 **임팩트 타이밍(0.45초)에 전방 150도·2.2m 부채꼴 판정** (빠따에 콜라이더 없음, 때린 클라이언트가 판정→피해자 RPC). **한 방에 쓰러짐** — "1대 경직/2대 다운"은 방해가 과해 불쾌하다고 유저가 폐기. 쓰러지면: 전신 쓰러짐 애니→누움(이동/시점/공격/슬롯/상호작용 전부 잠금, 소품·상체 레이어 끔, 1인칭 카메라가 머리 따라 하늘 보기)→쓰러짐 애니 끝난 뒤 **아무 키나 누르면 기상**(2배속 재생)→복귀+**3초 무적**. 누움/기상 중 재피격 면역. 튜닝 전부 GameConfig "플레이어 전투" 섹션.
+**주먹 없음(확정)**: 빠따 미소지 시 공격 수단 자체가 없음 — 맨몸으로 도망만. 상점(§8) 도입 시 "빠따 안 사면 도망자"가 자동 성립.
+미구현: 타격 사운드/이펙트, 빠따 내구도(상점과 함께), 무전기 효과, 쓰러진 몸의 충돌 캡슐(서 있는 채 유지 — 수용된 한계).
 ---
-4. 파일별 상세 (58개 = v4의 52 + v5 신규 6: BoostDustFx, CharacterPartLibrary, CharacterCustomization, CustomizationPanel, PlayerLook, MppmTestClient)
+4. 파일별 상세 (62개 = v5의 58 + v6 신규 4: TitleIdleAnimator, PlayerEquipment, PlayerHeadAim, PlayerKnockdown)
 Core — 게임 흐름
-GameConfig.cs (SO): 전 튜닝의 집. 포인트(100/50/30), 페이즈 시간, racerCount=8, 주행 기본(lookAhead=4/maxAssistAccel=20), 레이싱라인(racingLineLookAhead=9/insideBiasStrength=0.7/curvatureSaturation=6/roadMargin=1.2), 코너 감속(cornerDecelEnabled/Rate=0.22/SenseAhead=6/BrakeGain=4.5), 완주 연출(finishCoastMin=3/Max=8/finishSpread=2.2 — v3), 회피(avoidLookAhead=2.6/bodyClearance=1.1/overtakeShift=1.6/blockedSpeedFactor=0.9/lateralSmoothTime=0.45/lateralMaxSpeed=3.5/sideBySideRange=1.5), 디버그 토글.
+GameConfig.cs (SO): 전 튜닝의 집. 포인트(v6: 90/50/30 — "이상" 채점), 플레이어 전투(v6: meleeRange=2.2/meleeArcAngle=150/meleeImpactDelay=0.45/knockdownInvulnSeconds=3), 페이즈 시간, racerCount=8, 주행 기본(lookAhead=4/maxAssistAccel=20), 레이싱라인(racingLineLookAhead=9/insideBiasStrength=0.7/curvatureSaturation=6/roadMargin=1.2), 코너 감속(cornerDecelEnabled/Rate=0.22/SenseAhead=6/BrakeGain=4.5), 완주 연출(finishCoastMin=3/Max=8/finishSpread=2.2 — v3), 회피(avoidLookAhead=2.6/bodyClearance=1.1/overtakeShift=1.6/blockedSpeedFactor=0.9/lateralSmoothTime=0.45/lateralMaxSpeed=3.5/sideBySideRange=1.5), 디버그 토글.
 GameManager.cs: 페이즈 상태머신 껍데기(싱글턴). 실질 진행은 MatchManager.
 GameEvents.cs: static 이벤트 버스 + RaceResult 클래스(round, firstId/secondId/thirdId, pointsGained).
-MatchManager.cs: 매치 순환(Betting→Loadout→Countdown→Racing→Settlement×N), SubmitBet 관문(3픽 검증), SettlePoints(슬롯별 채점), AutoBet, AbortMatch, 클라 거울 API.
+MatchManager.cs: 매치 순환(Betting→Loadout→Countdown→Racing→Settlement×N), SubmitBet 관문(3픽 검증), SettlePoints(v6: **"이상" 채점** — 1등 정확/2등 슬롯은 1·2등/3등 슬롯은 1~3등이면 적중), AutoBet, AbortMatch, 클라 거울 API.
 PlayerState.cs: Points/AddPoints/ResetPoints, BetTicket(firstId/secondId/thirdId, IsValid), 아이템 로드아웃/쿨다운.
 BotController.cs: 봇 두뇌. Bind(PlayerState) 대타 겸용. 아이템 AI: 1등픽이 선두 아니면 부스트, 내 3픽 아닌 침입자가 선두면 감속.
 PrototypeBootstrap.cs: 씬 시작 오케스트라. 온라인 "입장 확정까지 대기", 오프라인 나+봇. 로드아웃 배포+봇 랜덤 3픽.
@@ -128,25 +138,31 @@ Content — SO
 AnimalDefinition.cs: 이름/프리팹/스탯(100단위, 100=6.0m/s)/리롤/skill/icon(Sprite — 안내판 팝업 초상화로 자동 연동, 비면 숨김).
 ItemDefinition.cs: Boost/Slow, duration/magnitude, 아이콘.
 Player
-FirstPersonController.cs(CharacterController, 한글 IME WASD 함정 → Input System 전환 백로그) / PlayerInteractor.cs(E 레이캐스트) / PlayerItemController.cs(1·2키/클릭+조준 사격) / IInteractable.cs.
+FirstPersonController.cs(CharacterController, 한글 IME WASD 함정 → Input System 전환 백로그. v6: `Pitch` 공개 + `InputLocked`(커서 유지한 채 입력만 잠금 — 쓰러짐용) + `CameraPivot` 공개) / PlayerInteractor.cs(E 레이캐스트) / IInteractable.cs.
+PlayerItemController.cs (v6 개편): 4슬롯 입력 허브. 1~4키=슬롯 들기(전 페이즈), 좌클릭=빠따 스윙 or 주사기 조준 발사(레이싱 중+보유 시). 커서 풀림(UI 중)·쓰러짐 중엔 입력 무시. Selected는 "주사기 들고 레이싱 중"일 때만 발사용으로 산출.
+PlayerEquipment.cs (v6 신규): "손에 든 것" 상태·연출·판정 전담 (NetPlayer 부착). 슬롯 변경/휘두르기는 RPC 전 클라 로컬 재생(AnimatorView 무수정). 상체 레이어 가중치 제어(ArmedUpper/HoldRight), 소품 코드 생성+본 부착, 스윙 임팩트 부채꼴 판정(`FindVictimsInArc` — GameConfig 참조), 쓰러짐용 Suppress/Restore. ⚠ 같은 공격 재진입은 CrossFade 대신 Play 재시작(연타 얼어붙음 방지 — §11).
+PlayerHeadAim.cs (v6 신규): 시선 상하각(pitch)을 아바타 머리 본에 반영. 내 것=FPC 직결, 남의 것=IPunObservable 스트림 수신 후 부드럽게 추종. ⚠ **PhotonView Observed 목록에 등록됨** — 동기화 구성 변경이라 스탠드얼론 빌드 테스트 시 양쪽 재빌드 필수 (MPPM은 무관).
+PlayerKnockdown.cs (v6 신규): 쓰러짐/기상 상태머신 (Standing→Falling→Down→GettingUp). RpcKnockdown/RpcGetUp 전 클라 로컬 재생, 입력·상호작용 잠금, 카메라 하늘 보기→기상 중 원래 시점 복귀, 기상 후 무적. 클립 길이는 컨트롤러에서 이름("Stunned"/"Getting Up")으로 실측. getUpSpeed(2)는 컨트롤러 GetUp 상태 speed와 일치해야 함.
 UI
-PlayerHUD.cs: 지갑("N P"), 페이즈/타이머, 대기실 문구, B키 예측 요약, 조준점, 아이템 슬롯. BindLocalPlayer.
+PlayerHUD.cs: 지갑("N P"), 페이즈/타이머, 대기실 문구, B키 예측 요약(v6: "2등↑/3등↑"), 조준점, 아이템 슬롯 4칸(v6: 빠따/부스트/슬로우/무전기 — SlotBat·SlotRadio는 씬에서 기존 슬롯 복제). BindLocalPlayer.
+ItemSlotView.cs (v6 개편): 4칸 공용. Init(controller, slot, item, displayName, hotkey) — 소모형(주사기)만 item, 빠따/무전기는 이름 텍스트. 하이라이트 기준은 "들고 있는 슬롯".
 BettingPanel.cs: 3존 드래그 예측+확정. infoPopup 슬롯(신규) — Open/Close 시 팝업 잔상 정리, Esc는 팝업 먼저 닫고 다음에 패널, BuildRows가 행에 팝업 참조 주입.
 BetRowView.cs: 출전표 행. IPointerClickHandler 구현(신규) — Bind(racer, canvas, popup) 시그니처 변경됨, 짧은 클릭=팝업.
 AnimalInfoPopup.cs (신규): 중앙 팝업. 루트=반투명 차단막(IPointerClickHandler — 어디든 클릭=닫힘), 카드=번호 배지(RacerColors)+이름+초상화(선택, icon 자동)+본문(최저/최고/가속 100단위+스킬명+설명 리치텍스트). 표시 전용, 상태 없음. ⚠ 에디터 조립 미완(§7).
 BetDropZone.cs / DraggableBetIcon.cs(IBeginDrag/IDrag/IEndDrag만 구현 — IPointerDown 안 먹는 게 클릭 공존의 전제, 추가하지 말 것) / BettingTerminal.cs(E→패널, occupied 로컬. v3: Awake에서 matchManager 비면 자동 탐색 — 단말기 복제 시 배선 누락 NRE 사고 재발 방지).
-SettlementPanel.cs / ResultRowView.cs / BetChipView.cs("① 이름 +100P", 적중 초록).
+SettlementPanel.cs(v6: 칩 적중 판정도 "이상" 규칙) / ResultRowView.cs / BetChipView.cs("①/②↑/③↑ 이름 +90P", 적중 초록).
 Scoreboard.cs: 월드스페이스 소형 전광판(페이즈/타이머/라운드) — 원본 문서의 "Tab 현황" 서술은 오류였음. Tab UI는 존재하지 않음.
 ScoreboardBoard.cs (v3 신규): 거대 전광판 두뇌 — 러닝타임 시계(Racing 시작 리셋/정산 정지) + 실시간 순위표(레인 배지=RacerColors, 아이콘=AnimalDefinition.icon 자동, 이름, 현재 속도) + 순위 변동 시 행 슬라이드(anchoredPosition Lerp) + 완주 시 속도→최종 기록 전환(OnRacerFinished 이벤트 — Gateway 중계라 클라도 동작). 진행도·속도는 로컬 위치 기반 계산(GetProgressNear 연속성 투영 — 클라는 미러 위치로 동일 계산). 라인업 변동 자동 감지→행 재구성. 씬의 전광판 오브젝트는 통째로 복붙 가능(내부 참조 자동 리매핑, 로컬 전용이라 네트워크 무관). 튜닝: rowMoveSpeed/speedSmooth 인스펙터.
 MinimapBoard.cs (v4 신규): 미니맵 전광판 두뇌 (전광판1·2에 부착). 좌측 = 트랙 실루엣 미니맵: TrackPath 중심선을 0.4m 간격 샘플→반폭 원 스탬핑으로 640px 텍스처를 런타임 1회 굽기(트랙 정적) + 출발선 표시. 동물마다 "가운데 빈 원"(도넛) 마커가 실시간 이동 — 도넛 스프라이트도 코드 생성(64px, rOut 29/rIn 8/검정 테두리 3.5 — 테두리를 검정으로 구워서 흰/검 레인도 어떤 배경에서든 보임. v4 중 유저 요청으로 rIn 15→8 구멍 축소). 우측 = 간단 순위표(배지+이름만, 행 슬라이드). 진행도는 ScoreboardBoard와 동일한 로컬 위치 기반(GetProgressNear 연속성 투영) — 클라 동작, 네트워크 무관. 라인업 변동 자동 재구성. 튜닝 인스펙터: textureSize/trackColor/startLineColor/markerSize(48)/rowHeight/rowMoveSpeed. ⚠ 전광판2는 몸체가 180° 돌아 있어 미니맵 방향도 반대로 보임(보는 방향 기준) — 유저가 통일 원하면 한쪽 뒤집기 옵션 필요.
 CloudField.cs (v4 신규): 구름 컨베이어 (씬 Clouds에 부착, 자식 25개). 표류 축 driftAxis(기본 월드 Z), 방향 부호는 방 이름 수제 해시(31곱 누적)의 홀짝 — 방 파질 때 확정·전 클라 동일·통신 불필요, 오프라인은 판마다 랜덤. 영역(초기 배치에서 역산)을 margin(60m) 넘게 벗어나면 반대편 가장자리에서 횡위치/높이/크기/회전/속도 재추첨 후 재등장 = 보기엔 절차 생성, 실제론 재활용(스폰/GC 0). 구름별 속도 편차 ±35%로 시차감. 순수 장식 로컬 처리. ⚠ Clouds는 움직이므로 Batching Static 금지.
-TimelineFeed.cs(우측 사건 피드) / ItemSlotView.cs / StartLever.cs(방장 레버, wallsToHide) / PixelBorder.cs([유저 자작] 건드리지 말 것).
+TimelineFeed.cs(우측 사건 피드) / StartLever.cs(방장 레버, wallsToHide) / PixelBorder.cs([유저 자작] 건드리지 말 것).
+TitleIdleAnimator.cs (v6 신규): 타이틀 캐릭터 대기 연기 — Idle_Relaxed ↔ Idle_Look_Around를 6~12초 랜덤 교차 (전용 TitleIdle.controller, 코드 CrossFade). 점프 연출은 시도 후 유저가 뺌. 두 아이들 클립은 루프 플래그를 켰음(원본은 루프 꺼져 있어 얼어붙었음). 발 끌림은 에셋 본성(발이 안 들리는 애니)으로 수용됨.
 CustomizationPanel.cs (v5 신규): 타이틀 커마 UI. 슬롯 개수가 라이브러리에 따라 변하므로 **UI를 코드로 자체 조립**(MinimapBoard와 같은 방식). 슬롯별 ◀ 이름 ▶ 행 + 랜덤/취소/확정. 확정=PlayerPrefs 저장+방송, 취소=열기 전 스냅샷 복원, Esc=취소. hideWhileOpen 배열(메인 메뉴·닉네임·상태문구)을 커마 중 숨긴다. 열려 있는 동안 매 프레임 라벨을 갱신하되 값이 같으면 TMP를 건드리지 않는다.
 Racing/연출 — 신규
 BoostDustFx.cs (v5 신규): 부스트 먼지구름. RaceManager가 스폰(호스트)/등록(클라) 시 붙인다 — 아이템 사용은 게이트웨이가 이미 전 클라로 중계(OnItemUsed)하므로 **네트워크 추가 통신 0**, 각자 로컬 재생. 파티클 시스템·머티리얼·텍스처를 전부 코드 생성(프리팹 7종 무수정). 배출 지점은 스킨드메시 로컬 바운즈를 루트 로컬로 옮겨 실측한 "뒷다리 뒤 바닥", 크기는 몸 높이 비례(하한 0.45m — 고양이/치킨이 점처럼 작아지는 것 방지). 펭귄(무관심)은 부스트가 안 먹히므로 먼지도 안 난다(연출이 거짓말하지 않게). 스턴/정지(1.5m/s 미만)에도 안 남. `Play(초)`가 public이라 스킬 부스트에도 재사용 가능. 튜닝은 GameConfig "연출 — 부스트 먼지구름" 섹션.
 Content/커마 — 신규
 CharacterPartLibrary.cs (v5 신규, SO): 슬롯 정의(렌더러 이름·한글 표기·끄기 허용·빈 메시·부위 메시 목록). 에셋팩의 SlotLibrary에서 MCP 스크립트로 자동 생성했다 — 부위가 늘면 같은 방식으로 재생성.
-CharacterCustomization.cs (v5 신규): 외형 조립기. 슬롯 이름으로 렌더러를 찾아 sharedMesh 교체(+localBounds 갱신 — 안 하면 컬링이 틀어져 옷이 사라진다). Encode/Decode/SaveToPrefs/Randomize. defaultCode = 저장값 없을 때의 기본 차림(알몸 방지). 타이틀 전시용 캐릭터와 인게임 아바타가 같은 컴포넌트를 쓴다.
+CharacterCustomization.cs (v5 신규, v6 보강): 외형 조립기. 슬롯 이름으로 렌더러를 찾아 sharedMesh 교체. Encode/Decode/SaveToPrefs/Randomize. defaultCode = 저장값 없을 때의 기본 차림(알몸 방지). 타이틀 전시용 캐릭터와 인게임 아바타가 같은 컴포넌트를 쓴다. v6: `loadSavedOnAwake`(타이틀=켬: 저장값 없으면 랜덤 뽑아 즉시 저장 / NetPlayer=끔: defaultCode만) + `ApplyCode(code)`(빈 코드→defaultCode 폴백) + 슬롯 렌더러 전부 updateWhenOffscreen=true(쓰러짐 등 큰 자세에서 부위 컬링 실종 방지 — localBounds 수동 갱신은 더 이상 핵심 아님).
 Network
 NetworkLauncher.cs(타이틀: 접속 kr/방 목록/CreateRoom PlayerTtl=60000/LoadLevel) / TitleMenu.cs / RoomListItem.cs.
 NetworkPlayers.cs(LocalPlayerId, IsAuthority, BotIdBase=100).
@@ -158,17 +174,27 @@ Editor 전용
 BalanceExporter.cs (신규): §3-4 파이프라인의 유니티 쪽 절반. #if UNITY_EDITOR 전체 래핑(빌드 무포함). 씬 GameManager.config/RaceManager.animalPool을 SerializedObject로 읽음(비공개 필드 접근) — 우선순위: 씬 참조 > 프로젝트 검색.
 ---
 5. 씬/프리팹 배선 현황
-SampleScene: Manager 오브젝트(GameManager+MatchManager+RaceManager+Gateway+MatchSync+SessionGuard+Binder+Spawner+PlayerItemController+Bootstrap), Road(모듈 도로 54조각 — §3-7), Track(신 InnerLine/OuterLine 177점 + 구 라인 _OLD 비활성 보관), Gates(스타트 슬롯 8개 — 출발선 뒤 z=0, 0.8m 간격), 전광판 3대: 대형전광판(x≈80 상공, ScreenBody 21×13 + ScoreboardBoard — 러닝타임/속도형 순위표 유지) + 전광판1(z≈59)·전광판2(z≈-57, 180° 회전) — v4에서 둘 다 ScoreboardBoard 제거→MinimapBoard로 교체 (캔버스 2000×1200: 좌 MapImage 1080×1080+Markers, 우 RowContainer 760폭·배지+이름 행. TimeText/Icon/ValueText 삭제됨. MapImage는 에디터에서 알파 0.04 — 런타임에 텍스처 굽고 흰색 복원), 레이싱 환경 에셋(타이어 배리어/피트스톱/관중석/터레인/나무), Clouds(자식 25개 + CloudField — v4), 대기실+벽(StartLever.wallsToHide), 베팅 단말기 2대(tablet/tablet(1) — 팝업 Card 스케일 1.5), HUD 캔버스, 끝선(비활성 — 통일로 불필요. 출발선 오브젝트는 v4에서 삭제됨 — 회색 큐브 2+초록 큐브 1짜리 장식, 미니맵 출발선은 웨이포인트 기준이라 무관), BotA×3.
+SampleScene: Manager 오브젝트(GameManager+MatchManager+RaceManager+Gateway+MatchSync+SessionGuard+Binder+Spawner+PlayerItemController+Bootstrap), Road(모듈 도로 54조각 — §3-7), Track(신 InnerLine/OuterLine 177점 + 구 라인 _OLD 비활성 보관), Gates(스타트 슬롯 8개 — 출발선 뒤 z=0, 0.8m 간격), 전광판 3대: 대형전광판(x≈80 상공, ScreenBody 21×13 + ScoreboardBoard — 러닝타임/속도형 순위표 유지) + 전광판1(z≈59)·전광판2(z≈-57, 180° 회전) — v4에서 둘 다 ScoreboardBoard 제거→MinimapBoard로 교체 (캔버스 2000×1200: 좌 MapImage 1080×1080+Markers, 우 RowContainer 760폭·배지+이름 행. TimeText/Icon/ValueText 삭제됨. MapImage는 에디터에서 알파 0.04 — 런타임에 텍스처 굽고 흰색 복원), 레이싱 환경 에셋(타이어 배리어/피트스톱/관중석/터레인/나무), Clouds(자식 25개 + CloudField — v4), 대기실+벽(StartLever.wallsToHide), 베팅 단말기 2대(tablet/tablet(1) — 팝업 Card 스케일 1.5, v6: 존 라벨 "2등 이상/3등 이상"), HUD 캔버스(v6: 아이템 슬롯 4칸 — SlotBat/SlotRadio는 기존 슬롯 복제·PlayerHUD에 배선), Global Volume(뷰티파이 — v6: 프로파일을 Assets/Art/BeautifyProfile.asset으로 교체, 타이틀과 공유. NetPlayer 카메라는 PostProcessing 원래 켜져 있음), 끝선(비활성 — 통일로 불필요. 출발선 오브젝트는 v4에서 삭제됨 — 회색 큐브 2+초록 큐브 1짜리 장식, 미니맵 출발선은 웨이포인트 기준이라 무관), BotA×3.
 TitleScene(빌드 0) — v5에서 대폭 개조: Managerrs(NetworkLauncher+TitleMenu), Canvas(기존 UI + **TitleText "Dirty Derby"** + **CustomizationPanel**), **TitleStage(신규: Ground 60m 평면 + TitleCharacter)**, Main Camera(0.62, 1.28, -3.3 / FOV 52 — 얼굴 높이로 맞춰야 고개 젖힌 것처럼 안 보임).
 · 배경 검은 Image와 MainPanel의 Image는 **알파 0으로 투명화**(오브젝트는 남겨둠 — 되돌리기 쉽게). 뒤의 3D 무대가 보인다. 유저가 나중에 배경 아트를 깔 예정.
 · 메인 버튼 4개: 방만들기/방참가/게임종료/**커스터마이징**(종료 버튼 복제, y-101 간격). 커스터마이징 → CustomizationPanel.Open()을 영속 리스너로 연결.
-· TitleCharacter = Base_Mesh 프리팹 언팩본 + Character_Movement 컨트롤러(Idle_Relaxed 재생) + CharacterCustomization(defaultCode "0,2,1,0,-1,-1,-1,0,-1,2").
+· TitleCharacter = Base_Mesh 프리팹 언팩본 + CharacterCustomization(defaultCode "0,2,1,0,-1,-1,-1,0,-1,2", loadSavedOnAwake=켬). v6: 컨트롤러를 TitleIdle.controller로 교체(Animator는 자식 Base_Mesh에 있음) + 루트에 TitleIdleAnimator 부착(아이들 2종 교차 — §4).
+· v6: Main Camera **Post Processing 켬** (뷰티파이 Global Volume이 게임뷰에 안 보이던 원인 — 씬뷰는 자체 토글이라 보였음). 볼륨 프로파일은 BeautifyProfile.asset(데모 프로파일 복제본 — 데모 폴더 의존 제거).
 · 상태 문구(StatusText)는 캐릭터 얼굴을 가려서 좌하단으로 이동, 닉네임 입력은 타이틀과 겹쳐 아래로 내림.
-NetPlayer 프리팹(Resources): FPC+카메라+PlayerInteractor+PhotonView+TransformView+AnimatorView+NetworkPlayerSetup+NameLabel. **v5: 커마 13슬롯 구조로 개조** — 기존 `Body_011` 렌더러를 `Body` 슬롯으로 승격하고 나머지 9개 슬롯 렌더러(표정·상의·하의·소품·안경·장갑·머리·모자·신발)를 추가. 전부 기존 뼈대(bones/rootBone)를 그대로 공유하고 기본 메시는 빈 껍데기. CharacterCustomization 부착 + NetworkPlayerSetup.look에 배선. **네트워크 컴포넌트 배선은 하나도 안 건드렸다**(렌더러만 얹은 방식이라 동기화 위험 없음).
+NetPlayer 프리팹(Resources): FPC+카메라+PlayerInteractor+PhotonView+TransformView+AnimatorView+NetworkPlayerSetup+NameLabel. **v5: 커마 13슬롯 구조로 개조** — 기존 `Body_011` 렌더러를 `Body` 슬롯으로 승격하고 나머지 9개 슬롯 렌더러(표정·상의·하의·소품·안경·장갑·머리·모자·신발)를 추가. 전부 기존 뼈대(bones/rootBone)를 그대로 공유하고 기본 메시는 빈 껍데기. CharacterCustomization 부착 + NetworkPlayerSetup.look에 배선.
+**v6 개조 (NetPlayer)**: ① 애니메이터 컨트롤러를 에셋팩 Character_Movement → **PlayerMovement.controller**(복제+확장: 기본 레이어에 Knockdown/GetUp 상태, ArmedUpper·HoldRight 상체 레이어 — §3-9)로 교체 ② PlayerEquipment/PlayerHeadAim/PlayerKnockdown 부착·배선 ③ CC center (0,1,0)→**(0,1.08,0)** — skinWidth(0.08)만큼 몸이 떠 보이던 것 상쇄, 발 접지 실측 -0.6cm ④ ⚠ **PhotonView Observed 목록에 PlayerHeadAim 추가** — v5까지 지켜온 "동기화 무변경"이 여기서 깨짐. 스탠드얼론 빌드 테스트 시 전원 재빌드 필수 (MPPM은 무관). 커마 defaultCode="0,2,1,0,-1,-1,-1,0,-1,2", loadSavedOnAwake=꺼짐.
 동물 프리팹 7종(Resources): 모델+Animator+Rigidbody(FreezeRotation)+Racer+RacerMotor+PhotonView+TransformView+AnimatorView+NetworkRacerSetup+RacerNumberPlate(루트)+번호판. v4: 등 1판 → 양 옆구리 2세트(PlateCubeL/R + PlateNumL/R, 형제 구조)로 교체 — 부모는 v3 그대로 등뼈 본(개 spine.005/고양이 spine.006/말 spine.006/치킨 spine.003/펭귄 spine.005/호랑이 spine.010/사슴 spine.004)이라 달릴 때 출렁임 유지. 옆구리 x오프셋은 스킨드메시 정점 실측(뿔/날개로 바운즈 과대인 사슴·펭귄 대응), TMP는 LookRotation(±x, up)으로 좌우 각각 바깥면·숫자 직립 보장. v4: 치킨·고양이 루트 스케일 1.5배(유저 요청 — 몸통 콜라이더는 스폰 시 자동 산출이라 무추가작업, 대신 §11 콜라이더 로컬 단위 법칙 참조).
 Run In Background 설정됨. 동기화 컴포넌트 변경 시 재빌드 철칙 (v3·v4 변경분은 전부 동기화 무변경 — 단 프리팹 비주얼 변경(번호판/크기)은 클라 로컬 스폰이라 멀티 테스트 시 빌드 갱신 필요).
 ---
-6. 최근 완료 (v5 세션 하이라이트)
+6. 최근 완료 (v6 세션 하이라이트)
+아이템 4슬롯 + 빠따 PvP 전체 (§3-9): 슬롯 시스템(PlayerEquipment/RPC 동기화/소품 코드 생성/HUD 4칸) → 애니 3차 시행착오(HSAS 전신 무장→루트모션 굽기 실패→상체 레이어 확정, Kevin Iglesias 2H 채택) → 피격(부채꼴 판정/한 방 다운/아무 키 기상/3초 무적). 부채꼴 6케이스·쓰러짐/기상 사이클·연타 전부 자동 검증 통과. **MPPM 2인 실기(서로 때리기)는 미실행 — §10.**
+채점 개편 "이상" 방식 (§1): 코드+SO+UI 라벨(단말기 2대)+정산 칩 표기 전부 갱신, 가속 레이스 실전 정산 검증 PASS (신규칙 전용 케이스 실측 — 3등 슬롯 동물이 2등 완주 시 +30 지급 확인).
+커마 폴백 버그 픽스 + 신규 유저 랜덤 (§3-8): "커마 안 한 사람이 내 화면에서 내 옷 입는" 버그 원천 차단. 옷장 격리/빈 코드 폴백/랜덤 저장 3종 자동 검증.
+연출/폴리싱: 타이틀 아이들 연기(TitleIdleAnimator, 아이들 루프 플래그 픽스 — "가만히 멈춤"의 원인이 루프 꺼짐이었음), 뷰티파이 두 씬 적용(타이틀 카메라 PP 켬 + 프로파일 프로젝트로 복제), 발 접지(CC center 상쇄), 머리 시선(PlayerHeadAim — ⚠ Observed 추가), 연타 얼어붙음 픽스, 쓰러짐 머리카락 실종 픽스(updateWhenOffscreen).
+기획 결정: 빠따 전 페이즈 허용(내구도로 스팸 억제 예정)·경직 단계 폐기(한 방 다운)·주먹 폐기(맨몸=도망) / 상점 구상(§8) / 무전기 효과 후보 2안(§8).
+발견한 문제 (미해결): **기상 때 1인칭 카메라가 몸을 뚫고 보임** — 다음 세션 1순위 (§7).
+---
+6-1. 이전 세션 완료 (v5 하이라이트)
 부스트 먼지 연출 (BoostDustFx.cs + 텍스처/머티리얼 에셋): 플레이어가 부스트를 먹였을 때 뒷다리 뒤로 카툰 먼지가 남는다. 1차는 에어브러시식이었는데 유저 요청으로 **셀 애니메이션식(굵은 검정 테두리 + 단색 + 팔랑팔랑 회전 + 조각 4종 랜덤)** 으로 재작업. 아틀라스 2×2를 코드로 굽고 TextureSheetAnimation으로 조각을 랜덤 배정. 관전 거리 캡처로 크기/테두리 두께 2회 재조정.
 번호판 몸통 밀착 (동물 프리팹 7종): "너무 떠 있다"는 지적 → v4 배치가 **밴드 최대폭**(갈비/날개 폭) 기준이었던 게 원인. 판 중앙 지점의 실제 표면을 다시 재고 **표면 + 판 반높이의 25%** 로 재배치. 호랑이 0.394→0.276, 펭귄 0.294→0.211. 중간에 딱 붙였다가 달리기 근육 부풀림에 숫자가 묻히는 걸 캡처로 잡아내고 여유를 다시 넣음.
 1인칭 몸통 뚫림 수정 (FirstPersonController): 달릴 때 아래를 보면 몸통이 뚫려 보이던 문제. 원인은 근접 클리핑이 아니라 **달리기 애니가 상체를 0.27m 숙이면서 카메라(루트 고정)가 몸 안으로 들어가는 것** — 몸 안에서는 표면이 전부 뒷면이라 컬링돼 사라진다. 카메라를 **머리 본에 물리는 방식**(위치만, 회전은 마우스/몸통이 결정)으로 해결. near clip도 0.3→0.05.
@@ -177,7 +203,7 @@ Run In Background 설정됨. 동기화 컴포넌트 변경 시 재빌드 철칙 
 빌드 실패 수정 (asmdef): 에셋팩 asmdef가 Editor 폴더까지 빌드에 끌고 가 **8개 컴파일 에러로 빌드 불가**였던 것을 Editor 전용 asmdef 추가로 해결. PlayerBuildInterface로 실제 플레이어 스크립트 컴파일까지 돌려 통과 확인.
 MPPM 멀티 실기 테스트 (§10): 빌드 없이 2인 테스트 성공. 옷 동기화 / 베팅→레이스→정산 / 이탈→봇 대타 검증.
 ---
-6-1. 이전 세션 완료 (v4 하이라이트 — MCP 검증 루프 정착: 매 작업을 플레이 진입→계측→캡처→종료로 자동 검증)
+6-2. 이전 세션 완료 (v4 하이라이트 — MCP 검증 루프 정착: 매 작업을 플레이 진입→계측→캡처→종료로 자동 검증)
 미니맵 전광판 (MinimapBoard.cs + 씬 조립): 전광판1·2를 미니맵+간단 순위표로 교체 (대형전광판은 유지). 트랙 실루엣 굽기·도넛 마커·순위 슬라이드 전부 자동 검증+캡처 확인.
 번호판 옆구리 2판 (프리팹 7종 + RacerNumberPlate 재작성): 등판이 잘 안 보인다는 유저 지적 → 좌우 옆구리 각 1판. 정점 실측 배치+TMP 방향 직립. 7종 좌/우 캡처 검증.
 플레이어-동물 충돌 오프 (§8 F 결정 완료): IgnorePlayerCollisions 쌍별 무시, 훅 3곳(호스트 스폰/클라 등록/아바타 스폰). 8쌍 전부 GetIgnoreCollision=true 실측.
@@ -188,22 +214,26 @@ MPPM 멀티 실기 테스트 (§10): 빌드 없이 2인 테스트 성공. 옷 �
 게임 제목 논의: 영문 Dirty Derby 추천(§8), 스플래시아트 AI 생성 프롬프트 세트 전달됨.
 ---
 7. ★ 다음 작업 큐 (우선순위순)
-★ 버그 (v5에서 발견, 미수정): **원격 아바타가 외형 코드를 못 받으면 내 저장 옷을 입는다.** CharacterCustomization.Awake가 무조건 PlayerPrefs를 읽기 때문에, 커마를 한 번도 안 한 사람의 아바타가 내 화면에서 "내 옷"을 입고 나타난다. 처방: `loadSavedOnAwake` 같은 플래그를 넣어 NetPlayer는 Awake에서 defaultCode만 적용하고, 실제 착용은 NetworkPlayerSetup.ApplyLook이 전담(코드가 비면 defaultCode). 10분짜리 수정.
+★ 1순위 버그 (v6 발견, 미수정): **기상(일어나기) 때 1인칭 카메라가 몸을 뚫고 보인다.** 기상 애니가 몸을 웅크렸다 펴는 동안 카메라(머리 본 위치 추종)가 몸 안을 지나는 것으로 추정 — v5의 "카메라가 몸 안" 법칙(§11)과 같은 계열. 유저도 "간단한 문제가 아닌 것 같다"고 함. 후보: 기상 중 카메라를 몸 밖 고정 오프셋으로 잠깐 빼기(3인칭성 연출), near clip/렌더 레이어 트릭, 기상 중 몸 렌더러 숨기기(그림자 유지 여부 결정 필요).
+빠따 PvP MPPM 실기: 2인으로 실제 duel — A가 때리면 B 화면에서 쓰러지는지, 기상/무적/원격 애니 동기화 (§10). ⚠ PlayerHeadAim이 Observed에 추가돼 스탠드얼론 빌드는 전원 재빌드 필요.
+상점 시스템 구현 (§8 기획 — 미결정 4개 확정되면): 라운드 균등 재화 + 빠따/주사기/무전기 구매. 빠따 내구도도 이때 같이.
+~~커마 원격 아바타 폴백 버그~~ — v6 완료 (loadSavedOnAwake + ApplyCode + 신규 유저 랜덤 저장, 자동 검증 통과).
 감속 아이템 연출 구현 (§8에 기획 정리됨 — 유저 결정 대기): 부스트 먼지의 짝. 추천안은 "검은 끈끈이(타르) + 머리 위 표식". 확정되면 BoostDustFx와 같은 구조로 붙이면 됨.
 멀티 실기 잔여 테스트 (§10): ① 복귀(끊김→재접속) — UserId 고정 + TTL 임시 연장 필요 ② 호스트 이탈 → 게스트 방장 승계 + 대기실 복귀 + 방 재개방 ③ 클라 화면 코너 감속 대열/전광판/완주 연출 육안 확인.
-아이템 로드아웃 개편 확정 (§8 — 유저 고민 중): 확정되면 로드아웃/특수권 구현.
-새 맵 밸런스 검증: 트랙 확정되면 BalanceExport 재추출 → corner_sim 검증 (V7은 구맵 187m 기준, 현 맵은 519m — §3-7 ⚠).
+새 맵 밸런스 검증 + **시뮬 EV 공식 갱신**: 트랙 확정되면 BalanceExport 재추출 → corner_sim 검증 (V7은 구맵 187m 기준, 현 맵은 519m — §3-7 ⚠). ⚠ v6 채점 개편으로 EV 공식이 `P(1등)×90 + P(2등이내)×50 + P(3등이내)×30`으로 바뀜 — corner_sim 재작성 시 반드시 반영 (시상대형 개·펭귄 상향 메타).
 V7 SO 입력 여부 확인 — 미입력이면 §3-3 표대로 입력 안내(7종×3필드).
 치킨 꼴등 39.8% 승인 확인 (§3-3 ⚠) — 처형권 논의(§8)와도 얽힘.
 커마 후속 (v5 잔여): ① 대기실(인게임)에서도 커마 열기 — 패널이 씬 독립적이라 붙이는 건 금방 ② 전신 코스튬(FullBody 2벌) 지원 ③ 부위 이름이 "상의 2" 같은 자동 번호라 감성 이름으로 다듬을 여지.
 킥 결정 대기: "관전 90초 밀도 패키지" — 전광판(C)·미니맵 전광판·플레이어-동물 충돌(F)은 해결됨. 잔여: 익명 저격("누군가 3번을 저격했다!") + 호랑이 습격 연출(포효/흔들림). 유저 ㄱ 답 오면 즉시 구현.
 성능 최적화 실행 대기 (v4 진단 완료): ① 배경/Track/Road에 Batching Static 일괄 체크 (MCP로 가능. ⚠ Clouds는 움직이니 제외, Gates/동물/단말기 등 게임플레이 오브젝트 제외) ② Shadow Distance 50→25~30 — 그림이 달라지니 유저가 보면서 결정.
 ~~포인트값 불일치~~ — v5에서 실행 중 계측으로 해결. **SO 실값 70/50/10 확정**, 문서 §1 수정 완료.
+유저 육안 확인 잔여 (v6 추가): 빠따/주사기 소품 생김새(코드 생성 임시 — 나중에 진짜 모델로 교체 가능), 2H 아이들·스윙 감성, 기상 2배속 어색한지(느리면 컨트롤러 GetUp speed + PlayerKnockdown.getUpSpeed 함께 조정), 카메라 하늘보기 속도(cameraTiltSpeed), 판정 각도/거리 체감, 베팅 존 "2등 이상" 라벨·정산 ②↑③↑ 표기, 무장 상태 옆걸음 발 밀림(무장 strafe 클립 없음 — 거슬리면 클립 추가).
 유저 육안 확인 잔여 (v5 추가): 타이틀 화면 배치(캐릭터 위치·크기·카메라 각도, 패널 위치/크기/색), 지면 색, 커마 부위 이름, "게임 종료" 버튼 유지 여부(목업엔 없었으나 남겨둠), 부스트 먼지 색(현재 크림색)·개수·꼬리 길이.
 유저 육안 확인 잔여 (v4부터): 다리 오르막에서 동물 기울기(경사 정렬 — 수치 검증 못 함), 완주 산개 체감(밋밋하면 finishCoastMax/finishSpread 조절), S커브 잔디 밟기 여부, 미니맵 전광판·옆구리 번호판·구름 흐름·치킨/고양이 1.5배 체감(전부 v4 자동 검증은 통과, 감성 판단만 남음), 구름 속도 4m/s 체감(느리면 speed만 ↑).
 ---
 8. 미결 기획 (결정 대기)
-아이템 로드아웃 개편 (v3 논의 — 유저 고민 중): 재화 없이 판마다 공평 5개 = 자유 조합 4개(슬로우/부스터 4:0~0:4) + 특수 1개(발동권 vs 처형권 택1). Claude 평가: 자유 조합 4개 승인 권장(비밀 베팅과 연계된 정보전, 단 519m 트랙에 4개는 밀도 확인 필요 — 개수는 GameConfig로). 발동권은 스킬별 "즉시 발동" 정의표 선행 필요(호랑이=습격 타이밍 조작이 본체, 펭귄=꽝 유지 추천). 처형권은 원안 반대 — "꼴등" 키가 치킨(슬럼프 꼴등이 설계)·개(충성심=꼴등 엔진)와 구조 충돌 + 4인 연쇄 처형 문제. 역제안 A: 진행 70%+ & 판 전체 1회 한정. 역제안 B: 처형권→봉인권(지정 동물 스킬 1회 무효 — 발동권과 공수 대칭).
+★ 상점 시스템 (v6 유저 제안 — 구 "아이템 로드아웃 개편"을 대체, Claude 찬성 전달): **라운드 시작마다 균등 재화 지급 → 빠따/주사기/무전기를 구매.** 안 사면 없음 — 빠따 없으면 공격 수단 자체가 없어서 맨몸 도망 (주먹 없음, v6 확정). 장점: 무전기 밸런스를 가격으로 조절, 베팅 포인트와 재화 분리라 스노우볼 없음, 예산 배분=성향 표현(견제/개입/공작). 미결정 4: ① 잔여 재화 이월 (Claude 추천: 없음 — 모으기가 최적해 되면 소극적) ② 구매 장소 (로드아웃 페이즈 상점, 단말기 재활용?) ③ 구매 비밀 여부 (빠따는 들면 보여 반공개, 주사기 수량·무전기 보유는 비밀 추천 — 심리전) ④ 가격표 (초안: 지급 100, 주사기 25, 빠따 40, 무전기 60).
+무전기(4번 슬롯) 효과 — 택1 미정: A안 = 사용 5초 후 지정 동물 스킬 강제 발동(발동 여부 무관) = 구 "발동권". B안 = 사용 5초 후 맨 뒤 동물 죽이기 = 구 "처형권" — ⚠ B안은 치킨(슬럼프 꼴등 설계)·개(충성심=꼴등 엔진)와 구조 충돌 논점이 그대로 살아 있음, 확정 전 재논의 필요. A안은 충돌 없음. 스킬별 "즉시 발동" 정의표는 A안 선행 과제(호랑이=습격 타이밍 조작이 본체, 펭귄=꽝 유지 추천).
 감속 아이템 연출 (v5 논의 — 유저 결정 대기): 부스트=크림색 먼지가 뒤로 남는 그림이니, 감속은 **반대 축**(어두운 색·발밑·아래로 처짐)을 써야 대비가 산다. 제약 3가지 = ① 관전 거리 12m에서 누가 당했는지 즉시 읽혀야 함 ② 뒤 동물을 가리면 순위 판독이 죽음 ③ 먼지와 헷갈리면 안 됨. 후보: **A 검은 끈끈이(타르)** — 명중 시 철퍽, 3초간 발이 들러붙고 도로에 얼룩이 남음(당한 자리가 흔적으로 남아 뒤늦게 본 사람도 파악 가능. 단 발밑이라 가려질 수 있음) / **B 머리 위 쇳덩이·닻** — 하늘 배경이라 어디서도 안 가림, "무겁다=느리다"가 설명 없이 통함(단 총 쏴서 앵커가 나오는 그림의 정합성 문제) / **C 헐떡임(땀+처진 자세)** — 자연스럽고 귀엽지만 "남이 한 짓"으로 안 읽혀서 저격의 통쾌함이 죽음. Claude 추천 = **A + B의 머리 위 표식만 결합**(타르가 "무슨 일", 표식이 "누가 당했나" 담당). 덤 결정: 감속 연출은 **아이템 피격에만** 붙이고 스킬 자멸(고양이 변덕 실패·치킨 슬럼프)에는 안 붙이거나 C안 약한 버전만 — 안 그러면 저격의 의미가 희석됨.
 킥(최대 난제): 패키지 중 전광판(C)은 완료. 잔여 = 익명 저격 + 호랑이 습격 연출. 진단 = "레이스 관전 90초가 죽은 시간".
 ~~플레이어-동물 충돌(F)~~ — v4에서 유령 통과로 확정+구현 완료 (§3-6).
@@ -226,6 +256,17 @@ S커브 웨이포인트 단면 조임 (폭 9.8 과대 — 동물이 잔디 밟�
 출시 전: 디버그 토글 끄기, cornerDecelEnabled 등 A/B 토글 정리, 전광판 위치/크기 확정
 ---
 10. 테스트 현황
+★ v6 자동 검증 완료분 (재확인 불요 — 전부 오프라인 MCP 루프):
+· 커마 폴백 3종: 신규 유저 랜덤 저장(키 삭제→진입→생성·저장·착용 일치), 아바타 옷장 격리(Awake가 defaultCode만), 빈 코드 폴백.
+· 채점 "이상" 방식: 가속 레이스 1판 실전 정산 — 4인 전원 기대값=실지급 일치 PASS (3등 슬롯 동물이 2등 완주 → +30 신규칙 케이스 실측 포함). 검증용 bettingSeconds 원복 확인.
+· 4슬롯: 스폰 시 빠따 들기(꺼내기 재생), 슬롯 전환(집어넣기/주사기 팔 들기/맨손), 걸으면서 스윙 시 하체 걷기 유지, 연타 5발 후 정상 복귀(얼어붙음 픽스), 걷기 드리프트 프레임당 0.2cm 이하.
+· 피격: 부채꼴 판정 6케이스(정면/45도/74도 명중, 80도/3.5m/뒤 빗나감) 전부 PASS, 쓰러짐(입력 잠금·바닥 밀착 -0.6cm·누움 면역·카메라 하늘 1.00), 기상(Movement 복귀·잠금 해제·빠따 복원·무적 타이머).
+· 발 접지(-0.6cm), 쓰러짐 머리카락 표시.
+v6 미검증 (다음 세션):
+· **빠따 duel MPPM 2인 실기** — A가 B를 때려 쓰러뜨리기, 원격 화면의 쓰러짐/기상/슬롯 전환 애니. 판정은 때린 클라가 하고 RPC 방송이라 이론상 동일하나 실기 필수.
+· 머리 시선(PlayerHeadAim) — 마우스 입력이라 자동 검증 불가, 육안+MPPM 원격 확인 필요. ⚠ Observed 추가라 스탠드얼론 빌드는 전원 재빌드.
+· 커마 신규 유저 경로의 멀티 실기 (자동 검증은 통과).
+· 채점 개편의 멀티 화면 (정산판 ②↑③↑ 표기 포함).
 ★ v5 멀티 실기 검증 완료분 (MPPM 2인 — 본체=호스트, 가상 플레이어=게스트):
 · **커마 동기화 통과** — 게스트가 방송한 코드 `0,1,4,2,1,-1,-1,2,-1,0`이 호스트 화면의 원격 아바타에 정확히 적용됨(로그 실측).
 · **베팅→레이스→정산 한 바퀴 통과** — 레버 경로로 로스터 2명 구성 → 베팅 60초(미제출자 자동 예측) → 로드아웃 → 카운트다운 → 레이싱 → 8두 완주·순위 부여 → **정산 130점(70+50+10) 정확 지급** → 라운드 2 자동 진행. 3라운드까지 굴러감.
@@ -246,6 +287,14 @@ v4 자동 검증 완료분 (재확인 불요): 미니맵 텍스처 굽기·마�
 v4 미검증: 옆구리 번호판이 달리기 애니에서 몸을 뚫는지(정지 자세로만 캡처 — 육안 확인 필요), 미니맵 마커의 멀티 클라 화면(로컬 계산이라 이론상 동일)
 ---
 11. 지식 아카이브 (버그/설계 패턴 사전)
+★ 루트모션 "굽기(Bake Into Pose)"의 방향 법칙 (v6, 실사고 2연발): 클립의 루트 이동을 다루는 두 방법은 정반대 결과를 낳는다. ① **루프 이동 클립(걷기/뛰기)**: 굽기 금지 — 굽으면 전진 성분이 몸에 남아 루프마다 원위치 스냅("순간이동"). applyRootMotion=false로 그냥 버리면 진짜 제자리 재생. ② **원샷 자세 전환 클립(쓰러짐/기상)**: Y(수직)는 굽는 게 정답 — 안 굽으면 낙하 성분이 버려져 공중에 눕는다. 루프가 없으니 스냅도 없다.
+★ 이동 애니 교체는 상체 레이어로 (v6, 실패 후 확정 패턴): 클립의 발 구르는 속도와 CC 이동 속도가 다르면 스케이트 탄다 — 전신 무장 이동 세트로 갈아타는 방식은 이걸로 실패. 정답 = 다리(+머리)는 검증된 원본 이동을 유지하고, 무장 자세/공격은 **몸통+양팔 마스크 레이어**에만 얹기. 머리를 마스크에서 빼면 1인칭 카메라(머리 본)가 공격에 안 흔들리는 보너스.
+★ 같은 상태로 재-CrossFade하면 얼어붙는다 (v6, 실사고): 재생 중인 상태로 또 CrossFade하면 "끝나면 나가기(exit time)" 전환이 씹혀 마지막 프레임에 정지한다(연타 시 공격 멈춤 증상). 처방 = 현재/다음 상태가 그 상태면 `animator.Play(state, layer, 0f)`로 전환 없이 즉시 재시작 (연타 콤보 느낌 덤).
+★ CC skinWidth만큼 캐릭터가 떠 보인다 (v6): CharacterController는 캡슐 바닥이 지면+skinWidth에서 쉰다 — skinWidth 0.08이면 몸 전체가 8cm 부양. 처방 = center.y를 그만큼 올려 상쇄 (NetPlayer: 1.0→1.08, 발끝 실측 -0.6cm).
+★ 고정 컬링 박스는 큰 자세 변화에 못 버틴다 (v6, 머리카락 실종): 스킨드메시의 localBounds는 서 있는 자세 기준 고정이라, 쓰러지면 실제 부위가 박스를 벗어나 "화면 밖" 오판→그리기 생략. 처방 = `updateWhenOffscreen=true` (매 프레임 실제 뼈 기준 재계산, 커마 슬롯 전부 적용).
+★ 언리얼/Fab 애니 FBX는 그대로 리타게팅 된다 (v6): 이 프로젝트 캐릭터는 휴머노이드(isHuman) — UE 마네킹용 FBX든 믹사모든 휴머노이드로 임포트만 하면 자동 리타게팅. .uasset은 UE 에디터에서 FBX 익스포트 경유. 라이선스는 상품별 확인(Fab Standard = 엔진 무관 상업 가능).
+★ MPPM 무관하게 유저가 씬을 바꿔놓을 수 있다 (v6, 2회 헛발): EnterPlaymode는 "지금 열린 씬"을 플레이한다 — 유저가 데모 씬/타이틀을 열어둔 채면 검증이 헛돈다. 플레이 전 활성 씬 확인, 다르면 dirty 검사 후 전환(비저장 변경 있으면 중단이 안전).
+★ MCP 제약 추가 (v6): ① AssetDatabase.DeleteAsset은 확인창 때문에 MCP에서 실패 → 파일+.meta를 셸에서 직접 삭제. ② RunCommand는 호출마다 별도 동적 어셈블리라 이전 명령이 만든 컴포넌트 타입을 참조 못 함 → GetType().Name 문자열로 찾기. ③ 코루틴 대기(WaitForSeconds)는 실시간 — anim.Update() 강제 진행으로는 안 흐른다 (소품 지연 등장 같은 코루틴 검증은 실시간으로).
 ★ Mathf.SmoothStep은 문턱값 함수가 아니다 (v5, 실사고): GLSL의 `smoothstep(edge0, edge1, x)`와 이름만 같고 동작이 다르다. Unity의 `Mathf.SmoothStep(from, to, t)`는 **from~to 사이를 부드럽게 보간**하는 함수라, 문턱값처럼 쓰면 결과가 from~to 범위로 나온다. 먼지 텍스처 알파를 `1 - SmoothStep(0.74, 1, d)`로 구웠다가 **알파 최대치가 0.26**이 되어 "입자가 너무 곱다"는 증상으로 나타났다. 처방 = 직접 구현: `t=clamp01((x-e0)/(e1-e0)); return t*t*(3-2t);`. 코드로 텍스처/마스크를 구울 때 항상 의심할 것.
 ★ ParticleSystem은 AddComponent 직후 이미 재생 중 (v5): 재생 중에는 `main.duration` 설정이 거부되고 콘솔 에러가 뜬다. 조립 전에 `ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear)` 먼저.
 ★ 몸에 붙이는 부착물은 "밴드 최대폭"이 아니라 "부착 지점의 표면"을 재라 (v5): v4에서 번호판을 판 높이 구간의 최대 폭으로 붙였더니 갈비/날개 폭이 기준이 되어 호랑이·펭귄이 10~20cm 떠 있었다. 판 중앙 지점 근방만 좁게 샘플링해 표면을 잡아야 한다. 그리고 **딱 붙이면 안 된다** — 달리기 애니에서 어깨 근육이 부풀어 숫자가 묻힌다. 여유는 고정값이 아니라 **판 크기에 비례**(반높이의 25%, 최소 1.5cm)로 줘야 동물 크기에 자동으로 따라간다.
@@ -288,7 +337,15 @@ GameConfig.cornerDecelEnabled: 코너 감속 A/B 토글.
 GameConfig.debugProgressLog: [투영점프]/NaN 감시.
 TrackPath 빌드 검진 로그+기즈모.
 ---
-13. v5 세션에서 생긴 에셋/파일 (경로 지도)
+13. 세션별 생긴 에셋/파일 (경로 지도)
+[v6 신규]
+`Assets/Scripts/TitleIdleAnimator.cs` · `PlayerEquipment.cs` · `PlayerHeadAim.cs` · `PlayerKnockdown.cs`
+`Assets/Art/Animations/PlayerMovement.controller`(에셋팩 Character_Movement 복제+확장 — NetPlayer 전용) · `TitleIdle.controller` · `UpperBodyMask.mask` · `RightArmMask.mask`
+`Assets/Art/BeautifyProfile.asset`(뷰티파이 데모 프로파일 복제 — 두 씬 공유)
+`Assets/ExternalAssets/Anims/`(언리얼 HSAS 검술 6개 — 현재 미사용 + 믹사모 Equip/Disarm/아이들/이동 — Equip·Disarm만 사용 중) · `Assets/ExternalAssets/Anims2/`(Stunned·Getting Up — 피격용, Y굽기) · `Assets/Kevin Iglesias/`(Human Melee 2.0 FREE — 2H 세트 사용 중, CombatDamage01/Death01 대기)
+[v6 수정] GameConfig.cs(배점 90/50/30+전투 섹션) · MatchManager.cs(이상 채점) · SettlementPanel/BetChipView/BettingPanel/PlayerHUD/ItemSlotView(4칸+표기) · PlayerItemController.cs(전면 개편) · CharacterCustomization.cs(폴백+랜덤+컬링) · NetworkPlayerSetup.cs(ApplyCode) · FirstPersonController.cs(Pitch/InputLocked/CameraPivot) · NetPlayer 프리팹(대개조 — §5) · SampleScene(HUD 4칸/존 라벨/볼륨) · TitleScene(TitleIdleAnimator/카메라 PP) · ithappy 아이들 2종(루프 켬) · GameConfig SO 실값
+[v6 삭제] Anim_HSAS_Impact_Slash/Slash_Combo/Slash_Dodge.FBX (유저 지시)
+[v5]
 `Assets/Scripts/BoostDustFx.cs` · `CharacterPartLibrary.cs` · `CharacterCustomization.cs` · `CustomizationPanel.cs`
 `Assets/Scripts/Network/PlayerLook.cs` · `MppmTestClient.cs`
 `Assets/Art/VFX/T_BoostDustPuff.png`(256px 2×2 아틀라스 — 조각 4종, 굵은 검정 테두리) · `M_BoostDust.mat`(URP Particles Unlit)
@@ -297,4 +354,4 @@ TrackPath 빌드 검진 로그+기즈모.
 `Assets/ExternalAssets/ithappy/Creative_Characters_FREE/Scripts/Editor/ithappy.Creative_Characters_FREE.Editor.asmdef`(빌드 수정)
 수정: GameConfig.cs(먼지 섹션) · RaceManager.cs(EnsureDustFx) · FirstPersonController.cs(머리 본 추종) · NetworkPlayerSetup.cs(외형 적용·MonoBehaviourPunCallbacks로 변경) · NetworkLauncher.cs(접속 시 외형 방송) · 동물 프리팹 7종(번호판) · NetPlayer 프리팹(13슬롯) · TitleScene
 ---
-— 끝. 코드가 진실, 이 문서는 지도다. 첫 안건은 §7 순서대로: **원격 아바타 외형 폴백 버그 수정** → 감속 아이템 연출 확정/구현 → 멀티 잔여 테스트(복귀·호스트 이탈) → 아이템 개편 확정 → 새 맵 밸런스 검증 → V7 입력 확인 → 치킨 40% → 커마 후속 → 킥 ㄱ/아니오 → 성능 최적화.
+— 끝. 코드가 진실, 이 문서는 지도다. 첫 안건은 §7 순서대로: **기상 카메라 몸뚫림 수정** → 빠따 duel MPPM 실기 → 상점 미결정 4개 확정/구현(+내구도) → 감속 아이템 연출 확정/구현 → 멀티 잔여 테스트(복귀·호스트 이탈) → 새 맵 밸런스 검증(+EV 공식 갱신) → V7 입력 확인 → 치킨 40% → 커마 후속 → 킥 ㄱ/아니오 → 성능 최적화.

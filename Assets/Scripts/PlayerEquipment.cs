@@ -51,6 +51,7 @@ public class PlayerEquipment : MonoBehaviourPun
     private int holdLayer = -1;
     private Coroutine batPropRoutine;
     private Coroutine armedLayerRoutine;
+    private PlayerKnockdown knockdown;
 
     private void Awake()
     {
@@ -61,6 +62,7 @@ public class PlayerEquipment : MonoBehaviourPun
             Local = this;
 
         rightHand = FindBone(transform, "RightHand");
+        knockdown = GetComponent<PlayerKnockdown>();
         BuildProps();
     }
 
@@ -78,6 +80,7 @@ public class PlayerEquipment : MonoBehaviourPun
 
     public void Select(int slot)
     {
+        if (knockdown != null && knockdown.IsDown) return;   // 누워서 슬롯 전환 금지
         slot = Mathf.Clamp(slot, SlotBat, SlotRadio);
         if (slot == HeldSlot) return;
 
@@ -90,6 +93,7 @@ public class PlayerEquipment : MonoBehaviourPun
     public void Swing()
     {
         if (HeldSlot != SlotBat || !CanSwing) return;
+        if (knockdown != null && knockdown.IsDown) return;   // 누워서 휘두르기 금지
         nextSwingTime = Time.time + swingCooldown;
 
         int idx = Random.Range(0, attackStates.Length);
@@ -97,6 +101,45 @@ public class PlayerEquipment : MonoBehaviourPun
             photonView.RPC(nameof(RpcSwing), RpcTarget.All, idx);
         else
             RpcSwing(idx);
+
+        // 타격 판정은 로컬(때린 사람)이 임팩트 타이밍에 수행 — 명중자에게 쓰러짐 RPC
+        StartCoroutine(MeleeImpact());
+    }
+
+    /// <summary>임팩트 순간 전방 부채꼴 안의 다른 플레이어를 쓰러뜨린다.</summary>
+    private IEnumerator MeleeImpact()
+    {
+        var cfg = GameManager.Instance != null ? GameManager.Instance.Config : null;
+        yield return new WaitForSeconds(cfg != null ? cfg.meleeImpactDelay : 0.45f);
+        if (knockdown != null && knockdown.IsDown) yield break;   // 휘두르다 내가 먼저 맞음
+
+        foreach (var v in FindVictimsInArc())
+            v.RequestKnockdown();
+    }
+
+    /// <summary>전방 부채꼴(GameConfig: meleeRange/meleeArcAngle) 안의 타격 가능 대상 목록.</summary>
+    public System.Collections.Generic.List<PlayerKnockdown> FindVictimsInArc()
+    {
+        var cfg = GameManager.Instance != null ? GameManager.Instance.Config : null;
+        float range = cfg != null ? cfg.meleeRange : 2.2f;
+        float halfArc = (cfg != null ? cfg.meleeArcAngle : 150f) * 0.5f;
+
+        var list = new System.Collections.Generic.List<PlayerKnockdown>();
+        foreach (var k in FindObjectsByType<PlayerKnockdown>(FindObjectsSortMode.None))
+        {
+            if (k.gameObject == gameObject || !k.CanBeHit) continue;
+
+            Vector3 to = k.transform.position - transform.position;
+            float dy = Mathf.Abs(to.y);
+            to.y = 0f;
+            if (dy > 2f || to.magnitude > range) continue;
+
+            Vector3 fwd = transform.forward; fwd.y = 0f;
+            if (Vector3.Angle(fwd, to) > halfArc) continue;
+
+            list.Add(k);
+        }
+        return list;
     }
 
     // ---- 전 클라 로컬 재생 ----
@@ -167,6 +210,29 @@ public class PlayerEquipment : MonoBehaviourPun
             batProp.SetActive(bat);
         else
             batPropRoutine = StartCoroutine(BatPropDelayed(bat));
+    }
+
+    /// <summary>쓰러짐: 소품·무장/들기 레이어 전부 끔 (순수하게 누운 몸만 남게).</summary>
+    public void SuppressForKnockdown()
+    {
+        if (batPropRoutine != null) { StopCoroutine(batPropRoutine); batPropRoutine = null; }
+        if (armedLayerRoutine != null) { StopCoroutine(armedLayerRoutine); armedLayerRoutine = null; }
+
+        if (batProp != null) batProp.SetActive(false);
+        if (boostProp != null) boostProp.SetActive(false);
+        if (slowProp != null) slowProp.SetActive(false);
+
+        if (animator != null)
+        {
+            if (armedLayer >= 0) animator.SetLayerWeight(armedLayer, 0f);
+            if (holdLayer >= 0) animator.SetLayerWeight(holdLayer, 0f);
+        }
+    }
+
+    /// <summary>기상 완료: 들고 있던 슬롯 상태를 그대로 복원.</summary>
+    public void RestoreAfterKnockdown()
+    {
+        ApplyHeld(HeldSlot, HeldSlot, true);
     }
 
     /// <summary>집어넣기 연출이 끝나면 상체 무장 레이어를 부드럽게 끈다.</summary>

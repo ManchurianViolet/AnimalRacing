@@ -5,6 +5,7 @@
   <Project Path="Unity.RenderPipelines.Universal.Runtime.csproj" />
   <Project Path="PhotonUnityNetworking.csproj" />
   <Project Path="PhotonUnityNetworking.Demos.csproj" />
+  <Project Path="ithappy.Creative_Characters_FREE.Editor.csproj" />
   <Project Path="PhotonUnityNetworking.Utilities.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="ithappy.Creative_Characters_FREE.csproj" />

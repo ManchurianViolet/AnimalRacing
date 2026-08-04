@@ -29,15 +29,19 @@ public class PlayerHUD : MonoBehaviour
     [SerializeField] private TMP_Text betText;           // 우상단 (B키 토글)
     [SerializeField] private TMP_Text crosshairText;     // 중앙 "+"
     [SerializeField] private TMP_Text promptText;        // 하단 중앙 "E - 베팅하기"
+    [SerializeField] private ItemSlotView slotBat;
     [SerializeField] private ItemSlotView slotBoost;
     [SerializeField] private ItemSlotView slotSlow;
+    [SerializeField] private ItemSlotView slotRadio;
 
     private bool showBet = true;
 
     private void Start()
     {
-        slotBoost.Init(itemController, itemController.BoostItem, "1");
-        slotSlow.Init(itemController, itemController.SlowItem, "2");
+        if (slotBat != null) slotBat.Init(itemController, PlayerEquipment.SlotBat, null, "빠따", "1");
+        slotBoost.Init(itemController, PlayerEquipment.SlotBoost, itemController.BoostItem, null, "2");
+        slotSlow.Init(itemController, PlayerEquipment.SlotSlow, itemController.SlowItem, null, "3");
+        if (slotRadio != null) slotRadio.Init(itemController, PlayerEquipment.SlotRadio, null, "무전기", "4");
     }
 
     private void UpdatePhaseTimer()
@@ -79,8 +83,10 @@ public class PlayerHUD : MonoBehaviour
         bool uiOpen = playerController != null && !playerController.ControlEnabled;
         bool showGameplay = bound && !uiOpen;
 
+        if (slotBat != null) slotBat.gameObject.SetActive(showGameplay);
         if (slotBoost != null) slotBoost.gameObject.SetActive(showGameplay);
         if (slotSlow != null) slotSlow.gameObject.SetActive(showGameplay);
+        if (slotRadio != null) slotRadio.gameObject.SetActive(showGameplay);
         if (crosshairText != null) crosshairText.gameObject.SetActive(!uiOpen);
         if (promptText != null) promptText.gameObject.SetActive(!uiOpen);
 
@@ -114,9 +120,9 @@ public class PlayerHUD : MonoBehaviour
         if (!me.Bet.IsValid(GameManager.Instance.Config.racerCount)) return "예측 미제출  [B] 숨기기";
 
         var sb = new StringBuilder();
-        sb.Append("1등  ").Append(RacerName(me.Bet.firstId)).Append('\n');
-        sb.Append("2등  ").Append(RacerName(me.Bet.secondId)).Append('\n');
-        sb.Append("3등  ").Append(RacerName(me.Bet.thirdId)).Append('\n');
+        sb.Append("1등   ").Append(RacerName(me.Bet.firstId)).Append('\n');
+        sb.Append("2등↑ ").Append(RacerName(me.Bet.secondId)).Append('\n');
+        sb.Append("3등↑ ").Append(RacerName(me.Bet.thirdId)).Append('\n');
         sb.Append("[B] 숨기기");
         return sb.ToString();
     }

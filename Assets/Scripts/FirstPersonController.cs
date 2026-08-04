@@ -41,6 +41,9 @@ public class FirstPersonController : MonoBehaviour
     /// <summary>현재 조작 가능 상태 (false = 단말기/ATM 등 UI 사용 중). HUD가 참조.</summary>
     public bool ControlEnabled => controlEnabled;
 
+    /// <summary>현재 시선 상하각 (위=음수). PlayerHeadAim이 아바타 머리 본에 반영.</summary>
+    public float Pitch => pitch;
+
     private Vector2 animAxis;
     private float animState;
     private const float AnimFlow = 4.5f;

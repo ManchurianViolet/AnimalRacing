@@ -138,7 +138,7 @@ public class BettingPanel : MonoBehaviour
 
         if (statusText != null)
             statusText.text = valid
-                ? $"적중 시: 1등 +{cfg.pointsFirst} · 2등 +{cfg.pointsSecond} · 3등 +{cfg.pointsThird}"
+                ? $"적중 시: 1등 +{cfg.pointsFirst} · 2등↑ +{cfg.pointsSecond} · 3등↑ +{cfg.pointsThird}"
                 : $"동물을 예상 칸으로 드래그하세요 ({filled}/3)";
     }
 

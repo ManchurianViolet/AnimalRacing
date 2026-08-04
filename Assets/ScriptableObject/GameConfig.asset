@@ -17,11 +17,11 @@ MonoBehaviour:
   slowCount: 3
   itemCooldown: 5
   cooldownFor2P: 5
-  pointsFirst: 70
+  pointsFirst: 90
   pointsSecond: 50
-  pointsThird: 10
+  pointsThird: 30
   defaultRounds: 3
-  bettingSeconds: 30
+  bettingSeconds: 60
   loadoutSeconds: 2
   countdownSeconds: 2
   resultSeconds: 15

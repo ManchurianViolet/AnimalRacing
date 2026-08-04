@@ -90,6 +90,7 @@ public class NetworkLauncher : MonoBehaviourPunCallbacks
     public override void OnConnectedToMaster()
     {
         Status($"접속 완료 (지역: {PhotonNetwork.CloudRegion})");
+        PlayerLook.Publish();   // 저장된 커마 외형을 미리 올려둔다 (입장 시 남들이 바로 읽음)
         PhotonNetwork.JoinLobby();
     }
 

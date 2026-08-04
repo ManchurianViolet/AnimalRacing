@@ -95,15 +95,20 @@ public class SettlementPanel : MonoBehaviour
             var row = Instantiate(rowPrefab, rowsParent);
             row.Bind(racer.FinishRank, racer, isTop, isLast);
 
-            // 이 동물을 예측했던 플레이어들의 칩 부착 (①②③ + 적중 포인트)
+            // 이 동물을 예측했던 플레이어들의 칩 부착 (①/②↑/③↑ + 적중 포인트)
+            // "이상" 채점: 2등 슬롯은 1·2등이면, 3등 슬롯은 1·2·3등이면 적중 — MatchManager.SettlePoints와 동일 규칙
             foreach (var p in matchManager.Players)
             {
+                bool top1 = racer.RacerId == r.firstId;
+                bool top2 = top1 || racer.RacerId == r.secondId;
+                bool top3 = top2 || racer.RacerId == r.thirdId;
+
                 if (p.Bet.firstId == racer.RacerId)
-                    AddChip(row, 0, p.Nickname, racer.RacerId == r.firstId, cfg.pointsFirst);
+                    AddChip(row, 0, p.Nickname, top1, cfg.pointsFirst);
                 if (p.Bet.secondId == racer.RacerId)
-                    AddChip(row, 1, p.Nickname, racer.RacerId == r.secondId, cfg.pointsSecond);
+                    AddChip(row, 1, p.Nickname, top2, cfg.pointsSecond);
                 if (p.Bet.thirdId == racer.RacerId)
-                    AddChip(row, 2, p.Nickname, racer.RacerId == r.thirdId, cfg.pointsThird);
+                    AddChip(row, 2, p.Nickname, top3, cfg.pointsThird);
             }
 
             rows.Add(row);

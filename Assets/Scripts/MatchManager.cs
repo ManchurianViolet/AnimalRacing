@@ -153,7 +153,11 @@ public class MatchManager : MonoBehaviour
         PhaseEndTime = 0f;
     }
 
-    /// <summary>포인트 정산: 슬롯별 정확 일치 채점 (1등 100 / 2등 50 / 3등 30).</summary>
+    /// <summary>
+    /// 포인트 정산 — "이상" 채점 (기획 확정 2026-08-04):
+    /// 1등 슬롯 = 정확히 1등이어야 적중 / 2등 슬롯 = 2등 "이상"(1·2등) / 3등 슬롯 = 3등 "이상"(1·2·3등).
+    /// 하위 슬롯이 보험 역할을 한다. 배점은 GameConfig(기본 90/50/30).
+    /// </summary>
     private void SettlePoints(int round)
     {
         var ranking = raceManager.GetFinalRanking();
@@ -170,9 +174,12 @@ public class MatchManager : MonoBehaviour
         foreach (var p in players)
         {
             int gained = 0;
-            if (p.Bet.firstId == result.firstId)   gained += config.pointsFirst;
-            if (p.Bet.secondId == result.secondId) gained += config.pointsSecond;
-            if (p.Bet.thirdId == result.thirdId)   gained += config.pointsThird;
+            if (p.Bet.firstId == result.firstId)
+                gained += config.pointsFirst;
+            if (p.Bet.secondId == result.firstId || p.Bet.secondId == result.secondId)
+                gained += config.pointsSecond;
+            if (p.Bet.thirdId == result.firstId || p.Bet.thirdId == result.secondId || p.Bet.thirdId == result.thirdId)
+                gained += config.pointsThird;
 
             p.AddPoints(gained);
             result.pointsGained[p.PlayerId] = gained;

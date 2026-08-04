@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "PowerShell($p = \"c:\\\\Users\\\\yongc\\\\AnimalRacing\\\\Assets\\\\Scripts\\\\BoostDustFx.cs\"; $t = [System.IO.File]::ReadAllText\\($p\\); $t = $t -replace \"`r`n\", \"`n\"; $t = $t -replace \"`n\", \"`r`n\"; [System.IO.File]::WriteAllText\\($p, $t, \\(New-Object System.Text.UTF8Encoding\\($false\\)\\)\\); \"ok, bytes=$\\(\\(Get-Item $p\\).Length\\)\")",
-      "mcp__unity-mcp__Unity_GetConsoleLogs"
+      "mcp__unity-mcp__Unity_GetConsoleLogs",
+      "PowerShell(\"waited\")"
     ]
   }
 }

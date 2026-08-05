@@ -51,6 +51,12 @@ public class BettingPanel : MonoBehaviour
 
     private void Awake()
     {
+        // 단말기 복제 시 인스펙터 배선 누락 사고 방지 (BettingTerminal과 동일 패턴) — 비어 있으면 자동 탐색
+        // 실사고: tablet 복제본의 raceManager가 비어 BuildRows에서 NRE (빌드 테스트에서 발견)
+        if (matchManager == null) matchManager = FindFirstObjectByType<MatchManager>();
+        if (raceManager == null) raceManager = FindFirstObjectByType<RaceManager>();
+        if (gateway == null) gateway = FindFirstObjectByType<NetworkGateway>();
+
         gameObject.SetActive(false);
         confirmButton.onClick.AddListener(Confirm);
 

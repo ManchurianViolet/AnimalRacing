@@ -85,6 +85,10 @@ public class FirstPersonController : MonoBehaviour
     {
         if (cameraPivot == null || headBone == null) return;
 
+        // 단말기 등 UI 사용 중(조작 잠금)엔 카메라 소유권이 연출 쪽(BettingTerminal)에 있다 —
+        // 여기서 계속 머리 본을 따라가면 단말기 앵커로 옮긴 카메라를 아이들 고갯짓이 끌고 다닌다
+        if (!controlEnabled) return;
+
         if (!eyeLocalCaptured)
         {
             // 서 있는 첫 프레임 기준으로 "머리 본 로컬 눈 오프셋"을 역산해 둔다 (쓰러짐 눈 앵커용)

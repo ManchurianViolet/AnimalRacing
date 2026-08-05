@@ -85,7 +85,10 @@ public class PlayerHUD : MonoBehaviour
         // 로스터 바인딩 전(대기실): 게임플레이 HUD 숨김
         bool bound = me != null;
         bool uiOpen = playerController != null && !playerController.ControlEnabled;
-        bool showGameplay = bound && !uiOpen;
+        // 정산 중엔 결과판이 화면을 덮으므로 아이템 슬롯 숨김 (겹침 방지)
+        bool settlement = GameManager.Instance != null &&
+                          GameManager.Instance.CurrentPhase == GamePhase.Settlement;
+        bool showGameplay = bound && !uiOpen && !settlement;
 
         if (slotBat != null) slotBat.gameObject.SetActive(showGameplay);
         if (slotBoost != null) slotBoost.gameObject.SetActive(showGameplay);

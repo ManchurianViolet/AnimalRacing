@@ -36,6 +36,7 @@ public class MinimapBoard : MonoBehaviour
         public RectTransform marker;
         public float lastProg;      // 연속성 투영용 (8자 교차에서 반대편 변 포획 방지)
         public bool finished;
+        public bool eliminated;
         public int finishRank;
     }
 
@@ -66,7 +67,22 @@ public class MinimapBoard : MonoBehaviour
         var e = entries.Find(x => x.racer != null && x.racer.RacerId == racerId);
         if (e == null || e.finished) return;
         e.finished = true;
+        e.eliminated = eliminated;
         e.finishRank = rank;
+
+        if (!eliminated) return;
+        // 탈락: 행 뿌옇게 + 미니맵 마커를 흐린 회색으로 (레인 색 제거 — 죽은 표시)
+        if (e.rowRect != null)
+        {
+            var cg = e.rowRect.GetComponent<CanvasGroup>();
+            if (cg == null) cg = e.rowRect.gameObject.AddComponent<CanvasGroup>();
+            cg.alpha = 0.45f;
+        }
+        if (e.marker != null)
+        {
+            var img = e.marker.GetComponent<UnityEngine.UI.Image>();
+            if (img != null) img.color = new Color(0.45f, 0.45f, 0.45f, 0.5f);
+        }
     }
 
     private void Update()
@@ -98,10 +114,12 @@ public class MinimapBoard : MonoBehaviour
             }
         }
 
-        // 정렬: 완주(순위순) 먼저, 나머지는 진행도 내림차순
+        // 정렬: 완주(순위순) → 주행 중(진행도 내림차순) → 탈락(항상 맨 아래, 순위순)
         var order = new List<Entry>(entries);
         order.Sort((a, b) =>
         {
+            if (a.eliminated != b.eliminated) return a.eliminated ? 1 : -1;
+            if (a.eliminated) return a.finishRank.CompareTo(b.finishRank);
             if (a.finished != b.finished) return a.finished ? -1 : 1;
             if (a.finished) return a.finishRank.CompareTo(b.finishRank);
             return b.lastProg.CompareTo(a.lastProg);

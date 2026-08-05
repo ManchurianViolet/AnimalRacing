@@ -36,6 +36,8 @@ public class Racer : MonoBehaviour
     // ---- 스킬 상태 ----
     private float trackLength = 1f;     // RaceManager가 세팅 (진행률 계산용)
     private float raceTime;             // 이번 레이스 경과 (치킨)
+    private float elimFreezeAt = -1f;   // 처형 후 애니 정지 예정 시각 (호스트/클라 각자 로컬)
+    private bool animFrozen;
     private bool isLastPlace;           // RaceManager가 매 틱 세팅 (개)
     private float activeTriggerRatio;   // 액티브 발동 진행률 (호랑이/고양이)
     private bool activeConsumed;
@@ -112,7 +114,26 @@ public class Racer : MonoBehaviour
         IsEliminated = true;
         FinishRank = rank;
         effects.Clear();   // 죽은 몸에 이펙트 잔류 방지
+        BeginElimFreeze();
         GameEvents.RaiseRacerFinished(RacerId, rank, eliminated: true);
+    }
+
+    /// <summary>쓰러진 뒤 잠시 재생하다 완전 정지 예약 — "죽었는데 아이들 재생"의 어색함 방지.</summary>
+    private void BeginElimFreeze()
+    {
+        float delay = GameManager.Instance != null
+            ? GameManager.Instance.Config.elimAnimFreezeSeconds : 5f;
+        elimFreezeAt = Time.time + delay;
+    }
+
+    // 애니 정지는 호스트(SimTick)와 클라(AnimatorView 미러) 모두 각자 로컬로 걸어야 해서 Update 사용
+    private void Update()
+    {
+        if (animFrozen || elimFreezeAt < 0f || animator == null) return;
+        if (Time.time < elimFreezeAt) return;
+        animFrozen = true;
+        elimFreezeAt = -1f;
+        animator.speed = 0f;   // 그 자세 그대로 레이스 끝까지 (새 라운드는 새 스폰이라 자동 초기화)
     }
 
     /// <summary>[사슴] 근처 아이템 폭발 감지 — 지연 후 도주 가속.</summary>
@@ -240,6 +261,7 @@ public class Racer : MonoBehaviour
 
     private void DriveAnimator(float dt)
     {
+        if (animFrozen) return;   // 처형 정지 후엔 속도/파라미터 안 건드림
         if (animator == null || rb == null) return;
         Vector3 v = rb.linearVelocity; v.y = 0f;
         float target = HasFinished ? 0f
@@ -264,11 +286,13 @@ public class Racer : MonoBehaviour
         FinishRank = rank;
     }
 
-    /// <summary>[클라] 호스트가 중계한 탈락 반영 (연출은 TransformView 받아쓰기, 상태만 미러).</summary>
+    /// <summary>[클라] 호스트가 중계한 탈락 반영 (자세는 TransformView 받아쓰기, 애니 정지는 로컬 예약).</summary>
     public void ApplyNetworkEliminated()
     {
+        if (IsEliminated) return;
         HasFinished = true;
         IsEliminated = true;
+        BeginElimFreeze();
     }
 
     public void MarkFinished(int rank)

@@ -24,6 +24,8 @@ public class GameConfig : ScriptableObject
     public float radioDelaySeconds = 5f;
     [Tooltip("발동 무전기: 패시브 스킬(말/개/치킨)을 강제 발동시켰을 때 지속 (초)")]
     public float radioForcedSkillDuration = 3f;
+    [Tooltip("처형된 동물이 쓰러진 뒤 애니메이션이 완전 정지하기까지 (초) — 이후 레이스 끝까지 그 자세 유지")]
+    public float elimAnimFreezeSeconds = 5f;
 
     [Header("포인트 (예측 적중 보상 — 1등 정확 / 2등 이상 / 3등 이상)")]
     public int pointsFirst = 90;

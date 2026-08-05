@@ -77,6 +77,17 @@ public class ScoreboardBoard : MonoBehaviour
         row.eliminated = eliminated;
         row.finishRank = rank;
         row.finishTime = clock;
+        if (eliminated) ApplyEliminatedLook(row);
+    }
+
+    /// <summary>탈락 행: 전체를 뿌옇게(회색 반투명) + 기록 자리는 빨간 "탈락".</summary>
+    private static void ApplyEliminatedLook(Row row)
+    {
+        if (row.rect == null) return;
+        var cg = row.rect.GetComponent<CanvasGroup>();
+        if (cg == null) cg = row.rect.gameObject.AddComponent<CanvasGroup>();
+        cg.alpha = 0.45f;
+        if (row.value != null) row.value.color = new Color(1f, 0.35f, 0.35f);
     }
 
     private void Update()
@@ -110,10 +121,12 @@ public class ScoreboardBoard : MonoBehaviour
                 : $"{row.dispSpeed:F1} m/s";
         }
 
-        // 정렬: 완주(순위순) 먼저, 나머지는 진행도 내림차순
+        // 정렬: 완주(순위순) → 주행 중(진행도 내림차순) → 탈락(항상 맨 아래, 순위순)
         var order = new List<Row>(rows);
         order.Sort((a, b) =>
         {
+            if (a.eliminated != b.eliminated) return a.eliminated ? 1 : -1;
+            if (a.eliminated) return a.finishRank.CompareTo(b.finishRank);
             if (a.finished != b.finished) return a.finished ? -1 : 1;
             if (a.finished) return a.finishRank.CompareTo(b.finishRank);
             return b.lastProg.CompareTo(a.lastProg);

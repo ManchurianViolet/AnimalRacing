@@ -30,6 +30,11 @@ public class RacerMotor : MonoBehaviour
     // ---- 완주 연출 상태 ----
     private bool restPicked;      // 휴식 지점을 이미 뽑았나
     private Vector3 restPoint;    // 결승선 너머의 개인 휴식 지점
+
+    // ---- 탈락(처형) 연출 상태 ----
+    private bool elimStarted;
+    private Quaternion elimBaseRot;   // 쓰러지기 시작한 순간의 자세
+    private float elimRoll;           // 옆으로 넘어간 각도 (0→90)
     private Vector3 groundUp = Vector3.up;   // 평활화된 지면 법선 (경사 정렬용)
 
     // ---- 디버그 계기판 상태 (기즈모용 스냅샷) ----
@@ -70,7 +75,8 @@ public class RacerMotor : MonoBehaviour
 
         if (racer.HasFinished)
         {
-            FinishCoast(dt);
+            if (racer.IsEliminated) EliminatedCollapse(dt);
+            else FinishCoast(dt);
             return;
         }
 
@@ -223,6 +229,27 @@ public class RacerMotor : MonoBehaviour
         // 회전: FreezeRotation이 MoveRotation까지 막으므로 (Unity 6) transform 직접 회전.
         // 물리에서 회전을 완전 몰수한 축이라 충돌 없음.
         RotateToward(to, racer.Definition.AccelGain * 1.6f, dt);
+    }
+
+    // ---- 탈락 연출: 급제동 + 옆으로 픽 쓰러짐 (회전은 TransformView로 클라에도 미러) ----
+    private void EliminatedCollapse(float dt)
+    {
+        if (!elimStarted)
+        {
+            elimStarted = true;
+            elimBaseRot = transform.rotation;
+            elimRoll = 0f;
+        }
+
+        Vector3 v = rb.linearVelocity;
+        v.x = Mathf.Lerp(v.x, 0f, 8f * dt);
+        v.z = Mathf.Lerp(v.z, 0f, 8f * dt);   // y는 중력에 맡김 (공중에서 안 멈추게)
+        rb.linearVelocity = v;
+
+        // 진행 방향 축으로 90도 굴러 넘어짐 — 번호 홀짝으로 좌/우 갈라 단조로움 회피
+        float dir = racer.RacerId % 2 == 0 ? 1f : -1f;
+        elimRoll = Mathf.MoveTowards(elimRoll, 90f, 200f * dt);
+        transform.rotation = elimBaseRot * Quaternion.Euler(0f, 0f, elimRoll * dir);
     }
 
     // ---- 완주 연출: 결승선을 지나 저마다 랜덤 거리를 더 달리다 좌우로 흩어져 멈춤 ----

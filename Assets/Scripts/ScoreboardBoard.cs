@@ -32,6 +32,7 @@ public class ScoreboardBoard : MonoBehaviour
         public Vector3 lastPos;
         public float dispSpeed;
         public bool finished;
+        public bool eliminated;
         public int finishRank;
         public float finishTime;
     }
@@ -68,11 +69,12 @@ public class ScoreboardBoard : MonoBehaviour
         else if (p == GamePhase.Betting) { clock = 0f; clockRunning = false; }
     }
 
-    private void HandleFinished(int racerId, int rank)
+    private void HandleFinished(int racerId, int rank, bool eliminated)
     {
         var row = rows.Find(r => r.racer != null && r.racer.RacerId == racerId);
         if (row == null || row.finished) return;
         row.finished = true;
+        row.eliminated = eliminated;
         row.finishRank = rank;
         row.finishTime = clock;
     }
@@ -94,7 +96,7 @@ public class ScoreboardBoard : MonoBehaviour
             if (row.racer == null) continue;
             var pos = row.racer.transform.position;
 
-            row.lastProg = path.GetProgressNear(pos, row.lastProg);
+            row.lastProg = path.GetDistanceNear(pos, row.lastProg);   // 랩 누적 — 2랩째 선두가 뒤로 안 밀림
 
             // 표시 속도: 위치 변화 기반 — 클라의 kinematic 미러에도 유효
             float rawSpeed = dt > 1e-5f
@@ -103,7 +105,9 @@ public class ScoreboardBoard : MonoBehaviour
             row.lastPos = pos;
             row.dispSpeed = Mathf.Lerp(row.dispSpeed, rawSpeed, dt / Mathf.Max(0.05f, speedSmooth));
 
-            row.value.text = row.finished ? FormatTime(row.finishTime) : $"{row.dispSpeed:F1} m/s";
+            row.value.text = row.finished
+                ? (row.eliminated ? "탈락" : FormatTime(row.finishTime))
+                : $"{row.dispSpeed:F1} m/s";
         }
 
         // 정렬: 완주(순위순) 먼저, 나머지는 진행도 내림차순

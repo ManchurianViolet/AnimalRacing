@@ -50,6 +50,16 @@ public class FirstPersonController : MonoBehaviour
     /// <summary>카메라 피벗 (PlayerKnockdown이 쓰러짐 연출에 사용).</summary>
     public Transform CameraPivot => cameraPivot;
 
+    /// <summary>
+    /// 쓰러짐 연출용 (PlayerKnockdown이 프레임마다 굴림). 0=평소(눈이 몸 앞),
+    /// 1=누움(눈이 머리 위 하늘 쪽) — 쓰러지는 동안 카메라가 가슴/몸통을 관통하지 않게 한다.
+    /// </summary>
+    public float LieEyeBlend { get; set; }
+
+    private Vector3 eyeOffsetHeadLocal;   // 머리 본 로컬 기준 눈 오프셋 (서 있는 첫 프레임에 역산)
+    private bool eyeLocalCaptured;
+    private const float GroundEyeClearance = 0.10f;   // 쓰러지며 바닥 볼 때 카메라 땅 뚫기 방지
+
     private Vector2 animAxis;
     private float animState;
     private const float AnimFlow = 4.5f;
@@ -74,7 +84,24 @@ public class FirstPersonController : MonoBehaviour
     private void LateUpdate()
     {
         if (cameraPivot == null || headBone == null) return;
-        cameraPivot.position = headBone.position + transform.rotation * eyeOffset;
+
+        if (!eyeLocalCaptured)
+        {
+            // 서 있는 첫 프레임 기준으로 "머리 본 로컬 눈 오프셋"을 역산해 둔다 (쓰러짐 눈 앵커용)
+            eyeOffsetHeadLocal = Quaternion.Inverse(headBone.rotation) * (transform.rotation * eyeOffset);
+            eyeLocalCaptured = true;
+        }
+
+        Vector3 pos = headBone.position + transform.rotation * eyeOffset;
+        if (LieEyeBlend > 0f)
+        {
+            // 쓰러짐~누움: 눈을 "얼굴 앞"에 앵커 — 위치·회전이 모두 얼굴을 따라가는 진짜 눈 시점.
+            // (월드 위쪽 고정 오프셋은 몸이 뒤로 넘어가는 중간에 뒤통수 뒤가 되어 자기 머리가 보였음 — v7 픽스)
+            Vector3 eyePos = headBone.position + headBone.rotation * eyeOffsetHeadLocal;
+            eyePos.y = Mathf.Max(eyePos.y, transform.position.y + GroundEyeClearance);
+            pos = Vector3.Lerp(pos, eyePos, LieEyeBlend);
+        }
+        cameraPivot.position = pos;
     }
 
     /// <summary>UI 사용 중 조작 잠금/해제. 커서 상태도 함께 전환.</summary>

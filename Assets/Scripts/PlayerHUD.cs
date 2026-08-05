@@ -32,7 +32,8 @@ public class PlayerHUD : MonoBehaviour
     [SerializeField] private ItemSlotView slotBat;
     [SerializeField] private ItemSlotView slotBoost;
     [SerializeField] private ItemSlotView slotSlow;
-    [SerializeField] private ItemSlotView slotRadio;
+    [SerializeField] private ItemSlotView slotRadioSkill;
+    [SerializeField] private ItemSlotView slotRadioExec;
 
     private bool showBet = true;
 
@@ -41,7 +42,10 @@ public class PlayerHUD : MonoBehaviour
         if (slotBat != null) slotBat.Init(itemController, PlayerEquipment.SlotBat, null, "빠따", "1");
         slotBoost.Init(itemController, PlayerEquipment.SlotBoost, itemController.BoostItem, null, "2");
         slotSlow.Init(itemController, PlayerEquipment.SlotSlow, itemController.SlowItem, null, "3");
-        if (slotRadio != null) slotRadio.Init(itemController, PlayerEquipment.SlotRadio, null, "무전기", "4");
+        if (slotRadioSkill != null)
+            slotRadioSkill.Init(itemController, PlayerEquipment.SlotRadioSkill, itemController.RadioSkillItem, "발동 무전기", "4");
+        if (slotRadioExec != null)
+            slotRadioExec.Init(itemController, PlayerEquipment.SlotRadioExec, itemController.RadioExecItem, "처형 무전기", "5");
     }
 
     private void UpdatePhaseTimer()
@@ -86,7 +90,8 @@ public class PlayerHUD : MonoBehaviour
         if (slotBat != null) slotBat.gameObject.SetActive(showGameplay);
         if (slotBoost != null) slotBoost.gameObject.SetActive(showGameplay);
         if (slotSlow != null) slotSlow.gameObject.SetActive(showGameplay);
-        if (slotRadio != null) slotRadio.gameObject.SetActive(showGameplay);
+        if (slotRadioSkill != null) slotRadioSkill.gameObject.SetActive(showGameplay);
+        if (slotRadioExec != null) slotRadioExec.gameObject.SetActive(showGameplay);
         if (crosshairText != null) crosshairText.gameObject.SetActive(!uiOpen);
         if (promptText != null) promptText.gameObject.SetActive(!uiOpen);
 

@@ -61,7 +61,7 @@ public class MinimapBoard : MonoBehaviour
     private void OnEnable() => GameEvents.OnRacerFinished += HandleFinished;
     private void OnDisable() => GameEvents.OnRacerFinished -= HandleFinished;
 
-    private void HandleFinished(int racerId, int rank)
+    private void HandleFinished(int racerId, int rank, bool eliminated)
     {
         var e = entries.Find(x => x.racer != null && x.racer.RacerId == racerId);
         if (e == null || e.finished) return;
@@ -88,7 +88,7 @@ public class MinimapBoard : MonoBehaviour
         {
             if (e.racer == null) continue;
             var pos = e.racer.transform.position;
-            e.lastProg = path.GetProgressNear(pos, e.lastProg);
+            e.lastProg = path.GetDistanceNear(pos, e.lastProg);   // 랩 누적 — 2랩째 선두가 뒤로 안 밀림
 
             if (e.marker != null && mapTexture != null)
             {

@@ -16,9 +16,11 @@ public class PrototypeBootstrap : MonoBehaviour
     [SerializeField] private PlayerItemController itemController;
     [SerializeField] private BotController[] bots;
 
-    [Header("아이템 SO (2종)")]
+    [Header("아이템 SO (4종)")]
     [SerializeField] private ItemDefinition boostItem;
     [SerializeField] private ItemDefinition slowItem;
+    [SerializeField] private ItemDefinition radioSkillItem;
+    [SerializeField] private ItemDefinition radioExecItem;
 
     private void Start()
     {
@@ -92,6 +94,10 @@ public class PrototypeBootstrap : MonoBehaviour
         var loadout = new List<ItemDefinition>();
         for (int i = 0; i < cfg.boostCount; i++) loadout.Add(boostItem);
         for (int i = 0; i < cfg.slowCount; i++)  loadout.Add(slowItem);
+        if (radioSkillItem != null)
+            for (int i = 0; i < cfg.radioSkillCount; i++) loadout.Add(radioSkillItem);
+        if (radioExecItem != null)
+            for (int i = 0; i < cfg.radioExecCount; i++) loadout.Add(radioExecItem);
 
         foreach (var p in matchManager.Players)
         {

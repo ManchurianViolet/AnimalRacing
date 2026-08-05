@@ -15,6 +15,8 @@ public class TrackPath : MonoBehaviour
     [SerializeField] private Transform innerLine;
     [Tooltip("바깥 경계 라인의 부모 (자식들이 순서대로 점)")]
     [SerializeField] private Transform outerLine;
+    [Tooltip("순환 트랙 여부 — 켜면 진행도가 랩 경계(시작=끝)를 넘어 이어진다 (다바퀴 레이스용). 시작점과 끝점이 같은 자리여야 함")]
+    [SerializeField] private bool loop = true;
 
     private Vector3[] inner, outer;
     private Vector3[] pts;        // 중심선 = 쌍의 중점
@@ -83,6 +85,35 @@ public class TrackPath : MonoBehaviour
 
     // ================= 진행도 =================
 
+    /// <summary>경로 좌표 정규화: 루프면 [0, TotalLength) 래핑, 아니면 클램프.</summary>
+    public float WrapProgress(float progress)
+    {
+        if (TotalLength <= 0f) return 0f;
+        if (!loop) return Mathf.Clamp(progress, 0f, TotalLength);
+        progress %= TotalLength;
+        if (progress < 0f) progress += TotalLength;
+        return progress;
+    }
+
+    /// <summary>
+    /// 랩 누적 진행도 갱신 — last와 반환값 모두 "누적 주행거리"(랩 포함, 음수 = 출발선 뒤).
+    /// 내부에서 경로 좌표로 투영한 뒤 이동량만 누적하므로 랩 경계(이음새)를 자연스럽게 넘는다.
+    /// 다바퀴 레이스의 순위/완주 판정은 전부 이 누적값 기준.
+    /// </summary>
+    public float GetDistanceNear(Vector3 pos, float lastDistance)
+    {
+        float lastPath = WrapProgress(lastDistance);
+        float newPath = GetProgressNear(pos, lastPath);
+        float delta = newPath - lastPath;
+        if (loop)
+        {
+            // 이음새 통과: 경로 좌표는 519→0으로 점프하지만 실제 이동량은 소폭 — 짧은 쪽으로 접는다
+            if (delta < -TotalLength * 0.5f) delta += TotalLength;
+            else if (delta > TotalLength * 0.5f) delta -= TotalLength;
+        }
+        return lastDistance + delta;
+    }
+
     public float GetProgress(Vector3 pos)
     {
         float bestSqr = float.MaxValue, bestProg = 0f;
@@ -101,16 +132,23 @@ public class TrackPath : MonoBehaviour
         return bestProg;
     }
 
-    /// <summary>연속성 투영 — 직전 진행도 근처 구간에서만 검색 (반대편 변 포획 방지).</summary>
+    /// <summary>연속성 투영 — 직전 진행도 근처 구간에서만 검색 (반대편 변 포획 방지).
+    /// 루프면 검색 창이 랩 경계(시작=끝)를 넘어 이어진다.</summary>
     public float GetProgressNear(Vector3 pos, float lastProgress, float forwardWindow = 15f, float backSlack = 5f)
     {
+        lastProgress = WrapProgress(lastProgress);
         float lo = lastProgress - backSlack;
         float hi = lastProgress + forwardWindow;
 
         float bestSqr = float.MaxValue, bestProg = lastProgress;
         for (int i = 0; i < pts.Length - 1; i++)
         {
-            if (cumulative[i + 1] < lo || cumulative[i] > hi) continue;
+            // 창 판정: 루프면 한 바퀴(±TotalLength) 평행이동한 창도 인정 (이음새 걸친 창)
+            bool inWindow = cumulative[i + 1] >= lo && cumulative[i] <= hi;
+            if (!inWindow && loop)
+                inWindow = (cumulative[i + 1] >= lo - TotalLength && cumulative[i] <= hi - TotalLength)
+                        || (cumulative[i + 1] >= lo + TotalLength && cumulative[i] <= hi + TotalLength);
+            if (!inWindow) continue;
 
             Vector3 a = pts[i], ab = pts[i + 1] - a;
             float t = Mathf.Clamp01(Vector3.Dot(pos - a, ab) / ab.sqrMagnitude);
@@ -131,7 +169,7 @@ public class TrackPath : MonoBehaviour
 
     public Vector3 GetPoint(float progress)
     {
-        progress = Mathf.Clamp(progress, 0f, TotalLength);
+        progress = WrapProgress(progress);   // 루프: 랩 경계 너머 조회도 이어짐
         for (int i = 1; i < cumulative.Length; i++)
         {
             if (progress <= cumulative[i])
@@ -177,7 +215,7 @@ public class TrackPath : MonoBehaviour
     /// <summary>해당 진행도의 반폭 (단면 보간) — 폭이 구간마다 달라도 정확.</summary>
     public float GetHalfWidth(float progress)
     {
-        progress = Mathf.Clamp(progress, 0f, TotalLength);
+        progress = WrapProgress(progress);
         for (int i = 1; i < cumulative.Length; i++)
         {
             if (progress <= cumulative[i])
@@ -196,7 +234,7 @@ public class TrackPath : MonoBehaviour
     /// <summary>진행도 → (구간 인덱스, 구간 내 t). 단면 보간의 공통 재료.</summary>
     private void GetSection(float progress, out int i, out float t)
     {
-        progress = Mathf.Clamp(progress, 0f, TotalLength);
+        progress = WrapProgress(progress);
         for (int k = 1; k < cumulative.Length; k++)
         {
             if (progress <= cumulative[k])
@@ -233,11 +271,17 @@ public class TrackPath : MonoBehaviour
 
     public float GetSignedCurvatureAhead(float progress, float distance)
     {
-        float end = Mathf.Min(progress + distance, TotalLength);
+        progress = WrapProgress(progress);
+        float end = loop ? progress + distance : Mathf.Min(progress + distance, TotalLength);
         float sum = 0f;
         for (int i = 1; i < pts.Length - 1; i++)
+        {
             if (cumulative[i] > progress && cumulative[i] <= end)
                 sum += yawAtPoint[i];
+            // 루프: 감지 창이 랩 경계를 넘으면 시작 구간의 굴곡도 이어서 읽는다
+            else if (loop && end > TotalLength && cumulative[i] <= end - TotalLength)
+                sum += yawAtPoint[i];
+        }
         return sum / Mathf.Max(1f, distance);
     }
 

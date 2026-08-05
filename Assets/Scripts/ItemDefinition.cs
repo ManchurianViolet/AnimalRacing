@@ -1,6 +1,8 @@
 using UnityEngine;
 
-public enum ItemKind { Boost, Slow }
+// SkillTrigger = 발동 무전기 (5초 후 지정 동물 스킬 강제 발동)
+// Execute     = 처형 무전기 (5초 후 그 시점의 꼴등 탈락)
+public enum ItemKind { Boost, Slow, SkillTrigger, Execute }
 
 [CreateAssetMenu(fileName = "Item_", menuName = "HorseRace/Item")]
 public class ItemDefinition : ScriptableObject

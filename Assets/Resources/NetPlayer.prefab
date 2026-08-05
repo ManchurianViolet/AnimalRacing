@@ -1948,6 +1948,7 @@ MonoBehaviour:
   vertID: Vert
   stateID: State
   jumpID: IsJump
+  lieEyeHeight: 0.18
 --- !u!114 &704971295103294544
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2119,7 +2120,7 @@ MonoBehaviour:
   equipment: {fileID: 5151545962407639968}
   interactor: {fileID: 704971295103294544}
   animator: {fileID: 2603406669749608437}
-  getUpSpeed: 2
+  getUpSpeed: 1.5
   cameraTiltSpeed: 2.5
 --- !u!4 &8883440529124987854 stripped
 Transform:

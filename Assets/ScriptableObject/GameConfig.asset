@@ -12,14 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd28280057ab8a048aa09bf1804437ae, type: 3}
   m_Name: GameConfig
   m_EditorClassIdentifier: Assembly-CSharp::GameConfig
-  racerCount: 8
+  racerCount: 9
+  lapCount: 2
   boostCount: 3
   slowCount: 3
+  radioSkillCount: 1
+  radioExecCount: 1
   itemCooldown: 5
   cooldownFor2P: 5
+  radioDelaySeconds: 5
+  radioForcedSkillDuration: 3
   pointsFirst: 90
   pointsSecond: 50
   pointsThird: 30
+  meleeRange: 2.2
+  meleeArcAngle: 150
+  meleeImpactDelay: 0.45
+  knockdownInvulnSeconds: 3
   defaultRounds: 3
   bettingSeconds: 60
   loadoutSeconds: 2

@@ -21,9 +21,11 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
     [SerializeField] private ItemExecutor itemExecutor;
     [SerializeField] private PlayerItemController itemController;
 
-    [Header("아이템 SO (네트워크 직렬화용: 0=부스트, 1=감속)")]
+    [Header("아이템 SO (네트워크 직렬화용: 0=부스트, 1=감속, 2=발동 무전기, 3=처형 무전기)")]
     [SerializeField] private ItemDefinition boostItem;
     [SerializeField] private ItemDefinition slowItem;
+    [SerializeField] private ItemDefinition radioSkillItem;
+    [SerializeField] private ItemDefinition radioExecItem;
 
     [Header("봇 (이탈자 대타 전용 — 초기 충원 없음)")]
     [SerializeField] private BotController[] bots;
@@ -39,14 +41,27 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
 
     private void Awake()
     {
-        if (boostItem == null || slowItem == null)
-            Debug.LogError("[NetworkGateway] Boost Item / Slow Item 슬롯이 비어있습니다! " +
-                "아이템 개수 방송이 전부 0이 되어 게스트 아이템이 0개로 보입니다. " +
+        if (boostItem == null || slowItem == null || radioSkillItem == null || radioExecItem == null)
+            Debug.LogError("[NetworkGateway] 아이템 SO 슬롯(부스트/감속/무전기 2종)이 비어있습니다! " +
+                "아이템 개수 방송이 0이 되어 게스트 아이템이 0개로 보입니다. " +
                 "Bootstrap과 같은 SO를 연결하세요.");
     }
 
-    private ItemDefinition ItemOf(int type) => type == 0 ? boostItem : slowItem;
-    private int TypeOf(ItemDefinition item) => item == boostItem ? 0 : 1;
+    private ItemDefinition ItemOf(int type) => type switch
+    {
+        0 => boostItem,
+        1 => slowItem,
+        2 => radioSkillItem,
+        _ => radioExecItem,
+    };
+
+    private int TypeOf(ItemDefinition item)
+    {
+        if (item == boostItem) return 0;
+        if (item == slowItem) return 1;
+        if (item == radioSkillItem) return 2;
+        return 3;
+    }
 
     // ================= 로스터 =================
 
@@ -160,21 +175,24 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
         int n = ps.Count;
         var ids = new int[n]; var points = new int[n];
         var boost = new int[n]; var slow = new int[n];
+        var radioA = new int[n]; var radioB = new int[n];
 
         for (int i = 0; i < n; i++)
         {
             var p = ps[i];
             ids[i] = p.PlayerId; points[i] = p.Points;
-            boost[i] = p.Items.Count(it => it == boostItem);
-            slow[i]  = p.Items.Count(it => it == slowItem);
+            boost[i]  = p.Items.Count(it => it == boostItem);
+            slow[i]   = p.Items.Count(it => it == slowItem);
+            radioA[i] = p.Items.Count(it => it == radioSkillItem);
+            radioB[i] = p.Items.Count(it => it == radioExecItem);
         }
 
         photonView.RPC(nameof(RpcEconomy), RpcTarget.Others,
-            ids, points, boost, slow, matchManager.GetSubmittedIds());
+            ids, points, boost, slow, radioA, radioB, matchManager.GetSubmittedIds());
 
         // [진단] 아이템 개수 방송 내용 (변화 시에만 출력)
         string snap = string.Join(", ", System.Linq.Enumerable.Range(0, n)
-            .Select(i => $"{ids[i]}:B{boost[i]}/S{slow[i]}"));
+            .Select(i => $"{ids[i]}:B{boost[i]}/S{slow[i]}/R{radioA[i]}{radioB[i]}"));
         if (snap != lastItemSnap)
         {
             Debug.Log($"[진단/호스트] 아이템 방송: {snap}");
@@ -186,14 +204,15 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
 
     [PunRPC]
     private void RpcEconomy(int[] ids, int[] points,
-                            int[] boost, int[] slow, int[] submittedIds)
+                            int[] boost, int[] slow, int[] radioA, int[] radioB, int[] submittedIds)
     {
         for (int i = 0; i < ids.Length; i++)
         {
             var p = matchManager.GetPlayer(ids[i]);
             if (p == null) continue;
             p.ApplyNetworkEconomy(points[i]);
-            p.ApplyNetworkItems(boost[i], slow[i], boostItem, slowItem);
+            p.ApplyNetworkItems(boost[i], slow[i], radioA[i], radioB[i],
+                                boostItem, slowItem, radioSkillItem, radioExecItem);
         }
         matchManager.ApplyNetworkSubmitted(submittedIds);
     }
@@ -305,16 +324,19 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
     private void RpcItemUsed(int pid, int itemType, int racerId) =>
         GameEvents.RaiseItemUsed(pid, ItemOf(itemType), racerId);
 
-    /// <summary>[호스트] 결승선 통과 소식을 클라 타임라인으로 중계 (아이템 중계와 같은 패턴).</summary>
-    private void HandleRacerFinished(int racerId, int rank)
+    /// <summary>[호스트] 결승선 통과/탈락 소식을 클라 타임라인으로 중계 (아이템 중계와 같은 패턴).</summary>
+    private void HandleRacerFinished(int racerId, int rank, bool eliminated)
     {
         if (!IsHost) return;
-        photonView.RPC(nameof(RpcRacerFinished), RpcTarget.Others, racerId, rank);
+        photonView.RPC(nameof(RpcRacerFinished), RpcTarget.Others, racerId, rank, eliminated);
     }
 
     [PunRPC]
-    private void RpcRacerFinished(int racerId, int rank) =>
-        GameEvents.RaiseRacerFinished(racerId, rank);
+    private void RpcRacerFinished(int racerId, int rank, bool eliminated)
+    {
+        if (eliminated) raceManager.GetRacer(racerId)?.ApplyNetworkEliminated();   // 클라 거울 상태
+        GameEvents.RaiseRacerFinished(racerId, rank, eliminated);
+    }
 
     private void HandleSkillProc(string line)
     {

@@ -21,8 +21,10 @@ public static class GameEvents
     public static event Action<string> OnSkillProc;
     public static void RaiseSkillProc(string line) => OnSkillProc?.Invoke(line);
 
-    public static event Action<int, int> OnRacerFinished;
-    public static void RaiseRacerFinished(int rid, int rank) => OnRacerFinished?.Invoke(rid, rank);
+    /// <summary>완주/탈락 확정 (rid, rank, eliminated). eliminated=true면 결승선이 아니라 처형 탈락.</summary>
+    public static event Action<int, int, bool> OnRacerFinished;
+    public static void RaiseRacerFinished(int rid, int rank, bool eliminated = false) =>
+        OnRacerFinished?.Invoke(rid, rank, eliminated);
 
     /// <summary>베팅 접수 확정 (수동/자동 공통). 네트워크 관문이 본인에게 영수증 회신용으로 구독.</summary>
     public static event Action<int, BetTicket> OnBetAccepted;

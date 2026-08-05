@@ -17,6 +17,7 @@ public static class RacerColors
         new Color(0.15f, 0.65f, 0.35f),   // 6 초
         new Color(0.95f, 0.55f, 0.12f),   // 7 주황
         new Color(0.93f, 0.45f, 0.65f),   // 8 분홍
+        new Color(0.22f, 0.75f, 0.72f),   // 9 청록
     };
 
     /// <summary>출전 번호(1부터)의 배경색.</summary>

@@ -128,7 +128,7 @@ AnimatorState:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: GetUp
-  m_Speed: 2
+  m_Speed: 1.5
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: -5458521143105037150}
@@ -141,7 +141,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: -203655887218126122, guid: 3e35d615bc800294085d70a2d6e24851, type: 3}
+  m_Motion: {fileID: -203655887218126122, guid: 20ce130dad18da243b10825e0ac79506, type: 3}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 

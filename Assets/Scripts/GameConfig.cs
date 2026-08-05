@@ -5,13 +5,25 @@ using UnityEngine;
 public class GameConfig : ScriptableObject
 {
     [Header("레이스 기본")]
-    public int racerCount = 8;
+    public int racerCount = 9;
+    [Tooltip("완주에 필요한 바퀴 수 — 완주 거리 = 트랙 길이 × 랩")]
+    public int lapCount = 2;
 
     [Header("아이템 (고정 지급, 재화와 분리)")]
     public int boostCount = 3;
     public int slowCount = 3;
+    [Tooltip("발동 무전기 지급 개수 (라운드당)")]
+    public int radioSkillCount = 1;
+    [Tooltip("처형 무전기 지급 개수 (라운드당)")]
+    public int radioExecCount = 1;
     public float itemCooldown = 12f;
     public float cooldownFor2P = 8f;
+
+    [Header("아이템 — 무전기 (사용 후 지연 발동)")]
+    [Tooltip("무전 후 실제 발동까지 지연 (초)")]
+    public float radioDelaySeconds = 5f;
+    [Tooltip("발동 무전기: 패시브 스킬(말/개/치킨)을 강제 발동시켰을 때 지속 (초)")]
+    public float radioForcedSkillDuration = 3f;
 
     [Header("포인트 (예측 적중 보상 — 1등 정확 / 2등 이상 / 3등 이상)")]
     public int pointsFirst = 90;

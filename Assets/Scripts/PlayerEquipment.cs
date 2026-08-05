@@ -13,7 +13,7 @@ using UnityEngine;
 /// </summary>
 public class PlayerEquipment : MonoBehaviourPun
 {
-    public const int SlotBat = 1, SlotBoost = 2, SlotSlow = 3, SlotRadio = 4;
+    public const int SlotBat = 1, SlotBoost = 2, SlotSlow = 3, SlotRadioSkill = 4, SlotRadioExec = 5;
 
     /// <summary>내 아바타의 장비 컴포넌트 (미접속=내 것 규칙).</summary>
     public static PlayerEquipment Local { get; private set; }
@@ -40,13 +40,15 @@ public class PlayerEquipment : MonoBehaviourPun
     [SerializeField] private Vector3 batLocalEuler = Vector3.zero;
     [SerializeField] private Vector3 syringeLocalPos = new Vector3(0.04f, 0.03f, 0.01f);
     [SerializeField] private Vector3 syringeLocalEuler = Vector3.zero;
+    [SerializeField] private Vector3 radioLocalPos = new Vector3(0.04f, 0.03f, 0.01f);
+    [SerializeField] private Vector3 radioLocalEuler = Vector3.zero;
 
     public int HeldSlot { get; private set; } = SlotBat;   // 준비 페이즈가 없으므로 시작은 빠따
     public bool CanSwing => Time.time >= nextSwingTime;
 
     private float nextSwingTime;
     private Transform rightHand;
-    private GameObject batProp, boostProp, slowProp;
+    private GameObject batProp, boostProp, slowProp, radioSkillProp, radioExecProp;
     private int armedLayer = -1;   // 상체 무장 레이어(ArmedUpper) — 다리는 항상 기본 이동
     private int holdLayer = -1;
     private Coroutine batPropRoutine;
@@ -81,7 +83,7 @@ public class PlayerEquipment : MonoBehaviourPun
     public void Select(int slot)
     {
         if (knockdown != null && knockdown.IsDown) return;   // 누워서 슬롯 전환 금지
-        slot = Mathf.Clamp(slot, SlotBat, SlotRadio);
+        slot = Mathf.Clamp(slot, SlotBat, SlotRadioExec);
         if (slot == HeldSlot) return;
 
         if (PhotonNetwork.InRoom && photonView != null)
@@ -175,8 +177,10 @@ public class PlayerEquipment : MonoBehaviourPun
 
         if (animator != null)
         {
+            // 주사기/무전기 = 오른손 1H 들기 포즈 공용
             if (holdLayer >= 0)
-                animator.SetLayerWeight(holdLayer, (slot == SlotBoost || slot == SlotSlow) ? 1f : 0f);
+                animator.SetLayerWeight(holdLayer, (slot == SlotBoost || slot == SlotSlow ||
+                                                    slot == SlotRadioSkill || slot == SlotRadioExec) ? 1f : 0f);
 
             if (armedLayer >= 0)
             {
@@ -202,6 +206,8 @@ public class PlayerEquipment : MonoBehaviourPun
 
         if (boostProp != null) boostProp.SetActive(slot == SlotBoost);
         if (slowProp != null) slowProp.SetActive(slot == SlotSlow);
+        if (radioSkillProp != null) radioSkillProp.SetActive(slot == SlotRadioSkill);
+        if (radioExecProp != null) radioExecProp.SetActive(slot == SlotRadioExec);
 
         // 빠따는 꺼내기/집어넣기 애니에 맞춰 등장/퇴장
         if (batProp == null) return;
@@ -221,6 +227,8 @@ public class PlayerEquipment : MonoBehaviourPun
         if (batProp != null) batProp.SetActive(false);
         if (boostProp != null) boostProp.SetActive(false);
         if (slowProp != null) slowProp.SetActive(false);
+        if (radioSkillProp != null) radioSkillProp.SetActive(false);
+        if (radioExecProp != null) radioExecProp.SetActive(false);
 
         if (animator != null)
         {
@@ -267,7 +275,12 @@ public class PlayerEquipment : MonoBehaviourPun
         batProp = BuildBat();
         boostProp = BuildSyringe("Prop_SyringeBoost", new Color(1f, 0.42f, 0.12f));
         slowProp = BuildSyringe("Prop_SyringeSlow", new Color(0.25f, 0.55f, 1f));
+        radioSkillProp = BuildRadio("Prop_RadioSkill",
+            new Color(0.22f, 0.42f, 0.24f), new Color(0.98f, 0.83f, 0.10f));   // 밀리터리 그린 + 노랑 램프
+        radioExecProp = BuildRadio("Prop_RadioExec",
+            new Color(0.13f, 0.13f, 0.14f), new Color(0.86f, 0.16f, 0.14f));   // 검정 + 빨강 램프
         batProp.SetActive(false); boostProp.SetActive(false); slowProp.SetActive(false);
+        radioSkillProp.SetActive(false); radioExecProp.SetActive(false);
     }
 
     private GameObject BuildBat()
@@ -301,6 +314,23 @@ public class PlayerEquipment : MonoBehaviourPun
         return root;
     }
 
+    private GameObject BuildRadio(string name, Color body, Color lamp)
+    {
+        var root = NewProp(name, radioLocalPos, radioLocalEuler);
+
+        var bodyMat = MakeMat(body);
+        var darkMat = MakeMat(new Color(0.08f, 0.08f, 0.08f));
+        var lampMat = MakeMat(lamp);
+
+        // 본체(세로 박스) + 스피커 그릴(어두운 판) + 안테나 + 상태 램프 — 손 위(+Y)로 서는 워키토키
+        AddCube(root, "Body", bodyMat, new Vector3(0f, 0.09f, 0f), new Vector3(0.065f, 0.15f, 0.035f));
+        AddCube(root, "Grille", darkMat, new Vector3(0f, 0.11f, -0.019f), new Vector3(0.045f, 0.06f, 0.004f));
+        AddCylinder(root, "Antenna", darkMat, new Vector3(-0.02f, 0.215f, 0f), new Vector3(0.008f, 0.05f, 0.008f));
+        AddSphere(root, "Lamp", lampMat, new Vector3(0.02f, 0.17f, -0.017f), 0.008f);
+
+        return root;
+    }
+
     private GameObject NewProp(string name, Vector3 pos, Vector3 euler)
     {
         var go = new GameObject(name);
@@ -312,7 +342,7 @@ public class PlayerEquipment : MonoBehaviourPun
     }
 
     // 인스펙터에서 소품 위치를 실시간 튜닝할 수 있게 — 값이 바뀐 프레임에만 적용
-    private Vector3 lastBatPos, lastBatEuler, lastSyrPos, lastSyrEuler;
+    private Vector3 lastBatPos, lastBatEuler, lastSyrPos, lastSyrEuler, lastRadioPos, lastRadioEuler;
 
     private void LateUpdate()
     {
@@ -333,11 +363,33 @@ public class PlayerEquipment : MonoBehaviourPun
                 p.transform.localRotation = Quaternion.Euler(syringeLocalEuler);
             }
         }
+        if ((radioSkillProp != null || radioExecProp != null) &&
+            (radioLocalPos != lastRadioPos || radioLocalEuler != lastRadioEuler))
+        {
+            lastRadioPos = radioLocalPos; lastRadioEuler = radioLocalEuler;
+            foreach (var p in new[] { radioSkillProp, radioExecProp })
+            {
+                if (p == null) continue;
+                p.transform.localPosition = radioLocalPos;
+                p.transform.localRotation = Quaternion.Euler(radioLocalEuler);
+            }
+        }
     }
 
     private static void AddCylinder(GameObject parent, string name, Material mat, Vector3 pos, Vector3 scale)
     {
         var p = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        Object.Destroy(p.GetComponent<Collider>());   // 소품이 CC/동물과 부딪히면 안 됨
+        p.name = name;
+        p.transform.SetParent(parent.transform, false);
+        p.transform.localPosition = pos;
+        p.transform.localScale = scale;
+        p.GetComponent<Renderer>().sharedMaterial = mat;
+    }
+
+    private static void AddCube(GameObject parent, string name, Material mat, Vector3 pos, Vector3 scale)
+    {
+        var p = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Object.Destroy(p.GetComponent<Collider>());   // 소품이 CC/동물과 부딪히면 안 됨
         p.name = name;
         p.transform.SetParent(parent.transform, false);

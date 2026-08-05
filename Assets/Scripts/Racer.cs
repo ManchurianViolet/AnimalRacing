@@ -11,8 +11,11 @@ public class Racer : MonoBehaviour
     public string DisplayName { get; private set; }
     public AnimalDefinition Definition { get; private set; }
 
+    /// <summary>누적 주행거리 (랩 포함, 음수 = 출발선 뒤 그리드). 경로 좌표가 필요하면 TrackPath.WrapProgress 경유.</summary>
     public float Progress { get; private set; }
     public bool HasFinished { get; private set; }
+    /// <summary>처형 무전기로 탈락됨 (HasFinished도 함께 true — 순위는 최하위부터 배정).</summary>
+    public bool IsEliminated { get; private set; }
     public int FinishRank { get; private set; } = -1;
 
     [Header("애니메이터 (ithappy 규약)")]
@@ -54,6 +57,62 @@ public class Racer : MonoBehaviour
         if (ProgressRatio < activeTriggerRatio) return false;
         activeConsumed = true;
         return true;
+    }
+
+    /// <summary>
+    /// [발동 무전기] 스킬 강제 발동 — 액티브(호랑이/고양이)는 발동 지점을 지금으로 당기고,
+    /// 패시브(말/개/치킨)는 해당 배율의 임시 부스트로 재현. 펭귄은 무관심(꽝 유지 — 기획).
+    /// ⚠ 스킬 기획 개편 예정(유저) — 스킬별 branch만 고치면 되는 구조 유지할 것.
+    /// </summary>
+    public void ForceSkillByRadio(float passiveDuration)
+    {
+        if (HasFinished) return;
+        switch (Definition.skill)
+        {
+            case AnimalSkill.Ambush:
+            case AnimalSkill.Whim:
+                if (activeConsumed)
+                {
+                    GameEvents.RaiseSkillProc($"{DisplayName}에게 무전이 갔지만 이미 스킬을 써버렸다...");
+                    return;
+                }
+                activeTriggerRatio = -1f;   // 다음 시뮬 틱에 즉시 발동 (기존 발동 경로 그대로)
+                break;
+
+            case AnimalSkill.Alert:
+                TriggerAlert();             // 사슴: 경계 본능 그대로 (자체 피드 있음)
+                break;
+
+            case AnimalSkill.FinalSprint:
+                AddEffect(new StatusEffect(StatusEffectType.Boost, passiveDuration, SkillTuning.FinalSprintMult));
+                GameEvents.RaiseSkillProc($"무전 지령! {DisplayName}의 우승 본능이 깨어났다!");
+                break;
+
+            case AnimalSkill.Loyalty:
+                AddEffect(new StatusEffect(StatusEffectType.Boost, passiveDuration, SkillTuning.LoyaltyMult));
+                GameEvents.RaiseSkillProc($"무전 지령! {DisplayName}의 충성심이 불탄다!");
+                break;
+
+            case AnimalSkill.Dash:
+                AddEffect(new StatusEffect(StatusEffectType.Boost, passiveDuration, SkillTuning.DashMult));
+                GameEvents.RaiseSkillProc($"무전 지령! {DisplayName}이(가) 냅다 달린다!");
+                break;
+
+            case AnimalSkill.Apathy:
+                GameEvents.RaiseSkillProc($"{DisplayName}에게 무전이 갔지만... 관심이 없다.");
+                break;
+        }
+    }
+
+    /// <summary>[처형 무전기] 탈락 — 즉시 경기 종료 취급, 순위는 최하위부터 (RaceManager가 배정).</summary>
+    public void Eliminate(int rank)
+    {
+        if (HasFinished) return;
+        HasFinished = true;
+        IsEliminated = true;
+        FinishRank = rank;
+        effects.Clear();   // 죽은 몸에 이펙트 잔류 방지
+        GameEvents.RaiseRacerFinished(RacerId, rank, eliminated: true);
     }
 
     /// <summary>[사슴] 근처 아이템 폭발 감지 — 지연 후 도주 가속.</summary>
@@ -116,6 +175,7 @@ public class Racer : MonoBehaviour
 
         // 스킬 상태 초기화
         raceTime = 0f;
+        IsEliminated = false;
         isLastPlace = false;
         activeConsumed = false;
         alertPending = -1f;
@@ -202,6 +262,13 @@ public class Racer : MonoBehaviour
     {
         HasFinished = true;
         FinishRank = rank;
+    }
+
+    /// <summary>[클라] 호스트가 중계한 탈락 반영 (연출은 TransformView 받아쓰기, 상태만 미러).</summary>
+    public void ApplyNetworkEliminated()
+    {
+        HasFinished = true;
+        IsEliminated = true;
     }
 
     public void MarkFinished(int rank)

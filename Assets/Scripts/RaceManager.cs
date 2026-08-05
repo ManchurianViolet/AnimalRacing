@@ -17,7 +17,11 @@ public class RaceManager : MonoBehaviour
     private readonly List<Racer> racers = new();
     private readonly List<AnimalDefinition> lineup = new();
     private int nextFinishRank = 1;
+    private int eliminatedCount;   // 처형 무전기 탈락자 수 (순위를 최하위부터 배정)
     private bool racing;
+
+    /// <summary>완주 거리 = 트랙 길이 × 랩 수 (진행도는 랩 누적).</summary>
+    public float RaceLength => path.TotalLength * Mathf.Max(1, config.lapCount);
 
     public IReadOnlyList<Racer> Racers => racers;
     /// <summary>이번 라운드 출전 정의 목록 (인덱스 = racerId). 배당 계산용.</summary>
@@ -43,6 +47,7 @@ public class RaceManager : MonoBehaviour
                 racers.RemoveAll(r => r == null);
                 lineup.Clear();
                 nextFinishRank = 1;
+                eliminatedCount = 0;
             }
         }
 
@@ -71,6 +76,7 @@ public class RaceManager : MonoBehaviour
         racers.Clear();
         lineup.Clear();
         nextFinishRank = 1;
+        eliminatedCount = 0;
 
         var picks = Enumerable.Range(0, animalPool.Length).OrderBy(_ => Random.value).ToList();
         while (picks.Count < config.racerCount)
@@ -101,7 +107,7 @@ public class RaceManager : MonoBehaviour
             var racer = go.GetComponent<Racer>();
             if (racer == null) racer = go.AddComponent<Racer>();
             racer.Init(i, def, i + 1);
-            racer.SetTrackLength(path.TotalLength);
+            racer.SetTrackLength(RaceLength);   // 진행률(스킬 발동 지점)은 랩 누적 기준
             ApplyFrictionless(go);
             go.GetComponentInChildren<RacerNumberPlate>()?.Apply(i + 1);
 
@@ -199,7 +205,8 @@ public class RaceManager : MonoBehaviour
 
         foreach (var r in racers)
         {
-            float newProg = path.GetProgressNear(r.transform.position, r.Progress);
+            // 랩 누적 진행도 (이음새 자동 이월) — 순위/완주/스킬 진행률 전부 이 값 기준
+            float newProg = path.GetDistanceNear(r.transform.position, r.Progress);
             if (config.debugProgressLog)
             {
                 if (float.IsNaN(newProg))
@@ -210,7 +217,7 @@ public class RaceManager : MonoBehaviour
             r.SetProgress(newProg);
             r.SimTick(dt);
 
-            if (!r.HasFinished && r.Progress >= path.TotalLength - 0.1f)
+            if (!r.HasFinished && r.Progress >= RaceLength - 0.1f)
                 r.MarkFinished(nextFinishRank++);
         }
 
@@ -230,7 +237,20 @@ public class RaceManager : MonoBehaviour
     public float GetLeaderProgressRatio()
     {
         var lead = racers.OrderByDescending(r => r.Progress).FirstOrDefault();
-        return lead == null ? 0f : Mathf.Clamp01(lead.Progress / path.TotalLength);
+        return lead == null ? 0f : Mathf.Clamp01(lead.Progress / RaceLength);
+    }
+
+    /// <summary>[호스트/처형 무전기] 그 순간의 꼴등을 탈락시킨다. 순위는 최하위부터 배정.</summary>
+    public bool ExecuteLastPlace()
+    {
+        var victim = GetLastPlaceRacer();
+        if (victim == null) return false;
+
+        int rank = racers.Count - eliminatedCount;   // 첫 탈락 = 꼴찌 확정
+        eliminatedCount++;
+        victim.Eliminate(rank);
+        GameEvents.RaiseSkillProc($"무전 한 방! {victim.DisplayName}이(가) 레이스에서 끌려 나갔다!");
+        return true;
     }
 
     // ================= 네트워크 (클라이언트 측 등록) =================
@@ -257,7 +277,7 @@ public class RaceManager : MonoBehaviour
         var racer = go.GetComponent<Racer>();
         if (racer == null) racer = go.AddComponent<Racer>();
         racer.Init(racerId, animalPool[animalIdx], postNumber);
-        racer.SetTrackLength(path.TotalLength);
+        racer.SetTrackLength(RaceLength);
         ApplyFrictionless(go);
         go.GetComponentInChildren<RacerNumberPlate>()?.Apply(postNumber);
         EnsureDustFx(go, racer);   // 먼지는 순수 로컬 연출 — 클라도 자기 화면에서 직접 재생

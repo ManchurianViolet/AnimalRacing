@@ -38,12 +38,15 @@ public class PlayerState
     // ---- 네트워크 거울 반영 (클라 전용 — 진실은 호스트) ----
     public void ApplyNetworkEconomy(int points) => Points = points;
 
-    public void ApplyNetworkItems(int boostCount, int slowCount,
-                                  ItemDefinition boostDef, ItemDefinition slowDef)
+    public void ApplyNetworkItems(int boostCount, int slowCount, int radioSkillCount, int radioExecCount,
+                                  ItemDefinition boostDef, ItemDefinition slowDef,
+                                  ItemDefinition radioSkillDef, ItemDefinition radioExecDef)
     {
         items.Clear();
         for (int i = 0; i < boostCount; i++) items.Add(boostDef);
         for (int i = 0; i < slowCount; i++)  items.Add(slowDef);
+        for (int i = 0; i < radioSkillCount; i++) items.Add(radioSkillDef);
+        for (int i = 0; i < radioExecCount; i++)  items.Add(radioExecDef);
     }
 
     // ---- 예측/아이템 ----

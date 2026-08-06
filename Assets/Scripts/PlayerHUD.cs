@@ -29,6 +29,7 @@ public class PlayerHUD : MonoBehaviour
     [SerializeField] private TMP_Text betText;           // 우상단 (B키 토글)
     [SerializeField] private TMP_Text crosshairText;     // 중앙 "+"
     [SerializeField] private TMP_Text promptText;        // 하단 중앙 "E - 베팅하기"
+    [SerializeField] private TMP_Text aimHintText;       // 크로스헤어 아래 "OO에게 사용" / "사용 불가능한 동물입니다"
     [SerializeField] private ItemSlotView slotBat;
     [SerializeField] private ItemSlotView slotBoost;
     [SerializeField] private ItemSlotView slotSlow;
@@ -120,6 +121,14 @@ public class PlayerHUD : MonoBehaviour
         if (crosshairText != null)
             crosshairText.color = itemController.Selected != null ? Color.yellow : Color.white;
 
+        // 조준 힌트: 조준 발사형 아이템으로 동물을 겨눌 때만 (판정은 컨트롤러가 매 프레임 산출)
+        if (aimHintText != null)
+        {
+            aimHintText.text = showGameplay ? itemController.AimHint : "";
+            aimHintText.color = itemController.AimBlocked
+                ? new Color(1f, 0.45f, 0.4f)     // 사용 불가 — 붉게
+                : new Color(1f, 0.95f, 0.6f);    // 사용 가능 — 크로스헤어 노랑 계열
+        }
     }
 
     private string BuildBetText(PlayerState me)

@@ -21,7 +21,7 @@ MonoBehaviour:
   itemCooldown: 5
   cooldownFor2P: 5
   radioDelaySeconds: 5
-  radioForcedSkillDuration: 3
+  elimAnimFreezeSeconds: 5
   pointsFirst: 90
   pointsSecond: 50
   pointsThird: 30
@@ -61,5 +61,15 @@ MonoBehaviour:
   dustColor: {r: 0.95, g: 0.9, b: 0.78, a: 1}
   dustMinSpeed: 1.5
   dustBurst: 7
+  rudolphFlightAnimSpeed: 4
+  rudolphLiftStart: 0.6
+  rudolphLiftFull: 2.5
+  rudolphTrailTime: 0.7
+  rudolphTrailWidth: 0.28
+  rudolphTrailColorA: {r: 1, g: 0.3, b: 0.22, a: 1}
+  rudolphTrailColorB: {r: 1, g: 0.85, b: 0.35, a: 1}
+  roarHeadScale: 1.7
+  roarHeadForward: 0.18
+  roarFxSeconds: 1.2
   debugMotorGizmos: 1
   debugProgressLog: 1

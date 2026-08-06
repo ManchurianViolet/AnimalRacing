@@ -43,12 +43,13 @@ public static class BalanceExporter
     [System.Serializable]
     public class SkillDump
     {
+        public float activeMinRatio, activeMaxRatio;
         public float finalSprintZone, finalSprintMult;
-        public float alertRadius, alertDelay, alertDuration, alertMult;
-        public float ambushStun, activeMinRatio, activeMaxRatio;
-        public float whimDuration, whimUp, whimDown;
+        public float rudolphLeadSeconds, rudolphFlightSeconds;
+        public float roarDuration, roarMult;
+        public float catWalkDuration;
         public float loyaltyMult;
-        public float dashTime, dashMult, dashFatigueTime, dashFatigueMult;
+        public float dashDuration, dashMult;
     }
 
     [System.Serializable]
@@ -154,23 +155,18 @@ public static class BalanceExporter
             },
             skills = new SkillDump
             {
-                finalSprintZone = SkillTuning.FinalSprintZone,
-                finalSprintMult = SkillTuning.FinalSprintMult,
-                alertRadius = SkillTuning.AlertRadius,
-                alertDelay = SkillTuning.AlertDelay,
-                alertDuration = SkillTuning.AlertDuration,
-                alertMult = SkillTuning.AlertMult,
-                ambushStun = SkillTuning.AmbushStun,
                 activeMinRatio = SkillTuning.ActiveMinRatio,
                 activeMaxRatio = SkillTuning.ActiveMaxRatio,
-                whimDuration = SkillTuning.WhimDuration,
-                whimUp = SkillTuning.WhimUp,
-                whimDown = SkillTuning.WhimDown,
+                finalSprintZone = SkillTuning.FinalSprintZone,
+                finalSprintMult = SkillTuning.FinalSprintMult,
+                rudolphLeadSeconds = SkillTuning.RudolphLeadSeconds,
+                rudolphFlightSeconds = SkillTuning.RudolphFlightSeconds,
+                roarDuration = SkillTuning.RoarDuration,
+                roarMult = SkillTuning.RoarMult,
+                catWalkDuration = SkillTuning.CatWalkDuration,
                 loyaltyMult = SkillTuning.LoyaltyMult,
-                dashTime = SkillTuning.DashTime,
+                dashDuration = SkillTuning.DashDuration,
                 dashMult = SkillTuning.DashMult,
-                dashFatigueTime = SkillTuning.DashFatigueTime,
-                dashFatigueMult = SkillTuning.DashFatigueMult,
             },
         };
 

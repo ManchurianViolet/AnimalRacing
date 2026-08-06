@@ -22,8 +22,6 @@ public class GameConfig : ScriptableObject
     [Header("아이템 — 무전기 (사용 후 지연 발동)")]
     [Tooltip("무전 후 실제 발동까지 지연 (초)")]
     public float radioDelaySeconds = 5f;
-    [Tooltip("발동 무전기: 패시브 스킬(말/개/치킨)을 강제 발동시켰을 때 지속 (초)")]
-    public float radioForcedSkillDuration = 3f;
     [Tooltip("처형된 동물이 쓰러진 뒤 애니메이션이 완전 정지하기까지 (초) — 이후 레이스 끝까지 그 자세 유지")]
     public float elimAnimFreezeSeconds = 5f;
 
@@ -112,6 +110,30 @@ public class GameConfig : ScriptableObject
     public float dustMinSpeed = 1.5f;
     [Tooltip("부스트 시작 순간 터지는 큰 먼지 개수")]
     public int dustBurst = 8;
+
+    [Header("연출 — 루돌프 비행 애니 배속 (사슴)")]
+    [Tooltip("비행 중 달리기 애니메이션 배속 (평상시 최대 1.8)")]
+    public float rudolphFlightAnimSpeed = 4f;
+    [Tooltip("지면 위 이 높이(m)부터 배속 시작")]
+    public float rudolphLiftStart = 0.6f;
+    [Tooltip("이 높이(m)에서 최대 배속 도달")]
+    public float rudolphLiftFull = 2.5f;
+    [Tooltip("꼬리 트레일이 남는 시간 (초) — 길수록 리본이 길다")]
+    public float rudolphTrailTime = 0.7f;
+    [Tooltip("꼬리 트레일 시작 폭 (m)")]
+    public float rudolphTrailWidth = 0.28f;
+    [Tooltip("트레일 색 A (꼬리 쪽 — 루돌프 빨강)")]
+    public Color rudolphTrailColorA = new Color(1f, 0.30f, 0.22f);
+    [Tooltip("트레일 색 B (끝 쪽 — 금색)")]
+    public Color rudolphTrailColorB = new Color(1f, 0.85f, 0.35f);
+
+    [Header("연출 — 포효 (호랑이)")]
+    [Tooltip("포효 순간 머리 확대 배율")]
+    public float roarHeadScale = 1.7f;
+    [Tooltip("포효 순간 머리를 앞으로 내미는 거리 (m)")]
+    public float roarHeadForward = 0.18f;
+    [Tooltip("포효 연출 전체 길이 (초) — 확대 0.2초 + 유지 + 복귀 0.4초 포함")]
+    public float roarFxSeconds = 1.2f;
 
     [Header("디버그")]
     [Tooltip("Scene 뷰에 동물별 조향 목표/상태 라벨 표시")]

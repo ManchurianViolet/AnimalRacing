@@ -35,13 +35,18 @@ public class Racer : MonoBehaviour
 
     // ---- 스킬 상태 ----
     private float trackLength = 1f;     // RaceManager가 세팅 (진행률 계산용)
-    private float raceTime;             // 이번 레이스 경과 (치킨)
     private float elimFreezeAt = -1f;   // 처형 후 애니 정지 예정 시각 (호스트/클라 각자 로컬)
     private bool animFrozen;
     private bool isLastPlace;           // RaceManager가 매 틱 세팅 (개)
-    private float activeTriggerRatio;   // 액티브 발동 진행률 (호랑이/고양이)
+    private float activeTriggerRatio;   // 액티브 자동 발동 진행률 (호랑이/사슴/고양이/치킨)
     private bool activeConsumed;
-    private float alertPending = -1f;   // 사슴: 발동 대기 타이머
+    private bool flightRequested;       // 사슴: 모터에게 비행 개시 요청 (다음 FixedUpdate)
+    private float catWalkRemaining;     // 고양이: 코너 감속 무시 잔여 (초)
+
+    /// <summary>[사슴] 루돌프 비행 중 — 이동은 모터의 스크립트 궤적, 모든 효과 면역.</summary>
+    public bool IsFlying { get; private set; }
+    /// <summary>[고양이] 사뿐한 발놀림 지속 중 — 모터가 코너 감속을 건너뛴다.</summary>
+    public bool CornerIgnoreActive => catWalkRemaining > 0f;
 
     public float ProgressRatio => Progress / Mathf.Max(1f, trackLength);
     public bool IsStunned
@@ -52,58 +57,26 @@ public class Racer : MonoBehaviour
     public void SetTrackLength(float len) => trackLength = Mathf.Max(1f, len);
     public void SetLastPlace(bool last) => isLastPlace = last;
 
-    /// <summary>[호랑이] 액티브 발동 시점 도달 & 미사용이면 소비하고 true.</summary>
-    public bool TryConsumeAmbush()
+    /// <summary>액티브 자동 발동 시점 도달 & 미사용이면 소비하고 true.
+    /// 전역 시야가 필요한 스킬(호랑이 포효)용 — RaceManager가 매 틱 호출.</summary>
+    public bool TryConsumeActive(AnimalSkill s)
     {
-        if (Definition.skill != AnimalSkill.Ambush || activeConsumed) return false;
+        if (Definition.skill != s || activeConsumed || HasFinished) return false;
         if (ProgressRatio < activeTriggerRatio) return false;
         activeConsumed = true;
         return true;
     }
 
     /// <summary>
-    /// [발동 무전기] 스킬 강제 발동 — 액티브(호랑이/고양이)는 발동 지점을 지금으로 당기고,
-    /// 패시브(말/개/치킨)는 해당 배율의 임시 부스트로 재현. 펭귄은 무관심(꽝 유지 — 기획).
-    /// ⚠ 스킬 기획 개편 예정(유저) — 스킬별 branch만 고치면 되는 구조 유지할 것.
+    /// [발동 무전기] 액티브 스킬 강제 발동 — 1회 제한 무시(기획 확정: 무전기만이 "두 번째 발동"을
+    /// 만들 수 있는 유일한 수단). 패시브는 조준 단계에서 차단되므로 여기는 최후 관문(무반응).
     /// </summary>
-    public void ForceSkillByRadio(float passiveDuration)
+    public void ForceSkillByRadio()
     {
         if (HasFinished) return;
-        switch (Definition.skill)
-        {
-            case AnimalSkill.Ambush:
-            case AnimalSkill.Whim:
-                if (activeConsumed)
-                {
-                    GameEvents.RaiseSkillProc($"{DisplayName}에게 무전이 갔지만 이미 스킬을 써버렸다...");
-                    return;
-                }
-                activeTriggerRatio = -1f;   // 다음 시뮬 틱에 즉시 발동 (기존 발동 경로 그대로)
-                break;
-
-            case AnimalSkill.Alert:
-                TriggerAlert();             // 사슴: 경계 본능 그대로 (자체 피드 있음)
-                break;
-
-            case AnimalSkill.FinalSprint:
-                AddEffect(new StatusEffect(StatusEffectType.Boost, passiveDuration, SkillTuning.FinalSprintMult));
-                GameEvents.RaiseSkillProc($"무전 지령! {DisplayName}의 우승 본능이 깨어났다!");
-                break;
-
-            case AnimalSkill.Loyalty:
-                AddEffect(new StatusEffect(StatusEffectType.Boost, passiveDuration, SkillTuning.LoyaltyMult));
-                GameEvents.RaiseSkillProc($"무전 지령! {DisplayName}의 충성심이 불탄다!");
-                break;
-
-            case AnimalSkill.Dash:
-                AddEffect(new StatusEffect(StatusEffectType.Boost, passiveDuration, SkillTuning.DashMult));
-                GameEvents.RaiseSkillProc($"무전 지령! {DisplayName}이(가) 냅다 달린다!");
-                break;
-
-            case AnimalSkill.Apathy:
-                GameEvents.RaiseSkillProc($"{DisplayName}에게 무전이 갔지만... 관심이 없다.");
-                break;
-        }
+        if (!SkillTuning.IsActive(Definition.skill)) return;
+        activeConsumed = false;
+        activeTriggerRatio = -1f;   // 다음 시뮬 틱에 즉시 발동 (자동 발동 경로 그대로)
     }
 
     /// <summary>[처형 무전기] 탈락 — 즉시 경기 종료 취급, 순위는 최하위부터 (RaceManager가 배정).</summary>
@@ -136,13 +109,17 @@ public class Racer : MonoBehaviour
         animator.speed = 0f;   // 그 자세 그대로 레이스 끝까지 (새 라운드는 새 스폰이라 자동 초기화)
     }
 
-    /// <summary>[사슴] 근처 아이템 폭발 감지 — 지연 후 도주 가속.</summary>
-    public void TriggerAlert()
+    /// <summary>[사슴→모터] 비행 요청 인수 — 모터가 FixedUpdate에서 소비하고 비행 개시.</summary>
+    public bool ConsumeFlightRequest()
     {
-        if (Definition.skill != AnimalSkill.Alert || HasFinished) return;
-        if (alertPending >= 0f) return;   // 이미 대기 중
-        alertPending = SkillTuning.AlertDelay;
+        if (!flightRequested) return false;
+        flightRequested = false;
+        IsFlying = true;
+        return true;
     }
+
+    /// <summary>[모터] 착지/비행 중단 통지.</summary>
+    public void EndFlight() => IsFlying = false;
 
     /// <summary>현재 유효 최고속도 = 리롤 속도 × 아이템 배율 × 스킬 배율 (스턴 = 0).</summary>
     public float CurrentMaxSpeed
@@ -160,7 +137,7 @@ public class Racer : MonoBehaviour
         }
     }
 
-    /// <summary>자기 완결형 패시브 배율 (말/개/치킨).</summary>
+    /// <summary>자기 완결형 패시브 배율 (말/개).</summary>
     private float SkillMultiplier()
     {
         switch (Definition.skill)
@@ -169,10 +146,6 @@ public class Racer : MonoBehaviour
                 return ProgressRatio >= SkillTuning.FinalSprintZone ? SkillTuning.FinalSprintMult : 1f;
             case AnimalSkill.Loyalty:
                 return isLastPlace ? SkillTuning.LoyaltyMult : 1f;
-            case AnimalSkill.Dash:
-                if (raceTime < SkillTuning.DashTime) return SkillTuning.DashMult;
-                if (raceTime < SkillTuning.DashTime + SkillTuning.DashFatigueTime) return SkillTuning.DashFatigueMult;
-                return 1f;
             default: return 1f;
         }
     }
@@ -195,11 +168,12 @@ public class Racer : MonoBehaviour
         smoothedSpeed = rolledSpeed;   // 시작은 즉시 적용
 
         // 스킬 상태 초기화
-        raceTime = 0f;
         IsEliminated = false;
         isLastPlace = false;
         activeConsumed = false;
-        alertPending = -1f;
+        flightRequested = false;
+        IsFlying = false;
+        catWalkRemaining = 0f;
         activeTriggerRatio = Random.Range(SkillTuning.ActiveMinRatio, SkillTuning.ActiveMaxRatio);
     }
 
@@ -213,32 +187,34 @@ public class Racer : MonoBehaviour
 
     public void SimTick(float dt)
     {
-        raceTime += dt;
-
-        // [고양이] 액티브: 발동 지점 도달 시 ±30% 셀프 효과
-        if (Definition.skill == AnimalSkill.Whim && !activeConsumed
-            && ProgressRatio >= activeTriggerRatio && !HasFinished)
+        // 자기 완결형 액티브 자동 발동 (포효는 전역 시야가 필요해 RaceManager가 TryConsumeActive로 처리)
+        if (!HasFinished && !activeConsumed && ProgressRatio >= activeTriggerRatio)
         {
-            activeConsumed = true;
-            bool up = Random.value < 0.5f;
-            effects.Add(new StatusEffect(
-                up ? StatusEffectType.Boost : StatusEffectType.Slow,
-                SkillTuning.WhimDuration,
-                up ? SkillTuning.WhimUp : SkillTuning.WhimDown));
-            GameEvents.RaiseSkillProc($"{DisplayName}의 변덕! {(up ? "폭주한다!" : "드러누웠다...")}");
-        }
-
-        // [사슴] 경계 발동 대기 → 도주 가속
-        if (alertPending >= 0f)
-        {
-            alertPending -= dt;
-            if (alertPending < 0f)
+            switch (Definition.skill)
             {
-                effects.Add(new StatusEffect(StatusEffectType.Boost,
-                    SkillTuning.AlertDuration, SkillTuning.AlertMult));
-                GameEvents.RaiseSkillProc($"{DisplayName}이(가) 놀라서 내달린다!");
+                case AnimalSkill.Rudolph:
+                    activeConsumed = true;
+                    flightRequested = true;   // 실제 개시(연출/피드)는 모터가 다음 FixedUpdate에
+                    break;
+
+                case AnimalSkill.CatWalk:
+                    activeConsumed = true;
+                    catWalkRemaining = SkillTuning.CatWalkDuration;
+                    GameEvents.RaiseSkillProc($"{DisplayName}이(가) 사뿐사뿐, 코너를 풀스피드로 파고든다!");
+                    break;
+
+                case AnimalSkill.Dash:
+                    activeConsumed = true;
+                    // 셀프 효과라 AddEffect 관문(펭귄/비행 면역)을 거치지 않고 직접 추가
+                    effects.Add(new StatusEffect(StatusEffectType.Boost,
+                        SkillTuning.DashDuration, SkillTuning.DashMult));
+                    GameEvents.RaiseSkillProc($"{DisplayName}이(가) 냅다 달린다!!");
+                    break;
             }
         }
+
+        // [고양이] 사뿐한 발놀림 잔여 시간
+        if (catWalkRemaining > 0f) catWalkRemaining -= dt;
 
         // 상태이상 갱신
         for (int i = effects.Count - 1; i >= 0; i--)
@@ -265,6 +241,7 @@ public class Racer : MonoBehaviour
         if (animator == null || rb == null) return;
         Vector3 v = rb.linearVelocity; v.y = 0f;
         float target = HasFinished ? 0f
+            : IsFlying ? 1f   // 비행 중엔 전력 질주 자세 (kinematic이라 rb 속도가 0으로 읽힘)
             : Mathf.Clamp01(v.magnitude / Mathf.Max(0.1f, Definition.MaxSpeedMs));
         animVert = Mathf.MoveTowards(animVert, target, 4.5f * dt);
         animator.SetFloat(vertID, animVert);
@@ -276,6 +253,8 @@ public class Racer : MonoBehaviour
     {
         // [펭귄] 무관심: 모든 외부 효과 면역 (이로운 것 포함)
         if (Definition != null && Definition.skill == AnimalSkill.Apathy) return;
+        // [사슴] 루돌프 비행 중: 하늘 위라 아무것도 닿지 않는다 (포효 포함)
+        if (IsFlying) return;
         effects.Add(effect);
     }
 

@@ -37,6 +37,14 @@ public class RacerMotor : MonoBehaviour
     private float elimRoll;           // 옆으로 넘어간 각도 (0→90)
     private Vector3 groundUp = Vector3.up;   // 평활화된 지면 법선 (경사 정렬용)
 
+    // ---- [사슴] 루돌프 비행 상태 (스크립트 궤적 — 물리 몰수, 클라는 TransformView 미러) ----
+    private bool flightActive;
+    private Vector3 flightStartPos, flightEndPos;
+    private float flightStartProg, flightEndProg;   // 진행도는 비행 중 투영 대신 직접 기입 (현이 코너를 깊게 질러 투영이 튐)
+    private float flightT;            // 0→1 정규화 진행
+    private float flightDur;          // 비행 시간
+    private float flightSpeed;        // 발동 순간의 주행 속도 (착지 후 이 속도로 복귀)
+
     // ---- 디버그 계기판 상태 (기즈모용 스냅샷) ----
     private Vector3 dbgTarget;
     private float dbgCurv, dbgCornerT, dbgDesiredLat;
@@ -75,10 +83,15 @@ public class RacerMotor : MonoBehaviour
 
         if (racer.HasFinished)
         {
+            if (flightActive) AbortFlight();   // 비행 중 처형/완주 확정 — 공중 상태 정리 후 연출로
             if (racer.IsEliminated) EliminatedCollapse(dt);
             else FinishCoast(dt);
             return;
         }
+
+        // ---- [사슴] 루돌프: 비행 중이면 스크립트 궤적이 전부, 요청이 오면 개시 ----
+        if (flightActive) { FlightTick(dt); return; }
+        if (racer.ConsumeFlightRequest()) { BeginFlight(); return; }
 
         float myProg = racer.Progress;
         float baseCap = racer.CurrentMaxSpeed;
@@ -91,8 +104,9 @@ public class RacerMotor : MonoBehaviour
         // ---- 1.5) 코너 감속: 상한 = 최고속 × (1 − 코너강도 × 감속률) ----
         // 감지 창(6m)은 레이싱 라인(9m)보다 짧게 — 코너를 거의 다 돌았을 때
         // 상한이 먼저 회복되기 시작해 "탈출 가속"이 코너 끝에서 터진다.
+        // [고양이] 사뿐한 발놀림: 지속 중엔 코너 감속 자체를 무시 (풀스피드 코너링)
         float cornerFactor = 1f;
-        if (cfg.cornerDecelEnabled)
+        if (cfg.cornerDecelEnabled && !racer.CornerIgnoreActive)
         {
             float senseCurv = path.GetSignedCurvatureAhead(myProg, cfg.cornerSenseAhead);
             float senseT = Mathf.Clamp01(Mathf.Abs(senseCurv)
@@ -121,6 +135,7 @@ public class RacerMotor : MonoBehaviour
         foreach (var other in raceManager.Racers)
         {
             if (other == null || other == racer || other.HasFinished) continue;
+            if (other.IsFlying) continue;   // 하늘 위의 사슴은 장애물이 아니다
 
             float dp = other.Progress - myProg;
             // 이웃 횡좌표: 전체 투영은 교차/근접 구간에서 오염되므로 이웃 모터의 상태값 사용
@@ -229,6 +244,90 @@ public class RacerMotor : MonoBehaviour
         // 회전: FreezeRotation이 MoveRotation까지 막으므로 (Unity 6) transform 직접 회전.
         // 물리에서 회전을 완전 몰수한 축이라 충돌 없음.
         RotateToward(to, racer.Definition.AccelGain * 1.6f, dt);
+    }
+
+    // ================= [사슴] 루돌프 비행 =================
+    // "현재 속도 × 5초" 앞의 트랙 지점까지 직선(현)으로 포물선 비행.
+    // 이득 = 트랙 곡선거리 − 직선거리 → 코너 구간에서 발동할수록 크다.
+    // 비행 중 물리 몰수(kinematic) — 진행도는 RaceManager의 연속성 투영이 자연 추적.
+
+    private void BeginFlight()
+    {
+        Vector3 flatVel = rb.linearVelocity; flatVel.y = 0f;
+        float runSpeed = Mathf.Max(3f, flatVel.magnitude, racer.CurrentMaxSpeed);
+        flightSpeed = runSpeed;   // 착지 후 복귀 주행 속도
+
+        // 목표 = 12초 앞 지점을 5초 만에 — 비행 시간이 리드 시간과 같으면 이득 0이라 무의미 (기획)
+        float fullLead = runSpeed * SkillTuning.RudolphLeadSeconds;
+        float targetProg = Mathf.Min(racer.Progress + fullLead, raceManager.RaceLength - 1f);   // 공중 완주 방지
+        if (targetProg <= racer.Progress + 1f)
+        {
+            racer.EndFlight();   // 결승선 코앞 — 날 거리가 없다 (조용히 불발)
+            return;
+        }
+
+        flightActive = true;
+        flightT = 0f;
+        flightStartPos = rb.position;
+        flightEndPos = path.GetTargetOnSection(path.WrapProgress(targetProg), 0f);
+        flightStartProg = racer.Progress;
+        flightEndProg = targetProg;
+        // 결승선 클램프로 리드가 짧아졌으면 비행 시간도 비례 축소 (슬로모 활공 방지)
+        flightDur = Mathf.Max(0.5f,
+            SkillTuning.RudolphFlightSeconds * (targetProg - racer.Progress) / fullLead);
+        rb.isKinematic = true;
+
+        GameEvents.RaiseSkillProc($"{racer.DisplayName}이(가) 하늘로 날아올랐다! 루돌프다!");
+    }
+
+    private void FlightTick(float dt)
+    {
+        flightT += dt / flightDur;
+        float t = Mathf.Clamp01(flightT);
+
+        // 등변사다리꼴 고도: 사면 상승 → 수평 순항 → 사면 하강 (용수철식 포물선 기각 — 기획)
+        float climb = SkillTuning.RudolphClimbRatio;
+        float hNorm = t < climb ? t / climb
+                    : t > 1f - climb ? (1f - t) / climb
+                    : 1f;
+        Vector3 pos = Vector3.Lerp(flightStartPos, flightEndPos, t);
+        pos.y += SkillTuning.RudolphPeakHeight * hNorm;
+        // ⚠ MovePosition 금지: 아래 transform.rotation 쓰기가 트랜스폼→물리 재동기화를 일으켜
+        // 예약된 MovePosition 목표를 옛 위치로 덮어쓴다 (상승 구간 통째 실종 실사고).
+        // kinematic 비행은 위치/회전 모두 transform 단일 작성자로.
+        transform.position = pos;
+        // 진행도 직접 기입 — RaceManager는 비행 중 투영을 건너뛴다 ([투영점프] 방지)
+        racer.SetProgress(Mathf.Lerp(flightStartProg, flightEndProg, t));
+
+        Vector3 dir = flightEndPos - flightStartPos; dir.y = 0f;
+        if (dir.sqrMagnitude > 1e-4f)
+            transform.rotation = Quaternion.Slerp(transform.rotation,
+                Quaternion.LookRotation(dir.normalized, Vector3.up), 6f * dt);
+
+        if (flightT >= 1f) LandFlight();
+    }
+
+    private void LandFlight()
+    {
+        flightActive = false;
+        racer.EndFlight();
+        rb.isKinematic = false;
+
+        Vector3 dir = flightEndPos - flightStartPos; dir.y = 0f;
+        if (dir.sqrMagnitude > 1e-4f)
+            rb.linearVelocity = dir.normalized * flightSpeed;   // 활공 관성 그대로 착지 주행
+
+        // 착지점 기준으로 조향 상태 재정렬 (비행 전 lateral은 무효)
+        lateral = Mathf.Clamp(path.GetLateralOffset(rb.position), -MaxLat(), MaxLat());
+        lateralVel = 0f;
+    }
+
+    /// <summary>비행 중 처형/완주 등 외부 확정 — 공중 상태만 정리 (물리 복원).</summary>
+    private void AbortFlight()
+    {
+        flightActive = false;
+        racer.EndFlight();
+        rb.isKinematic = false;
     }
 
     // ---- 탈락 연출: 급제동 + 옆으로 픽 쓰러짐 (회전은 TransformView로 클라에도 미러) ----

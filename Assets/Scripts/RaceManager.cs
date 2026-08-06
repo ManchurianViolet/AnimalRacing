@@ -206,7 +206,9 @@ public class RaceManager : MonoBehaviour
         foreach (var r in racers)
         {
             // 랩 누적 진행도 (이음새 자동 이월) — 순위/완주/스킬 진행률 전부 이 값 기준
-            float newProg = path.GetDistanceNear(r.transform.position, r.Progress);
+            // 비행 중(루돌프)엔 모터가 직접 기입 — 현이 코너를 깊게 질러 투영이 튄다
+            float newProg = r.IsFlying ? r.Progress
+                : path.GetDistanceNear(r.transform.position, r.Progress);
             if (config.debugProgressLog)
             {
                 if (float.IsNaN(newProg))
@@ -298,6 +300,22 @@ public class RaceManager : MonoBehaviour
         var fx = go.GetComponent<BoostDustFx>();
         if (fx == null) fx = go.AddComponent<BoostDustFx>();
         fx.Init(racer, config);
+
+        // [사슴] 비행 애니 배속 + 꼬리 트레일 — 높이 기반 로컬 연출이라 호스트/클라 공용
+        if (racer.Definition != null && racer.Definition.skill == AnimalSkill.Rudolph)
+        {
+            var flightFx = go.GetComponent<RudolphFlightFx>();
+            if (flightFx == null) flightFx = go.AddComponent<RudolphFlightFx>();
+            flightFx.Init(racer, config);
+        }
+
+        // [호랑이] 포효 머리 연출 — 스킬 피드 중계(OnSkillProc)를 구독하므로 클라도 동작
+        if (racer.Definition != null && racer.Definition.skill == AnimalSkill.Roar)
+        {
+            var roarFx = go.GetComponent<RoarFx>();
+            if (roarFx == null) roarFx = go.AddComponent<RoarFx>();
+            roarFx.Init(racer, config);
+        }
     }
 
     /// <summary>
@@ -366,7 +384,7 @@ public class RaceManager : MonoBehaviour
 
     /// <summary>
     /// 전역 시야가 필요한 스킬 처리 (매 시뮬 틱, 호스트 전용):
-    /// [개] 꼴등 판정 세팅, [호랑이] 습격 발동 (최근접 탐색 + 스턴).
+    /// [개] 꼴등 판정 세팅, [호랑이] 포효 발동 (자신 제외 전원 감속).
     /// </summary>
     private void UpdateSkillContext()
     {
@@ -384,25 +402,18 @@ public class RaceManager : MonoBehaviour
 
         foreach (var tiger in racers)
         {
-            if (tiger == null || tiger.HasFinished) continue;
-            if (!tiger.TryConsumeAmbush()) continue;
+            if (tiger == null) continue;
+            if (!tiger.TryConsumeActive(AnimalSkill.Roar)) continue;
 
-            // 사거리 무제한 — 가장 가까운 주자를 무조건 문다
-            Racer prey = null;
-            float best = float.MaxValue;
+            GameEvents.RaiseSkillProc($"{tiger.DisplayName}의 포효!! 전원이 움츠러든다!");
             foreach (var other in racers)
             {
                 if (other == null || other == tiger || other.HasFinished) continue;
-                float d = Mathf.Abs(other.Progress - tiger.Progress);
-                if (d < best) { best = d; prey = other; }
-            }
-
-            if (prey != null)
-            {
-                prey.AddEffect(new StatusEffect(StatusEffectType.Stun, SkillTuning.AmbushStun, 0f));
-                GameEvents.RaiseSkillProc(prey.IsStunned
-                    ? $"{tiger.DisplayName}이(가) {prey.DisplayName}을(를) 덮쳤다!"
-                    : $"{tiger.DisplayName}이(가) {prey.DisplayName}을(를) 덮쳤지만... 꿈쩍도 안 한다!");
+                other.AddEffect(new StatusEffect(StatusEffectType.Slow,
+                    SkillTuning.RoarDuration, SkillTuning.RoarMult));
+                // 면역자(펭귄/비행 중 사슴)는 관문에서 튕김 — 펭귄만 관전 재미로 피드
+                if (other.Definition.skill == AnimalSkill.Apathy)
+                    GameEvents.RaiseSkillProc($"...{other.DisplayName}은(는) 관심이 없다.");
             }
         }
     }

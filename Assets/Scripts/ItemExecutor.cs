@@ -30,14 +30,6 @@ public class ItemExecutor : MonoBehaviour
 
                 var type = item.kind == ItemKind.Boost ? StatusEffectType.Boost : StatusEffectType.Slow;
                 target.AddEffect(new StatusEffect(type, item.duration, item.magnitude));
-
-                // [사슴] 근처(대상 포함) 경계 본능 트리거
-                foreach (var r in raceManager.Racers)
-                {
-                    if (r == null || r.HasFinished) continue;
-                    if (Mathf.Abs(r.Progress - target.Progress) <= SkillTuning.AlertRadius)
-                        r.TriggerAlert();
-                }
                 break;
             }
 
@@ -46,6 +38,9 @@ public class ItemExecutor : MonoBehaviour
                 var target = raceManager.GetRacer(targetRacerId);
                 if (target == null || target.HasFinished)
                     return Reject(player, "유효하지 않은 타겟");
+                // 패시브(말/개/펭귄)는 무전기 무반응 — 클라 조준 단계에서도 차단되지만 호스트가 최종 검증
+                if (!SkillTuning.IsActive(target.Definition.skill))
+                    return Reject(player, "사용 불가능한 동물");
                 StartCoroutine(RadioSkillDelayed(target));
                 break;
             }
@@ -63,13 +58,13 @@ public class ItemExecutor : MonoBehaviour
         return true;
     }
 
-    /// <summary>[발동 무전기] 지연 후 대상 스킬 강제 발동 (레이스가 끝났으면 불발).</summary>
+    /// <summary>[발동 무전기] 지연 후 대상 스킬 강제 발동 — 1회 제한 무시 (레이스가 끝났으면 불발).</summary>
     private IEnumerator RadioSkillDelayed(Racer target)
     {
         yield return new WaitForSeconds(config.radioDelaySeconds);
         if (GameManager.Instance.CurrentPhase != GamePhase.Racing) yield break;
         if (target == null || target.HasFinished) yield break;
-        target.ForceSkillByRadio(config.radioForcedSkillDuration);
+        target.ForceSkillByRadio();
     }
 
     /// <summary>[처형 무전기] 지연 후 그 시점의 꼴등 탈락 (레이스가 끝났으면 불발).</summary>

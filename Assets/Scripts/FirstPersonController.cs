@@ -51,6 +51,13 @@ public class FirstPersonController : MonoBehaviour
     public Transform CameraPivot => cameraPivot;
 
     /// <summary>
+    /// 움직이는 발판(엘리베이터) 탑승 중 — ElevatorRide가 굴린다.
+    /// 발판이 발밑에서 먼저 내려가는 프레임엔 isGrounded가 깜빡여 낙하 애니가 섞이므로,
+    /// 탑승 중엔 접지로 간주하고 낙하 가속도 쌓이지 않게 막는다.
+    /// </summary>
+    public bool OnMovingPlatform { get; set; }
+
+    /// <summary>
     /// 쓰러짐 연출용 (PlayerKnockdown이 프레임마다 굴림). 0=평소(눈이 몸 앞),
     /// 1=누움(눈이 머리 위 하늘 쪽) — 쓰러지는 동안 카메라가 가슴/몸통을 관통하지 않게 한다.
     /// </summary>
@@ -145,7 +152,7 @@ public class FirstPersonController : MonoBehaviour
         Vector2 axis = new(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
         axis = Vector2.ClampMagnitude(axis, 1f);
         bool isRun = Input.GetKey(KeyCode.LeftShift);
-        bool grounded = controller.isGrounded;
+        bool grounded = controller.isGrounded || OnMovingPlatform;
 
         if (grounded && verticalVel < 0f) verticalVel = -2f;
         if (grounded && Input.GetButtonDown("Jump"))

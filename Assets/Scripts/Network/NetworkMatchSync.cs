@@ -17,6 +17,11 @@ public class NetworkMatchSync : MonoBehaviourPunCallbacks
 
     private float nextBroadcast;
 
+    /// <summary>클라가 호스트의 페이즈를 한 번이라도 받았나 — 스폰 위치(전망대/지상) 판단이 이걸 기다린다.</summary>
+    public static bool PhaseSynced { get; private set; }
+
+    private void Awake() => PhaseSynced = false;   // 씬 재진입 대비
+
     private bool IsHost => PhotonNetwork.InRoom && PhotonNetwork.IsMasterClient;
 
     // ---- 호스트: 주기 방송 ----
@@ -39,6 +44,7 @@ public class NetworkMatchSync : MonoBehaviourPunCallbacks
     {
         var gm = GameManager.Instance;
         var p = (GamePhase)phase;
+        PhaseSynced = true;
 
         if (round != matchManager.CurrentRound)
         {

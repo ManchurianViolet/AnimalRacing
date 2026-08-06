@@ -13,6 +13,7 @@ public class RoarFx : MonoBehaviour
     private GameConfig config;
     private Transform head;
     private Vector3 headBaseScale = Vector3.one;
+    private Vector3 headBaseLocalPos;   // 클립이 본 위치를 안 쓰므로 기준점을 잡아두고 매번 새로 계산
     private float timer = -1f;   // -1 = 대기
 
     public void Init(Racer racer, GameConfig config)
@@ -20,18 +21,43 @@ public class RoarFx : MonoBehaviour
         this.racer = racer;
         this.config = config;
 
-        // ithappy 리그의 머리 본 이름은 "scull" — 없으면 "head" 계열 폴백
-        foreach (var tr in GetComponentsInChildren<Transform>(true))
+        head = FindHeadBone();
+        if (head != null)
+        {
+            headBaseScale = head.localScale;
+            headBaseLocalPos = head.localPosition;
+        }
+        else Debug.LogWarning($"[RoarFx] {name}: 머리 본을 못 찾음 (연출 생략)");
+    }
+
+    /// <summary>
+    /// 머리 본 탐색 — 리그마다 이름이 다르다 (6종은 "scull"인데 호랑이만 없고 spine.012가 머리).
+    /// 이름 → 턱(jaw)의 부모 → 척추 말단 순으로 구조에 기대어 찾는다.
+    /// </summary>
+    private Transform FindHeadBone()
+    {
+        var bones = GetComponentsInChildren<Transform>(true);
+
+        foreach (var tr in bones)
         {
             string n = tr.name.ToLowerInvariant();
-            if (n == "scull" || n == "skull" || n == "head") { head = tr; break; }
+            if (n == "scull" || n == "skull" || n == "head") return tr;
         }
-        if (head == null)
-            foreach (var tr in GetComponentsInChildren<Transform>(true))
-                if (tr.name.ToLowerInvariant().Contains("scull")) { head = tr; break; }
 
-        if (head != null) headBaseScale = head.localScale;
-        else Debug.LogWarning($"[RoarFx] {name}: 머리 본을 못 찾음 (연출 생략)");
+        // 턱이 달린 본이 곧 머리 (호랑이: jaw의 부모 = spine.012)
+        foreach (var tr in bones)
+            if (tr.name.ToLowerInvariant() == "jaw" && tr.parent != null) return tr.parent;
+
+        // 최후 폴백: 가장 깊은 spine.N (목 끝 = 머리)
+        Transform deepest = null;
+        int bestIdx = -1;
+        foreach (var tr in bones)
+        {
+            if (!tr.name.StartsWith("spine.")) continue;
+            if (int.TryParse(tr.name.Substring(6), out int idx) && idx > bestIdx)
+            { bestIdx = idx; deepest = tr; }
+        }
+        return deepest;
     }
 
     private void OnEnable()  => GameEvents.OnSkillProc += HandleSkillProc;
@@ -54,6 +80,7 @@ public class RoarFx : MonoBehaviour
         if (timer >= total)
         {
             head.localScale = headBaseScale;   // 원상 복구 후 대기
+            head.localPosition = headBaseLocalPos;
             timer = -1f;
             return;
         }
@@ -64,6 +91,12 @@ public class RoarFx : MonoBehaviour
                 : 1f;
 
         head.localScale = headBaseScale * Mathf.Lerp(1f, config.roarHeadScale, k);
-        head.position += racer.transform.forward * (config.roarHeadForward * k);
+
+        // ⚠ position에 += 금지: 클립이 본 위치를 안 쓰는 탓에 프레임마다 누적돼 머리가 수십 m 날아간다.
+        // 기준 localPosition에서 매 프레임 새로 계산 (전방 벡터는 부모 공간으로 환산).
+        Vector3 offsetLocal = head.parent != null
+            ? head.parent.InverseTransformVector(racer.transform.forward * config.roarHeadForward * k)
+            : racer.transform.forward * config.roarHeadForward * k;
+        head.localPosition = headBaseLocalPos + offsetLocal;
     }
 }

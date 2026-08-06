@@ -68,16 +68,10 @@ public class PrototypeBootstrap : MonoBehaviour
         bool inRoom = PhotonNetwork.InRoom;
         Debug.Log($"[Bootstrap] 시작 준비 완료 — 방: {inRoom}, 호스트: {NetworkPlayers.IsAuthority}");
 
-        if (!inRoom)
-        {
-            RegisterOfflinePlayers();
-            matchManager.StartMatch();
-        }
-        else
-        {
-            // 온라인: 자동 시작 없음 — 도박장 대기 상태, 방장이 시작 레버를 당기면 개시
-            Debug.Log("[Bootstrap] 대기 상태 — 시작 레버 대기 중");
-        }
+        // 오프라인도 자동 시작하지 않는다 — 전망대 개막(엘리베이터) 연출을 온·오프라인 공통으로
+        // 태우기 위해 대기 상태로 통일 (기획 확정: 오프라인 자동 시작 폐기)
+        if (!inRoom) RegisterOfflinePlayers();
+        Debug.Log("[Bootstrap] 대기 상태 — 전망대 시작 버튼 대기 중");
     }
 
     private void AssignBetsAndLoadouts()

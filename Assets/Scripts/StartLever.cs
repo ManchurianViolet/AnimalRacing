@@ -4,10 +4,11 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// [5-1b] 게임 시작 레버 (방장 전용).
-/// 대기 상태(Lobby)에서 E → 정원 미달이면 확인창 → 시작.
+/// [5-1b] 게임 시작 버튼 (방장 전용) — 전망대에 설치.
+/// 대기 상태(Lobby)에서 E → 정원 미달이면 확인창 → 시작 → 엘리베이터 하강(ElevatorRide가 페이즈로 감지).
 /// 오프라인에선 매치 종료 후 재경기 버튼 역할.
 /// 3D 오브젝트 루트에 Collider와 함께 부착.
+/// ※ 대기실 벽 개폐는 전망대+엘리베이터 도입으로 폐기됨 (기획 확정).
 /// </summary>
 public class StartLever : MonoBehaviour, IInteractable
 {
@@ -19,9 +20,6 @@ public class StartLever : MonoBehaviour, IInteractable
     /// <summary>[5-2] 스폰된 내 아바타 배선 (LocalPlayerBinder가 호출).</summary>
     public void BindLocalPlayer(FirstPersonController fpc) => playerController = fpc;
 
-    [Header("대기실 벽 (게임 시작 시 숨김, 대기 상태 복귀 시 다시 표시)")]
-    [SerializeField] private GameObject[] wallsToHide;
-
     [Header("인원 미달 확인창 (HUD 캔버스에)")]
     [SerializeField] private GameObject confirmPanel;
     [SerializeField] private TMP_Text confirmText;
@@ -29,17 +27,6 @@ public class StartLever : MonoBehaviour, IInteractable
     [SerializeField] private Button btnNo;
 
     public string Prompt => "E - 게임 시작";
-
-    private void OnEnable()  => GameEvents.OnPhaseChanged += HandlePhase;
-    private void OnDisable() => GameEvents.OnPhaseChanged -= HandlePhase;
-
-    /// <summary>벽 = 대기(Lobby) 상태에만 존재. 페이즈 방송 기반이라 호스트/클라 전원 동기화.</summary>
-    private void HandlePhase(GamePhase phase)
-    {
-        bool lobby = phase == GamePhase.Lobby;
-        foreach (var wall in wallsToHide)
-            if (wall != null) wall.SetActive(lobby);
-    }
 
     private void Awake()
     {

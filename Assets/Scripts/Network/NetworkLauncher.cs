@@ -13,7 +13,7 @@ public class NetworkLauncher : MonoBehaviourPunCallbacks
 {
     [SerializeField] private string gameVersion = "dev";
     [Tooltip("방 입장 후 로드할 게임(도박장) 씬 이름 — 타이틀 씬 이름 아님!")]
-    [SerializeField] private string gameSceneName = "SampleScene";
+    [SerializeField] private string gameSceneName = "GameScene";
 
     /// <summary>방 목록 (방이름 → 정보). TitleMenu가 구독.</summary>
     public readonly Dictionary<string, RoomInfo> Rooms = new();

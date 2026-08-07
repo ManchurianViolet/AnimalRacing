@@ -24,10 +24,6 @@ public class SettlementPanel : MonoBehaviour
     [SerializeField] private BetChipView chipPrefab;
     [SerializeField] private TMP_Text finalText;            // 최종 결과 전용 (라운드 땐 숨김)
 
-    [Header("스프라이트")]
-    [SerializeField] private Sprite crownSprite;            // 왕관 (우승픽)
-    [SerializeField] private Sprite pooSprite;              // 똥 (꼴등픽)
-
     [Header("연출")]
     [SerializeField] private float rowInterval = 0.28f;     // 행 등장 간격
 
@@ -89,7 +85,7 @@ public class SettlementPanel : MonoBehaviour
     private void BuildRows(RaceResult r)
     {
         var ranking = raceManager.GetFinalRanking();
-        var odds = matchManager.CurrentOdds;
+        var cfg = GameManager.Instance.Config;
 
         foreach (var racer in ranking)
         {
@@ -99,33 +95,30 @@ public class SettlementPanel : MonoBehaviour
             var row = Instantiate(rowPrefab, rowsParent);
             row.Bind(racer.FinishRank, racer, isTop, isLast);
 
-            // 이 동물에게 걸었던 플레이어들의 칩 부착
+            // 이 동물을 예측했던 플레이어들의 칩 부착 (①/②↑/③↑ + 적중 포인트)
+            // "이상" 채점: 2등 슬롯은 1·2등이면, 3등 슬롯은 1·2·3등이면 적중 — MatchManager.SettlePoints와 동일 규칙
             foreach (var p in matchManager.Players)
             {
-                if (p.Bet.firstId == racer.RacerId && p.Bet.firstAmount > 0)
-                {
-                    bool hit = racer.RacerId == r.firstId;
-                    int pay = hit && odds != null
-                        ? Mathf.FloorToInt(p.Bet.firstAmount * odds[racer.RacerId].winOdds) : 0;
-                    AddChip(row, crownSprite, p.Nickname, p.Bet.firstAmount, hit, pay);
-                }
-                if (p.Bet.lastId == racer.RacerId && p.Bet.lastAmount > 0)
-                {
-                    bool hit = racer.RacerId == r.lastId;
-                    int pay = hit && odds != null
-                        ? Mathf.FloorToInt(p.Bet.lastAmount * odds[racer.RacerId].lastOdds) : 0;
-                    AddChip(row, pooSprite, p.Nickname, p.Bet.lastAmount, hit, pay);
-                }
+                bool top1 = racer.RacerId == r.firstId;
+                bool top2 = top1 || racer.RacerId == r.secondId;
+                bool top3 = top2 || racer.RacerId == r.thirdId;
+
+                if (p.Bet.firstId == racer.RacerId)
+                    AddChip(row, 0, p.Nickname, top1, cfg.pointsFirst);
+                if (p.Bet.secondId == racer.RacerId)
+                    AddChip(row, 1, p.Nickname, top2, cfg.pointsSecond);
+                if (p.Bet.thirdId == racer.RacerId)
+                    AddChip(row, 2, p.Nickname, top3, cfg.pointsThird);
             }
 
             rows.Add(row);
         }
     }
 
-    private void AddChip(ResultRowView row, Sprite icon, string name, int amount, bool hit, int payout)
+    private void AddChip(ResultRowView row, int slot, string name, bool hit, int points)
     {
         var chip = Instantiate(chipPrefab, row.ChipContainer);
-        chip.Bind(icon, name, amount, hit, payout);
+        chip.Bind(slot, name, hit, hit ? points : 0);
     }
 
     private IEnumerator PlaySequence()
@@ -158,7 +151,7 @@ public class SettlementPanel : MonoBehaviour
         titleText.text = "최종 결과";
 
         var ordered = new List<PlayerState>(matchManager.Players);
-        ordered.Sort((a, b) => b.NetWorth.CompareTo(a.NetWorth));
+        ordered.Sort((a, b) => b.Points.CompareTo(a.Points));
 
         var sb = new System.Text.StringBuilder();
         int rank = 1;
@@ -166,7 +159,7 @@ public class SettlementPanel : MonoBehaviour
         {
             if (rank == 1) sb.Append("<b><color=#FFD700>");
             sb.Append(rank).Append("위   ").Append(p.Nickname)
-              .Append("   $").Append(p.NetWorth.ToString("N0"));
+              .Append("   ").Append(p.Points.ToString("N0")).Append(" P");
             if (rank == 1) sb.Append("   우승!</color></b>");
             sb.Append('\n');
             rank++;

@@ -17,15 +17,31 @@ public static class GameEvents
     public static event Action<int, string> OnItemRejected;
     public static void RaiseItemRejected(int pid, string reason) => OnItemRejected?.Invoke(pid, reason);
 
-    public static event Action<int, int> OnRacerFinished;
-    public static void RaiseRacerFinished(int rid, int rank) => OnRacerFinished?.Invoke(rid, rank);
+    /// <summary>스킬 발동 소식 (타임라인용, 호스트 발생 → 네트워크 중계).</summary>
+    public static event Action<string> OnSkillProc;
+    public static void RaiseSkillProc(string line) => OnSkillProc?.Invoke(line);
+
+    /// <summary>완주/탈락 확정 (rid, rank, eliminated). eliminated=true면 결승선이 아니라 처형 탈락.</summary>
+    public static event Action<int, int, bool> OnRacerFinished;
+    public static void RaiseRacerFinished(int rid, int rank, bool eliminated = false) =>
+        OnRacerFinished?.Invoke(rid, rank, eliminated);
+
+    /// <summary>베팅 접수 확정 (수동/자동 공통). 네트워크 관문이 본인에게 영수증 회신용으로 구독.</summary>
+    public static event Action<int, BetTicket> OnBetAccepted;
+    public static void RaiseBetAccepted(int pid, BetTicket t) => OnBetAccepted?.Invoke(pid, t);
 
     public static event Action<RaceResult> OnRaceSettled;
     public static void RaiseRaceSettled(RaceResult r) => OnRaceSettled?.Invoke(r);
 
     // ---- 배당 (베팅 페이즈 시작 시 계산 완료 알림 — 베팅 UI가 구독) ----
-    public static event Action<OddsCalculator.AnimalOdds[]> OnOddsReady;
-    public static void RaiseOddsReady(OddsCalculator.AnimalOdds[] odds) => OnOddsReady?.Invoke(odds);
 }
 
 public enum GamePhase { Lobby, Betting, Loadout, Countdown, Racing, Settlement }
+
+/// <summary>라운드 정산 결과 (포인트제): 상위 3두 + 플레이어별 획득 포인트.</summary>
+public class RaceResult
+{
+    public int round;
+    public int firstId, secondId, thirdId;
+    public System.Collections.Generic.Dictionary<int, int> pointsGained = new();   // playerId → 획득
+}

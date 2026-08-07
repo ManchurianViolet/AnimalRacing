@@ -16,7 +16,8 @@ MonoBehaviour:
   description: 
   prefab: {fileID: 701467143089362442, guid: e395a386bc6ce2f4296898e7120f2868, type: 3}
   icon: {fileID: 0}
-  minSpeed: 62
+  minSpeed: 68
   maxSpeed: 80
   speedRerollInterval: 15
-  acceleration: 20
+  acceleration: 10
+  skill: 7

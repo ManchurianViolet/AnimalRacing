@@ -12,6 +12,9 @@ public class BettingTerminal : MonoBehaviour, IInteractable
     [SerializeField] private MatchManager matchManager;
     [SerializeField] private FirstPersonController playerController;
 
+    /// <summary>[5-2] 스폰된 내 아바타 배선 (LocalPlayerBinder가 호출).</summary>
+    public void BindLocalPlayer(FirstPersonController fpc) => playerController = fpc;
+
     [Header("카메라 연출")]
     [Tooltip("베팅 중 카메라가 이동할 위치/각도 (단말기 화면을 바라보게 배치)")]
     [SerializeField] private Transform cameraAnchor;
@@ -23,7 +26,13 @@ public class BettingTerminal : MonoBehaviour, IInteractable
     private Quaternion savedLocalRot;
     private Coroutine camRoutine;
 
-    private const int LocalPlayerId = 0;   // TODO(멀티): 자기 photonView 기준으로
+    private int LocalPlayerId => NetworkPlayers.LocalPlayerId;
+
+    // 단말기 복제 시 인스펙터 배선 누락 사고 방지 — 비어 있으면 씬에서 자동 탐색
+    private void Awake()
+    {
+        if (matchManager == null) matchManager = FindFirstObjectByType<MatchManager>();
+    }
 
     public string Prompt =>
         matchManager.HasSubmitted(LocalPlayerId) ? "베팅 완료됨" : "E - 베팅하기";

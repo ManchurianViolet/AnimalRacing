@@ -11,10 +11,16 @@ public class TimelineFeed : MonoBehaviour
 
     private readonly LinkedList<string> lines = new();
 
+    private void Start()
+    {
+        if (feedText != null) feedText.text = "";   // 에디터 임시 텍스트 정리
+    }
+
     private void OnEnable()
     {
         GameEvents.OnItemUsed      += HandleItemUsed;
         GameEvents.OnRacerFinished += HandleFinished;
+        GameEvents.OnSkillProc     += HandleSkill;
         GameEvents.OnPhaseChanged  += HandlePhase;
     }
 
@@ -22,6 +28,7 @@ public class TimelineFeed : MonoBehaviour
     {
         GameEvents.OnItemUsed      -= HandleItemUsed;
         GameEvents.OnRacerFinished -= HandleFinished;
+        GameEvents.OnSkillProc     -= HandleSkill;
         GameEvents.OnPhaseChanged  -= HandlePhase;
     }
 
@@ -36,9 +43,15 @@ public class TimelineFeed : MonoBehaviour
     }
 
     private void HandleItemUsed(int pid, ItemDefinition item, int rid)
-        => Push($"<b>[{PlayerName(pid)}]</b> {RacerName(rid)}에게 <color=#FFB020>{item.itemName}</color>!");
-    private void HandleFinished(int rid, int rank)
-        => Push($"{RacerName(rid)} <b>{rank}위</b> 결승선 통과");
+        => Push(rid >= 0
+            ? $"<b>[{PlayerName(pid)}]</b> {RacerName(rid)}에게 <color=#FFB020>{item.itemName}</color>!"
+            : $"<b>[{PlayerName(pid)}]</b> <color=#FFB020>{item.itemName}</color>!");   // 처형 무전기: 대상은 5초 후 확정
+    private void HandleFinished(int rid, int rank, bool eliminated)
+        => Push(eliminated
+            ? $"{RacerName(rid)} <color=#FF6B6B><b>탈락!</b></color>"
+            : $"{RacerName(rid)} <b>{rank}위</b> 결승선 통과");
+    private void HandleSkill(string line)
+        => Push($"<color=#8FD3FF>{line}</color>");
 
     private void Push(string line)
     {
@@ -57,6 +70,6 @@ public class TimelineFeed : MonoBehaviour
     private string RacerName(int id)
     {
         var r = raceManager.GetRacer(id);
-        return r != null ? r.DisplayName : $"{id}번";
+        return r != null ? r.DisplayName : $"{id + 1}번";   // 레인 번호는 1부터
     }
 }

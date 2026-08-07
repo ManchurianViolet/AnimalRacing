@@ -30,6 +30,9 @@ public class AnimalDefinition : ScriptableObject
     [Header("가속 (0~100 단위)")]
     [Range(0, 100)] public int acceleration = 50;
 
+    [Header("스킬 (동물당 1개)")]
+    public AnimalSkill skill = AnimalSkill.None;
+
     // ---- 변환 프로퍼티 (게임 내부는 전부 이걸 사용) ----
     public float MinSpeedMs => minSpeed * SpeedUnitToMs;
     public float MaxSpeedMs => maxSpeed * SpeedUnitToMs;

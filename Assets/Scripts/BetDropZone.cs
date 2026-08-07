@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 /// 드롭되면 레인번호칸(번호 TMP 포함) 복제본이 Slot 위치에 전시됨.
 /// 클릭 = 선택 취소.
 /// </summary>
-public class BetDropZone : MonoBehaviour, IDropHandler, IPointerClickHandler
+public class BetDropZone : MonoBehaviour, IDropHandler
 {
     [Tooltip("전시 복제본이 놓일 위치. 비우면 존 정중앙")]
     [SerializeField] private Transform slot;
@@ -32,11 +32,6 @@ public class BetDropZone : MonoBehaviour, IDropHandler, IPointerClickHandler
         var icon = e.pointerDrag != null ? e.pointerDrag.GetComponent<DraggableBetIcon>() : null;
         if (icon == null) return;
         Set(icon.RacerId, icon.DisplayName, icon.GhostTemplate);
-    }
-
-    public void OnPointerClick(PointerEventData e)
-    {
-        if (SelectedId >= 0) Clear();
     }
 
     public void Set(int id, string name, RectTransform template)

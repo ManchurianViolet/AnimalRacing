@@ -1,24 +1,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>플레이어 상태: 자산(달러)/빚, 베팅, 로드아웃, 쿨다운.</summary>
+/// <summary>플레이어 상태: 포인트, 예측(1·2·3등), 로드아웃, 쿨다운.</summary>
 public class PlayerState
 {
     public int PlayerId { get; private set; }
     public string Nickname { get; private set; }
     public bool IsBot { get; private set; }
 
-    /// <summary>보유 자산 (달러).</summary>
-    public int Money { get; private set; }
-    /// <summary>미상환 원리금 (라운드마다 이자 복리 적용).</summary>
-    public int Debt { get; private set; }
-    /// <summary>누적 대출 원금 (한도 검사용).</summary>
-    public int TotalBorrowed { get; private set; }
-    /// <summary>이번 라운드에 ATM 대출을 이미 썼는가.</summary>
-    public bool BorrowedThisRound { get; set; }
-
-    /// <summary>최종 점수 = 자산 - 빚 (음수 허용 = 파산 엔딩).</summary>
-    public int NetWorth => Money - Debt;
+    /// <summary>누적 포인트 (라운드마다 예측 적중으로 획득, 최다 = 우승).</summary>
+    public int Points { get; private set; }
 
     public BetTicket Bet { get; private set; }
 
@@ -37,55 +28,32 @@ public class PlayerState
         PlayerId = id;
         Nickname = nickname;
         IsBot = isBot;
+        ClearBet();
     }
 
-    // ---- 경제 ----
-    public void ResetEconomy(int startMoney)
+    // ---- 포인트 ----
+    public void ResetPoints() => Points = 0;
+    public void AddPoints(int amount) => Points += amount;
+
+    // ---- 네트워크 거울 반영 (클라 전용 — 진실은 호스트) ----
+    public void ApplyNetworkEconomy(int points) => Points = points;
+
+    public void ApplyNetworkItems(int boostCount, int slowCount, int radioSkillCount, int radioExecCount,
+                                  ItemDefinition boostDef, ItemDefinition slowDef,
+                                  ItemDefinition radioSkillDef, ItemDefinition radioExecDef)
     {
-        Money = startMoney;
-        Debt = 0;
-        TotalBorrowed = 0;
-        BorrowedThisRound = false;
+        items.Clear();
+        for (int i = 0; i < boostCount; i++) items.Add(boostDef);
+        for (int i = 0; i < slowCount; i++)  items.Add(slowDef);
+        for (int i = 0; i < radioSkillCount; i++) items.Add(radioSkillDef);
+        for (int i = 0; i < radioExecCount; i++)  items.Add(radioExecDef);
     }
 
-    public void AddMoney(int amount) => Money += amount;
-
-    /// <summary>차감 시도. 잔액 부족이면 false.</summary>
-    public bool TrySpend(int amount)
-    {
-        if (amount < 0 || Money < amount) return false;
-        Money -= amount;
-        return true;
-    }
-
-    public void Borrow(int amount)
-    {
-        Money += amount;
-        Debt += amount;
-        TotalBorrowed += amount;
-    }
-
-    /// <summary>상환. 실제 상환된 금액 반환.</summary>
-    public int Repay(int amount)
-    {
-        int pay = Mathf.Min(amount, Mathf.Min(Money, Debt));
-        if (pay <= 0) return 0;
-        Money -= pay;
-        Debt -= pay;
-        return pay;
-    }
-
-    /// <summary>라운드 경과 이자 (복리). rate 0.3 = +30%.</summary>
-    public void ApplyInterest(float rate)
-    {
-        if (Debt > 0) Debt = Mathf.CeilToInt(Debt * (1f + rate));
-    }
-
-    // ---- 베팅/아이템 ----
+    // ---- 예측/아이템 ----
     public void SetBet(BetTicket bet) => Bet = bet;
 
-    /// <summary>라운드 시작 시 호출 — 지난 라운드 베팅 무효화 (firstId=lastId=-1 = IsValid false).</summary>
-    public void ClearBet() => Bet = new BetTicket { firstId = -1, lastId = -1 };
+    /// <summary>라운드 시작 시 호출 — 지난 라운드 예측 무효화.</summary>
+    public void ClearBet() => Bet = new BetTicket { firstId = -1, secondId = -1, thirdId = -1 };
 
     public void SetLoadout(IEnumerable<ItemDefinition> loadout)
     {
@@ -104,23 +72,19 @@ public class PlayerState
 }
 
 /// <summary>
-/// 베팅 티켓: 픽 + 금액. 우승/꼴등 둘 다 최소 $1 필수.
-/// 비밀 정보 = 픽 + 금액 전부.
+/// 예측 티켓: 1등·2등·3등 예상 (전부 필수, 서로 달라야 함).
+/// 비밀 정보 — 정산 공개 전까지 남에게 전송되지 않음.
 /// </summary>
 [System.Serializable]
 public struct BetTicket
 {
     public int firstId;
-    public int lastId;
-    public int firstAmount;
-    public int lastAmount;
-
-    public int Total => firstAmount + lastAmount;
+    public int secondId;
+    public int thirdId;
 
     public bool IsValid(int racerCount) =>
-        firstId != lastId &&
         firstId >= 0 && firstId < racerCount &&
-        lastId >= 0 && lastId < racerCount &&
-        firstAmount >= 10 && firstAmount % 10 == 0 &&
-        lastAmount >= 10 && lastAmount % 10 == 0;
+        secondId >= 0 && secondId < racerCount &&
+        thirdId >= 0 && thirdId < racerCount &&
+        firstId != secondId && firstId != thirdId && secondId != thirdId;
 }

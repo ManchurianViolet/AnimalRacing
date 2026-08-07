@@ -12,26 +12,68 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd28280057ab8a048aa09bf1804437ae, type: 3}
   m_Name: GameConfig
   m_EditorClassIdentifier: Assembly-CSharp::GameConfig
-  racerCount: 8
+  racerCount: 9
+  lapCount: 2
   boostCount: 3
   slowCount: 3
+  radioSkillCount: 1
+  radioExecCount: 1
   itemCooldown: 5
   cooldownFor2P: 5
-  startMoney: 1000
-  autoLoanThreshold: 2
-  autoLoanAmount: 200
-  atmLoanThreshold: 100
-  atmLoanSmall: 300
-  atmLoanLarge: 500
-  totalBorrowLimit: 1000
-  atmAvailableFromRound: 2
-  interestRate: 0.3
-  autoBetAmount: 100
-  oddsSimCount: 1000
+  radioDelaySeconds: 5
+  elimAnimFreezeSeconds: 5
+  pointsFirst: 90
+  pointsSecond: 50
+  pointsThird: 30
+  meleeRange: 2.2
+  meleeArcAngle: 150
+  meleeImpactDelay: 0.45
+  knockdownInvulnSeconds: 3
+  roomBotDoorDelay: 20
+  roomBotDoorLinger: 5
+  roomDoorSlideSeconds: 0.6
+  figurineScale: 0.33
   defaultRounds: 3
-  bettingSeconds: 5
+  bettingSeconds: 60
   loadoutSeconds: 2
   countdownSeconds: 2
   resultSeconds: 15
   lookAhead: 4
   maxAssistAccel: 20
+  racingLineLookAhead: 9
+  insideBiasStrength: 0.7
+  curvatureSaturation: 6
+  roadMargin: 1.2
+  cornerDecelEnabled: 1
+  cornerDecelRate: 0.22
+  cornerSenseAhead: 6
+  cornerBrakeGain: 4.5
+  finishCoastMin: 3
+  finishCoastMax: 8
+  finishSpread: 2.2
+  avoidLookAhead: 2.6
+  bodyClearance: 1.1
+  overtakeShift: 1.6
+  blockedSpeedFactor: 0.9
+  lateralSmoothTime: 0.45
+  lateralMaxSpeed: 3.5
+  sideBySideRange: 1.5
+  boostDustMaterial: {fileID: 2100000, guid: bab8abd6abc931541958923820f8326d, type: 2}
+  dustRate: 14
+  dustLifetime: 0.7
+  dustSize: 1
+  dustColor: {r: 0.95, g: 0.9, b: 0.78, a: 1}
+  dustMinSpeed: 1.5
+  dustBurst: 7
+  rudolphFlightAnimSpeed: 4
+  rudolphLiftStart: 0.6
+  rudolphLiftFull: 2.5
+  rudolphTrailTime: 0.7
+  rudolphTrailWidth: 0.28
+  rudolphTrailColorA: {r: 1, g: 0.3, b: 0.22, a: 1}
+  rudolphTrailColorB: {r: 1, g: 0.85, b: 0.35, a: 1}
+  roarHeadScale: 1.7
+  roarHeadForward: 0.18
+  roarFxSeconds: 1.2
+  debugMotorGizmos: 1
+  debugProgressLog: 1

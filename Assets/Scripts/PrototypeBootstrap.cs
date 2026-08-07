@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Photon.Pun;
 using UnityEngine;
 
 /// <summary>
@@ -15,15 +16,22 @@ public class PrototypeBootstrap : MonoBehaviour
     [SerializeField] private PlayerItemController itemController;
     [SerializeField] private BotController[] bots;
 
-    [Header("아이템 SO (2종)")]
+    [Header("아이템 SO (4종)")]
     [SerializeField] private ItemDefinition boostItem;
     [SerializeField] private ItemDefinition slowItem;
-
-    private PlayerState me;
+    [SerializeField] private ItemDefinition radioSkillItem;
+    [SerializeField] private ItemDefinition radioExecItem;
 
     private void Start()
     {
-        me = new PlayerState(0, "나");
+        GameEvents.OnPhaseChanged += p => { if (p == GamePhase.Betting) AssignBetsAndLoadouts(); };
+        StartCoroutine(StartWhenReady());
+    }
+
+    /// <summary>오프라인 전용: 기존 로컬 등록 (나 + 봇들).</summary>
+    private void RegisterOfflinePlayers()
+    {
+        var me = new PlayerState(0, "나");
         matchManager.RegisterPlayer(me);
         itemController.Bind(me);
 
@@ -33,14 +41,43 @@ public class PrototypeBootstrap : MonoBehaviour
             matchManager.RegisterPlayer(b);
             bots[i].Bind(b);
         }
+    }
 
-        GameEvents.OnPhaseChanged += p => { if (p == GamePhase.Betting) AssignBetsAndLoadouts(); };
+    /// <summary>
+    /// 접속이 진행 중이면 방 입장까지 기다렸다가 시작 (타이밍 경쟁 방지).
+    /// Photon 접속은 비동기라 Start 시점엔 아직 방 밖 — 그때 검사하면 전원이
+    /// 자기를 오프라인 호스트로 착각하고 각자 게임을 돌리는 사고가 남.
+    /// </summary>
+    private System.Collections.IEnumerator StartWhenReady()
+    {
+        // 타이틀에서 접속해 들어왔으면 = 온라인 (이미 방 안). 게임 씬 직접 실행 = 오프라인.
+        bool onlineIntended = PhotonNetwork.IsConnected;
 
-        matchManager.StartMatch();
+        if (onlineIntended)
+        {
+            float timeout = Time.time + 30f;
+            while (!PhotonNetwork.InRoom
+                   && PhotonNetwork.NetworkClientState != Photon.Realtime.ClientState.Disconnected
+                   && Time.time < timeout)
+                yield return null;
+
+            if (!PhotonNetwork.InRoom)
+                Debug.LogWarning("[Bootstrap] 온라인 접속 실패 — 오프라인으로 시작합니다");
+        }
+
+        bool inRoom = PhotonNetwork.InRoom;
+        Debug.Log($"[Bootstrap] 시작 준비 완료 — 방: {inRoom}, 호스트: {NetworkPlayers.IsAuthority}");
+
+        // 오프라인도 자동 시작하지 않는다 — 전망대 개막(엘리베이터) 연출을 온·오프라인 공통으로
+        // 태우기 위해 대기 상태로 통일 (기획 확정: 오프라인 자동 시작 폐기)
+        if (!inRoom) RegisterOfflinePlayers();
+        Debug.Log("[Bootstrap] 대기 상태 — 전망대 시작 버튼 대기 중");
     }
 
     private void AssignBetsAndLoadouts()
     {
+        if (!NetworkPlayers.IsAuthority) return;   // 로드아웃/봇 베팅은 호스트 소관
+
         if (boostItem == null || slowItem == null)
         {
             Debug.LogError("[Bootstrap] Boost Item / Slow Item 슬롯이 비어있습니다!");
@@ -51,11 +88,15 @@ public class PrototypeBootstrap : MonoBehaviour
         var loadout = new List<ItemDefinition>();
         for (int i = 0; i < cfg.boostCount; i++) loadout.Add(boostItem);
         for (int i = 0; i < cfg.slowCount; i++)  loadout.Add(slowItem);
+        if (radioSkillItem != null)
+            for (int i = 0; i < cfg.radioSkillCount; i++) loadout.Add(radioSkillItem);
+        if (radioExecItem != null)
+            for (int i = 0; i < cfg.radioExecCount; i++) loadout.Add(radioExecItem);
 
         foreach (var p in matchManager.Players)
         {
             p.SetLoadout(loadout);
-            // 봇: 관문(SubmitBet) 경유 — 사람과 동일하게 잔액에서 차감됨
+            // 봇: 관문(SubmitBet) 경유 — 사람과 동일한 검증
             if (p.IsBot)
                 matchManager.SubmitBet(p.PlayerId, RandomBet(p));
         }
@@ -64,14 +105,8 @@ public class PrototypeBootstrap : MonoBehaviour
     private BetTicket RandomBet(PlayerState p)
     {
         var ids = Enumerable.Range(0, GameManager.Instance.Config.racerCount)
-                            .OrderBy(_ => Random.value).Take(2).ToArray();
-        // 봇 베팅 규모: 잔액의 5~25%씩 ($10 단위, 최소 $10)
-        int a = To10(p.Money * Random.Range(0.05f, 0.25f));
-        int b = To10(p.Money * Random.Range(0.05f, 0.25f));
-        if (a + b > p.Money) { a = To10(p.Money / 2f); b = Mathf.Max(10, (p.Money - a) / 10 * 10); }
-        return new BetTicket { firstId = ids[0], lastId = ids[1], firstAmount = a, lastAmount = b };
+                            .OrderBy(_ => Random.value).Take(3).ToArray();
+        return new BetTicket { firstId = ids[0], secondId = ids[1], thirdId = ids[2] };
     }
-
-    private static int To10(float v) => Mathf.Max(10, Mathf.FloorToInt(v / 10f) * 10);
 
 }

@@ -2,43 +2,118 @@ using System.Linq;
 using UnityEngine;
 
 /// <summary>
-/// 트랙 경로 (웨이포인트 꺾은선). 순위 판정의 유일한 기준.
-/// - GetProgress(pos): 경로에 투영한 누적 거리 → 순위/꼴찌/결승 판정
-/// - GetPoint / GetTangent / GetNormal: 조향 목표점 계산용
-/// 웨이포인트를 촘촘히 박으면 시각적으로 곡선. 스플라인 교체는 이 클래스만 갈면 됨.
+/// 트랙 경로 v2 — 경계 직접 정의 방식.
+/// 안쪽 라인(InnerLine)과 바깥 라인(OuterLine)을 각각 웨이포인트로 긋고,
+/// 중심선/폭/한계는 전부 두 경계에서 역산한다. 추정(곡률 기반 접힘 감지 등) 전면 은퇴.
+///
+/// 규칙: 두 라인은 같은 개수의 점, 같은 순서(주행 방향), i번끼리 같은 단면의 쌍.
+/// 폭은 구간마다 달라도 됨 (헤어핀은 넓게, 직선은 좁게 — 점 배치로 자유 조절).
 /// </summary>
 public class TrackPath : MonoBehaviour
 {
-    [Tooltip("비워두면 자식 Transform들을 순서대로 사용")]
-    [SerializeField] private Transform[] waypoints;
-    [Tooltip("트랙 전체 폭 (레인 오프셋 한계 계산용)")]
-    [SerializeField] private float width = 10f;
+    [Tooltip("안쪽 경계 라인의 부모 (자식들이 순서대로 점)")]
+    [SerializeField] private Transform innerLine;
+    [Tooltip("바깥 경계 라인의 부모 (자식들이 순서대로 점)")]
+    [SerializeField] private Transform outerLine;
+    [Tooltip("순환 트랙 여부 — 켜면 진행도가 랩 경계(시작=끝)를 넘어 이어진다 (다바퀴 레이스용). 시작점과 끝점이 같은 자리여야 함")]
+    [SerializeField] private bool loop = true;
 
-    private Vector3[] pts;
-    private float[] cumulative;   // 각 웨이포인트까지의 누적 거리
+    private Vector3[] inner, outer;
+    private Vector3[] pts;        // 중심선 = 쌍의 중점
+    private float[] halfW;        // 단면별 반폭
+    private float[] cumulative;
+    private float[] yawAtPoint;
 
     public float TotalLength { get; private set; }
-    public float HalfWidth => width * 0.5f;
+    /// <summary>출발 지점 반폭 (출발 그리드 정렬용).</summary>
+    public float HalfWidth => halfW != null && halfW.Length > 0 ? halfW[0] : 5f;
 
     private void Awake() => Build();
 
     public void Build()
     {
-        if (waypoints == null || waypoints.Length < 2)
+        if (innerLine == null || outerLine == null)
         {
-            // 자식에서 자동 수집
-            waypoints = GetComponentsInChildren<Transform>()
-                        .Where(t => t != transform).ToArray();
+            Debug.LogError("[TrackPath] Inner/Outer Line이 비어있습니다 — 인스펙터에 두 라인 부모를 연결하세요");
+            return;
         }
 
-        pts = waypoints.Select(w => w.position).ToArray();
-        cumulative = new float[pts.Length];
-        for (int i = 1; i < pts.Length; i++)
+        inner = innerLine.Cast<Transform>().Select(t => t.position).ToArray();
+        outer = outerLine.Cast<Transform>().Select(t => t.position).ToArray();
+
+        if (inner.Length != outer.Length || inner.Length < 2)
+        {
+            Debug.LogError($"[TrackPath] 경계 점 개수 불일치/부족 — 안쪽 {inner.Length}개, 바깥 {outer.Length}개 " +
+                           "(같은 개수·같은 순서·쌍 규칙 필수)");
+            return;
+        }
+
+        int n = inner.Length;
+        pts = new Vector3[n];
+        halfW = new float[n];
+        for (int i = 0; i < n; i++)
+        {
+            pts[i] = (inner[i] + outer[i]) * 0.5f;
+            halfW[i] = Vector3.Distance(inner[i], outer[i]) * 0.5f;
+        }
+
+        cumulative = new float[n];
+        for (int i = 1; i < n; i++)
             cumulative[i] = cumulative[i - 1] + Vector3.Distance(pts[i - 1], pts[i]);
         TotalLength = cumulative[^1];
+
+        // ---- 빌드 검진 ----
+        Debug.Log($"[TrackPath] 빌드: 단면 {n}쌍, 총 길이 {TotalLength:F1}m, " +
+                  $"폭 {halfW.Min() * 2f:F1}~{halfW.Max() * 2f:F1}m");
+        for (int i = 1; i < n; i++)
+        {
+            float seg = cumulative[i] - cumulative[i - 1];
+            if (seg < 0.05f)
+                Debug.LogError($"[TrackPath] ⚠ 단면 {i - 1}↔{i} 겹침 ({seg:F3}m)");
+            else if (seg > 40f)
+                Debug.LogWarning($"[TrackPath] 단면 {i - 1}→{i} 구간 {seg:F0}m — 장거리 의심");
+        }
+
+        yawAtPoint = new float[n];
+        for (int i = 1; i < n - 1; i++)
+        {
+            Vector3 inDir = (pts[i] - pts[i - 1]).normalized;
+            Vector3 outDir = (pts[i + 1] - pts[i]).normalized;
+            yawAtPoint[i] = Vector3.SignedAngle(inDir, outDir, Vector3.up);
+        }
     }
 
-    /// <summary>월드 위치를 경로에 투영한 누적 진행 거리.</summary>
+    // ================= 진행도 =================
+
+    /// <summary>경로 좌표 정규화: 루프면 [0, TotalLength) 래핑, 아니면 클램프.</summary>
+    public float WrapProgress(float progress)
+    {
+        if (TotalLength <= 0f) return 0f;
+        if (!loop) return Mathf.Clamp(progress, 0f, TotalLength);
+        progress %= TotalLength;
+        if (progress < 0f) progress += TotalLength;
+        return progress;
+    }
+
+    /// <summary>
+    /// 랩 누적 진행도 갱신 — last와 반환값 모두 "누적 주행거리"(랩 포함, 음수 = 출발선 뒤).
+    /// 내부에서 경로 좌표로 투영한 뒤 이동량만 누적하므로 랩 경계(이음새)를 자연스럽게 넘는다.
+    /// 다바퀴 레이스의 순위/완주 판정은 전부 이 누적값 기준.
+    /// </summary>
+    public float GetDistanceNear(Vector3 pos, float lastDistance)
+    {
+        float lastPath = WrapProgress(lastDistance);
+        float newPath = GetProgressNear(pos, lastPath);
+        float delta = newPath - lastPath;
+        if (loop)
+        {
+            // 이음새 통과: 경로 좌표는 519→0으로 점프하지만 실제 이동량은 소폭 — 짧은 쪽으로 접는다
+            if (delta < -TotalLength * 0.5f) delta += TotalLength;
+            else if (delta > TotalLength * 0.5f) delta -= TotalLength;
+        }
+        return lastDistance + delta;
+    }
+
     public float GetProgress(Vector3 pos)
     {
         float bestSqr = float.MaxValue, bestProg = 0f;
@@ -57,10 +132,44 @@ public class TrackPath : MonoBehaviour
         return bestProg;
     }
 
-    /// <summary>진행 거리 → 경로 위 지점.</summary>
+    /// <summary>연속성 투영 — 직전 진행도 근처 구간에서만 검색 (반대편 변 포획 방지).
+    /// 루프면 검색 창이 랩 경계(시작=끝)를 넘어 이어진다.</summary>
+    public float GetProgressNear(Vector3 pos, float lastProgress, float forwardWindow = 15f, float backSlack = 5f)
+    {
+        lastProgress = WrapProgress(lastProgress);
+        float lo = lastProgress - backSlack;
+        float hi = lastProgress + forwardWindow;
+
+        float bestSqr = float.MaxValue, bestProg = lastProgress;
+        for (int i = 0; i < pts.Length - 1; i++)
+        {
+            // 창 판정: 루프면 한 바퀴(±TotalLength) 평행이동한 창도 인정 (이음새 걸친 창)
+            bool inWindow = cumulative[i + 1] >= lo && cumulative[i] <= hi;
+            if (!inWindow && loop)
+                inWindow = (cumulative[i + 1] >= lo - TotalLength && cumulative[i] <= hi - TotalLength)
+                        || (cumulative[i + 1] >= lo + TotalLength && cumulative[i] <= hi + TotalLength);
+            if (!inWindow) continue;
+
+            Vector3 a = pts[i], ab = pts[i + 1] - a;
+            float t = Mathf.Clamp01(Vector3.Dot(pos - a, ab) / ab.sqrMagnitude);
+            Vector3 proj = a + ab * t;
+            float d = (pos - proj).sqrMagnitude;
+            if (d < bestSqr)
+            {
+                bestSqr = d;
+                bestProg = cumulative[i] + ab.magnitude * t;
+            }
+        }
+
+        if (bestSqr > 400f) return GetProgress(pos);   // 20m 이상 이탈 = 비정상 → 전체 검색 복구
+        return bestProg;
+    }
+
+    // ================= 기하 =================
+
     public Vector3 GetPoint(float progress)
     {
-        progress = Mathf.Clamp(progress, 0f, TotalLength);
+        progress = WrapProgress(progress);   // 루프: 랩 경계 너머 조회도 이어짐
         for (int i = 1; i < cumulative.Length; i++)
         {
             if (progress <= cumulative[i])
@@ -73,45 +182,137 @@ public class TrackPath : MonoBehaviour
         return pts[^1];
     }
 
-    /// <summary>진행 방향 (해당 지점이 속한 선분의 방향).</summary>
+    /// <summary>평활 접선 (앞뒤 2m를 잇는 방향) — 구간 경계에서 방향이 튀지 않음.</summary>
     public Vector3 GetTangent(float progress)
     {
-        progress = Mathf.Clamp(progress, 0f, TotalLength - 0.01f);
-        for (int i = 1; i < cumulative.Length; i++)
-            if (progress <= cumulative[i])
-                return (pts[i] - pts[i - 1]).normalized;
-        return (pts[^1] - pts[^2]).normalized;
+        const float h = 2f;
+        Vector3 a = GetPoint(progress - h);
+        Vector3 b = GetPoint(progress + h);
+        Vector3 d = b - a;
+        if (d.sqrMagnitude < 1e-6f)
+        {
+            progress = Mathf.Clamp(progress, 0f, TotalLength - 0.01f);
+            for (int i = 1; i < cumulative.Length; i++)
+                if (progress <= cumulative[i])
+                    return (pts[i] - pts[i - 1]).normalized;
+            return (pts[^1] - pts[^2]).normalized;
+        }
+        return d.normalized;
     }
 
-    /// <summary>경로의 오른쪽 법선. 레인 오프셋 방향.</summary>
     public Vector3 GetNormal(float progress) =>
         Vector3.Cross(Vector3.up, GetTangent(progress)).normalized;
 
-    /// <summary>중심선 기준 좌우 오프셋 (부호 있음). 스폰 시 초기 레인 배정용.</summary>
+    public Vector3 GetPointAt(float progress, float lateral) =>
+        GetPoint(progress) + GetNormal(progress) * lateral;
+
     public float GetLateralOffset(Vector3 pos)
     {
         float prog = GetProgress(pos);
         return Vector3.Dot(pos - GetPoint(prog), GetNormal(prog));
     }
 
+    /// <summary>해당 진행도의 반폭 (단면 보간) — 폭이 구간마다 달라도 정확.</summary>
+    public float GetHalfWidth(float progress)
+    {
+        progress = WrapProgress(progress);
+        for (int i = 1; i < cumulative.Length; i++)
+        {
+            if (progress <= cumulative[i])
+            {
+                float segLen = cumulative[i] - cumulative[i - 1];
+                float t = segLen < 1e-5f ? 0f : (progress - cumulative[i - 1]) / segLen;
+                return Mathf.Lerp(halfW[i - 1], halfW[i], t);
+            }
+        }
+        return halfW[^1];
+    }
+
+    /// <summary>주행 가능 횡한계 = 그 지점의 반폭 (경계는 사람이 그었으니 추정 불필요).</summary>
+    public float GetLateralLimit(float progress, float sign) => GetHalfWidth(progress);
+
+    /// <summary>진행도 → (구간 인덱스, 구간 내 t). 단면 보간의 공통 재료.</summary>
+    private void GetSection(float progress, out int i, out float t)
+    {
+        progress = WrapProgress(progress);
+        for (int k = 1; k < cumulative.Length; k++)
+        {
+            if (progress <= cumulative[k])
+            {
+                float segLen = cumulative[k] - cumulative[k - 1];
+                i = k - 1;
+                t = segLen < 1e-5f ? 0f : (progress - cumulative[k - 1]) / segLen;
+                return;
+            }
+        }
+        i = pts.Length - 2; t = 1f;
+    }
+
+    /// <summary>
+    /// 목표점을 "안쪽 레일 ↔ 바깥 레일 사이의 비율"로 생성 (두 레일 사이 모델).
+    /// 중심선+수직오프셋 방식은 안쪽 꼭짓점에서 목표가 제자리걸음하는 퇴화가 있었으나,
+    /// 단면 보간은 목표가 경계 폴리라인을 따라 꼭짓점을 돌아 항상 전진한다.
+    /// </summary>
+    public Vector3 GetTargetOnSection(float progress, float lateral)
+    {
+        GetSection(progress, out int i, out float t);
+        Vector3 pIn = Vector3.Lerp(inner[i], inner[i + 1], t);
+        Vector3 pOut = Vector3.Lerp(outer[i], outer[i + 1], t);
+
+        Vector3 c = (pIn + pOut) * 0.5f;
+        Vector3 n = GetNormal(progress);
+        float latIn = Vector3.Dot(pIn - c, n);
+        float latOut = Vector3.Dot(pOut - c, n);
+        if (Mathf.Abs(latOut - latIn) < 1e-4f) return c;
+
+        float u = Mathf.Clamp01(Mathf.InverseLerp(latIn, latOut, lateral));
+        return Vector3.Lerp(pIn, pOut, u);
+    }
+
+    public float GetSignedCurvatureAhead(float progress, float distance)
+    {
+        progress = WrapProgress(progress);
+        float end = loop ? progress + distance : Mathf.Min(progress + distance, TotalLength);
+        float sum = 0f;
+        for (int i = 1; i < pts.Length - 1; i++)
+        {
+            if (cumulative[i] > progress && cumulative[i] <= end)
+                sum += yawAtPoint[i];
+            // 루프: 감지 창이 랩 경계를 넘으면 시작 구간의 굴곡도 이어서 읽는다
+            else if (loop && end > TotalLength && cumulative[i] <= end - TotalLength)
+                sum += yawAtPoint[i];
+        }
+        return sum / Mathf.Max(1f, distance);
+    }
+
+    // ================= 기즈모 =================
+
     private void OnDrawGizmos()
     {
-        var wps = (waypoints != null && waypoints.Length >= 2)
-            ? waypoints
-            : GetComponentsInChildren<Transform>().Where(t => t != transform).ToArray();
-        if (wps.Length < 2) return;
+        var inn = innerLine != null ? innerLine.Cast<Transform>().ToArray() : null;
+        var outt = outerLine != null ? outerLine.Cast<Transform>().ToArray() : null;
+        if (inn == null || outt == null || inn.Length < 2 || outt.Length < 2) return;
+
+        // 안쪽 = 하늘색, 바깥 = 노랑
+        Gizmos.color = Color.cyan;
+        for (int i = 0; i < inn.Length - 1; i++)
+            Gizmos.DrawLine(inn[i].position, inn[i + 1].position);
 
         Gizmos.color = Color.yellow;
-        for (int i = 0; i < wps.Length - 1; i++)
-        {
-            Gizmos.DrawLine(wps[i].position, wps[i + 1].position);
-            // 트랙 폭 표시
-            Vector3 dir = (wps[i + 1].position - wps[i].position).normalized;
-            Vector3 n = Vector3.Cross(Vector3.up, dir) * (width * 0.5f);
-            Gizmos.color = new Color(1f, 1f, 0f, 0.3f);
-            Gizmos.DrawLine(wps[i].position + n, wps[i + 1].position + n);
-            Gizmos.DrawLine(wps[i].position - n, wps[i + 1].position - n);
-            Gizmos.color = Color.yellow;
-        }
+        for (int i = 0; i < outt.Length - 1; i++)
+            Gizmos.DrawLine(outt[i].position, outt[i + 1].position);
+
+        // 쌍 단면 (사다리 가로대) — X로 꼬이면 쌍 순서가 어긋난 것
+        int n = Mathf.Min(inn.Length, outt.Length);
+        Gizmos.color = new Color(1f, 1f, 1f, 0.25f);
+        for (int i = 0; i < n; i++)
+            Gizmos.DrawLine(inn[i].position, outt[i].position);
+
+#if UNITY_EDITOR
+        for (int i = 0; i < inn.Length; i++)
+            UnityEditor.Handles.Label(inn[i].position + Vector3.up * 1.2f, $"In {i}");
+        for (int i = 0; i < outt.Length; i++)
+            UnityEditor.Handles.Label(outt[i].position + Vector3.up * 1.2f, $"Out {i}");
+#endif
     }
 }

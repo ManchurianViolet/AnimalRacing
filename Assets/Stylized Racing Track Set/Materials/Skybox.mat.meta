@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: d9af5e2cd357d4b9ca8488bd2b32f306
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 362994
+  packageName: Stylized racing track set
+  packageVersion: 1.0
+  assetPath: Assets/Stylized Racing Track Set/Materials/Skybox.mat
+  uploadId: 873898

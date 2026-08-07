@@ -80,6 +80,10 @@ public class PlayerItemController : MonoBehaviour
 
         UpdateAimHint();
 
+        // 베팅 방 조작 모드(내 방 안) — 슬롯 전환(1~5)도, 좌클릭도 전부 피규어 조작에 양보
+        // (슬롯 키를 허용하면 숨겨둔 빠따/주사기가 다시 튀어나온다 — 방 안은 맨손이 규칙)
+        if (FigurineBetting.PointerBusy) return;
+
         if (Input.GetKeyDown(KeyCode.Alpha1)) SelectSlot(PlayerEquipment.SlotBat);
         if (Input.GetKeyDown(KeyCode.Alpha2)) SelectSlot(PlayerEquipment.SlotBoost);
         if (Input.GetKeyDown(KeyCode.Alpha3)) SelectSlot(PlayerEquipment.SlotSlow);

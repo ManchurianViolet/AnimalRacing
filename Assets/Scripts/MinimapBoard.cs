@@ -26,8 +26,13 @@ public class MinimapBoard : MonoBehaviour
     [Tooltip("마커(빈 원) 지름 — 캔버스 px")] public float markerSize = 48f;
 
     [Header("순위표")]
-    [Tooltip("행 높이 (캔버스 px)")] public float rowHeight = 140f;
+    [Tooltip("행 높이 상한 (캔버스 px) — 출전 수가 많아 컨테이너를 넘치면 자동으로 줄어든다")]
+    public float rowHeight = 140f;
     [Tooltip("순위 변동 시 행 이동 속도")] public float rowMoveSpeed = 6f;
+
+    // 실제로 쓰는 행 높이 — 출전 수 × rowHeight가 컨테이너를 넘으면 나눠 담는다
+    // (9마리 × 140 = 1260px > 컨테이너 1120px 라서 마지막 행이 판 밖으로 튀어나왔음)
+    private float fitRowHeight = 140f;
 
     private class Entry
     {
@@ -130,7 +135,7 @@ public class MinimapBoard : MonoBehaviour
             var rt = order[i].rowRect;
             if (rt == null) continue;
             var p = rt.anchoredPosition;
-            p.y = Mathf.Lerp(p.y, -i * rowHeight, rowMoveSpeed * dt);
+            p.y = Mathf.Lerp(p.y, -i * fitRowHeight, rowMoveSpeed * dt);
             rt.anchoredPosition = p;
         }
     }
@@ -147,6 +152,15 @@ public class MinimapBoard : MonoBehaviour
         entries.Clear();
         if (rowTemplate == null || rowContainer == null) return;
 
+        // 출전 수가 컨테이너를 넘치면 행을 통째로 비례 축소한다.
+        // 행 배경만 줄이면 배지/이름이 원래 크기로 남아 따로 놀기 때문에 localScale로 함께 줄인다.
+        int count = 0;
+        foreach (var r in raceManager.Racers) if (r != null) count++;
+        float avail = rowContainer.rect.height;
+        float fitScale = (count > 0 && avail > 1f)
+            ? Mathf.Min(1f, avail / (count * rowHeight)) : 1f;
+        fitRowHeight = rowHeight * fitScale;
+
         int i = 0;
         foreach (var racer in raceManager.Racers)
         {
@@ -156,7 +170,8 @@ public class MinimapBoard : MonoBehaviour
             var go = Instantiate(rowTemplate, rowContainer);
             go.SetActive(true);
             var entry = new Entry { racer = racer, rowRect = go.GetComponent<RectTransform>() };
-            entry.rowRect.anchoredPosition = new Vector2(0f, -i * rowHeight);
+            entry.rowRect.anchoredPosition = new Vector2(0f, -i * fitRowHeight);
+            entry.rowRect.localScale = Vector3.one * fitScale;
 
             var badgeImg = go.transform.Find("Badge").GetComponent<Image>();
             badgeImg.color = RacerColors.Of(post);

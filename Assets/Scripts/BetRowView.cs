@@ -15,6 +15,11 @@ public class BetRowView : MonoBehaviour, IPointerClickHandler
     [SerializeField] private RectTransform ghostTemplate;
     [SerializeField] private Image iconImage;
 
+    [Tooltip("번호 배지 배경 — 등번호 색(RacerColors)으로 칠해 전광판·미니맵과 같은 색 언어를 쓴다")]
+    [SerializeField] private Image laneBadge;
+    [Tooltip("아이콘 칸 — 아직 초상화가 없는 동물은 빈 사각형이 남으므로 통째로 숨긴다")]
+    [SerializeField] private GameObject iconSlot;
+
     private static readonly Color[] SlotColors =
     {
         new Color32(0xFF, 0xD7, 0x00, 0xFF),   // 1등 금
@@ -37,12 +42,19 @@ public class BetRowView : MonoBehaviour, IPointerClickHandler
         this.racer = racer;
         this.infoPopup = infoPopup;
 
-        laneLabel.text = (racer.RacerId + 1).ToString();
+        int post = racer.RacerId + 1;
+        laneLabel.text = post.ToString();
         nameLabel.text = def.displayName;
         icon.Init(racer.RacerId, def.displayName, rootCanvas, ghostTemplate);
 
-        if (iconImage != null && def.icon != null)
-            iconImage.sprite = def.icon;
+        // 번호 배지는 등번호판/전광판/미니맵과 같은 팔레트를 쓴다 (단일 출처)
+        if (laneBadge != null) laneBadge.color = RacerColors.Of(post);
+        laneLabel.color = RacerColors.TextOn(post);
+
+        // 초상화가 없는 동물은 아이콘 칸이 빈 사각형으로 남으므로 칸째로 감춘다
+        bool hasIcon = def.icon != null;
+        if (iconSlot != null) iconSlot.SetActive(hasIcon);
+        if (hasIcon && iconImage != null) iconImage.sprite = def.icon;
 
         if (!colorsCached)
         {

@@ -36,6 +36,12 @@ public class PlayerHUD : MonoBehaviour
     [SerializeField] private ItemSlotView slotRadioSkill;
     [SerializeField] private ItemSlotView slotRadioExec;
 
+    [Header("베팅 방 — 손 칸 (방 안에선 무기 5칸 대신 이것만)")]
+    [SerializeField] private GameObject handSlot;
+    [Tooltip("든 피규어의 동물 아이콘 (icon 미배정 동물은 이름 텍스트로 폴백)")]
+    [SerializeField] private UnityEngine.UI.Image handIcon;
+    [SerializeField] private TMP_Text handNameLabel;
+
     private bool showBet = true;
 
     private void Start()
@@ -91,13 +97,58 @@ public class PlayerHUD : MonoBehaviour
                           GameManager.Instance.CurrentPhase == GamePhase.Settlement;
         bool showGameplay = bound && !uiOpen && !settlement;
 
-        if (slotBat != null) slotBat.gameObject.SetActive(showGameplay);
-        if (slotBoost != null) slotBoost.gameObject.SetActive(showGameplay);
-        if (slotSlow != null) slotSlow.gameObject.SetActive(showGameplay);
-        if (slotRadioSkill != null) slotRadioSkill.gameObject.SetActive(showGameplay);
-        if (slotRadioExec != null) slotRadioExec.gameObject.SetActive(showGameplay);
+        // 베팅 방 조작 모드(내 방 안): 무기 5칸 대신 "손" 1칸 — 든 피규어가 담긴다
+        bool roomMode = FigurineBetting.PointerBusy;
+        bool showSlots = showGameplay && !roomMode;
+
+        if (slotBat != null) slotBat.gameObject.SetActive(showSlots);
+        if (slotBoost != null) slotBoost.gameObject.SetActive(showSlots);
+        if (slotSlow != null) slotSlow.gameObject.SetActive(showSlots);
+        if (slotRadioSkill != null) slotRadioSkill.gameObject.SetActive(showSlots);
+        if (slotRadioExec != null) slotRadioExec.gameObject.SetActive(showSlots);
+
+        if (handSlot != null)
+        {
+            handSlot.SetActive(!uiOpen && roomMode);   // 로비(로스터 전)에도 방 안이면 표시
+            if (roomMode)
+            {
+                var fig = FigurineBetting.HeldFigurine;
+                bool hasIcon = fig != null && fig.Def != null && fig.Def.icon != null;
+                if (handIcon != null)
+                {
+                    handIcon.enabled = hasIcon;
+                    if (hasIcon) handIcon.sprite = fig.Def.icon;
+                }
+                if (handNameLabel != null)
+                    handNameLabel.text = fig == null ? "손" : (hasIcon ? "" : fig.HoverName);
+            }
+        }
+
         if (crosshairText != null) crosshairText.gameObject.SetActive(!uiOpen);
         if (promptText != null) promptText.gameObject.SetActive(!uiOpen);
+
+        // 조준 힌트는 로스터 바인딩 전(로비)에도 필요 — 피규어("4번 펭귄") > 아이템 > 방 안내
+        if (aimHintText != null)
+        {
+            if (!string.IsNullOrEmpty(FigurineBetting.Hint))
+            {
+                aimHintText.text = FigurineBetting.Hint;
+                aimHintText.color = new Color(1f, 0.95f, 0.6f);
+            }
+            else if (showGameplay && !string.IsNullOrEmpty(itemController.AimHint))
+            {
+                aimHintText.text = itemController.AimHint;
+                aimHintText.color = itemController.AimBlocked
+                    ? new Color(1f, 0.45f, 0.4f)     // 사용 불가 — 붉게
+                    : new Color(1f, 0.95f, 0.6f);    // 사용 가능 — 크로스헤어 노랑 계열
+            }
+            else
+            {
+                // "자기 방에 들어가 베팅하세요!" — 베팅 중 방 밖에 있을 때
+                aimHintText.text = BettingRoomManager.Guidance;
+                aimHintText.color = new Color(0.96f, 0.65f, 0.14f);   // 앰버 강조
+            }
+        }
 
         // 상호작용 프롬프트는 로스터 없이도 (대기실 레버 "E - 게임 시작")
         if (promptText != null)
@@ -120,15 +171,7 @@ public class PlayerHUD : MonoBehaviour
 
         if (crosshairText != null)
             crosshairText.color = itemController.Selected != null ? Color.yellow : Color.white;
-
-        // 조준 힌트: 조준 발사형 아이템으로 동물을 겨눌 때만 (판정은 컨트롤러가 매 프레임 산출)
-        if (aimHintText != null)
-        {
-            aimHintText.text = showGameplay ? itemController.AimHint : "";
-            aimHintText.color = itemController.AimBlocked
-                ? new Color(1f, 0.45f, 0.4f)     // 사용 불가 — 붉게
-                : new Color(1f, 0.95f, 0.6f);    // 사용 가능 — 크로스헤어 노랑 계열
-        }
+        // (조준 힌트는 위에서 처리 — 로스터 바인딩 전에도 표시해야 해서 bound 가드 앞으로 이동)
     }
 
     private string BuildBetText(PlayerState me)

@@ -26,6 +26,15 @@ public class FirstPersonController : MonoBehaviour
     [Tooltip("머리 본 기준 눈 위치 (몸 기준축: z=앞, y=위). z는 얼굴 앞면보다 앞이어야 머리 속이 안 보인다")]
     [SerializeField] private Vector3 eyeOffset = new Vector3(0f, 0.05f, 0.25f);
 
+    [Header("시점 안정화 — 서 있을 때 아이들 고갯짓이 화면을 흔들지 않게")]
+    [Tooltip("정지 중 이 반경(m) 안의 머리 흔들림은 화면에 아예 반영하지 않는다. " +
+             "애니 자체는 계속 돌기 때문에 남의 화면에서는 평소대로 아이들이 보인다")]
+    [SerializeField] private float idleHeadDeadzone = 0.12f;
+    [Tooltip("데드존을 벗어났을 때(아이들 전환 등 큰 자세 변화) 따라가는 속도 (m/s)")]
+    [SerializeField] private float idleHeadCatchUp = 0.4f;
+    [Tooltip("이동 ↔ 정지 전환에 쓰는 시간 (초)")]
+    [SerializeField] private float headFollowBlend = 0.25f;
+
     [Header("애니메이터 (에셋 규약)")]
     [SerializeField] private Animator animator;
     [SerializeField] private string horID = "Hor";
@@ -50,6 +59,9 @@ public class FirstPersonController : MonoBehaviour
     /// <summary>카메라 피벗 (PlayerKnockdown이 쓰러짐 연출에 사용).</summary>
     public Transform CameraPivot => cameraPivot;
 
+    /// <summary>머리 본 기준 눈 오프셋 (PlayerAimPose가 손 IK 기준점으로 사용 — 값 드리프트 방지).</summary>
+    public Vector3 EyeOffset => eyeOffset;
+
     /// <summary>
     /// 움직이는 발판(엘리베이터) 탑승 중 — ElevatorRide가 굴린다.
     /// 발판이 발밑에서 먼저 내려가는 프레임엔 isGrounded가 깜빡여 낙하 애니가 섞이므로,
@@ -70,6 +82,11 @@ public class FirstPersonController : MonoBehaviour
     private Vector2 animAxis;
     private float animState;
     private const float AnimFlow = 4.5f;
+    private float airTime;              // 연속 공중 시간 — 접지 깜빡임 완충
+    private bool movingNow = true;      // 카메라 안정화 판단 (이동 중엔 머리 본을 그대로 따라간다)
+    private Vector3 restHeadLocal;      // 흔들림을 걸러낸 머리 위치 (루트 로컬)
+    private float headFollowT = 1f;     // 1 = 머리 본 그대로, 0 = 안정화 위치
+    private bool restInit;
 
     private void Awake()
     {
@@ -103,7 +120,7 @@ public class FirstPersonController : MonoBehaviour
             eyeLocalCaptured = true;
         }
 
-        Vector3 pos = headBone.position + transform.rotation * eyeOffset;
+        Vector3 pos = StableHeadPos() + transform.rotation * eyeOffset;
         if (LieEyeBlend > 0f)
         {
             // 쓰러짐~누움: 눈을 "얼굴 앞"에 앵커 — 위치·회전이 모두 얼굴을 따라가는 진짜 눈 시점.
@@ -113,6 +130,30 @@ public class FirstPersonController : MonoBehaviour
             pos = Vector3.Lerp(pos, eyePos, LieEyeBlend);
         }
         cameraPivot.position = pos;
+    }
+
+    /// <summary>
+    /// 눈이 따라갈 머리 위치. 이동 중엔 머리 본 그대로(달리기에서 상체가 숙여져
+    /// 카메라가 몸 안에 들어가는 걸 막는 v5 규칙), 서 있을 땐 흔들림을 걸러낸 위치.
+    /// 애니메이션 자체는 손대지 않으므로 남의 화면에서는 평소대로 아이들이 보인다
+    /// (PhotonAnimatorView는 파라미터만 미러하고 이 계산은 내 화면 전용).
+    /// </summary>
+    private Vector3 StableHeadPos()
+    {
+        Vector3 headLocal = transform.InverseTransformPoint(headBone.position);
+        if (!restInit) { restHeadLocal = headLocal; restInit = true; }
+
+        headFollowT = Mathf.MoveTowards(headFollowT, movingNow ? 1f : 0f,
+                                        Time.deltaTime / Mathf.Max(0.01f, headFollowBlend));
+
+        // 데드존 안이면 아예 붙잡아 둔다 (저역통과로는 아이들의 느린 흔들림이 안 걸러졌다 —
+        // 머리 80mm 대비 카메라가 27mm 남았음). 벗어난 만큼만 천천히 따라가 몸 안으로 파고드는 것만 막는다
+        Vector3 drift = headLocal - restHeadLocal;
+        float over = drift.magnitude - idleHeadDeadzone;
+        if (over > 0f)
+            restHeadLocal += drift.normalized * Mathf.Min(over, idleHeadCatchUp * Time.deltaTime);
+
+        return transform.TransformPoint(Vector3.Lerp(restHeadLocal, headLocal, headFollowT));
     }
 
     /// <summary>UI 사용 중 조작 잠금/해제. 커서 상태도 함께 전환.</summary>
@@ -131,9 +172,26 @@ public class FirstPersonController : MonoBehaviour
 
     private void Update()
     {
+        UpdateMotionState();   // 카메라 안정화가 쓰는 이동 여부 (잠금 중에도 갱신)
+
         if (!controlEnabled || InputLocked) return;
         LookUpdate();
         MoveUpdate();
+    }
+
+    /// <summary>이동 중인지 판단 — 시점 안정화의 유일한 입력. 애니메이션은 건드리지 않는다.</summary>
+    private void UpdateMotionState()
+    {
+        // 쓰러짐/기상, 단말기 등 연출 중엔 머리 본을 그대로 따라가야 한다 (v7 쓰러짐 카메라 규칙)
+        if (!controlEnabled || InputLocked) { movingNow = true; return; }
+
+        Vector2 axis = new(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+
+        // ⚠ isGrounded는 가만히 서 있어도 프레임마다 깜빡인다 (§11, 엘리베이터에서 겪은 그 현상) —
+        //    그대로 쓰면 "정지" 판정이 매 프레임 깨진다. 연속 공중 시간으로 완충
+        bool grounded = controller.isGrounded || OnMovingPlatform;
+        airTime = grounded ? 0f : airTime + Time.deltaTime;
+        movingNow = axis.sqrMagnitude > 0.0001f || airTime > 0.2f;
     }
 
     private void LookUpdate()

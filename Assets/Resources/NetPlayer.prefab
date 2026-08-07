@@ -1680,6 +1680,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 39ca3f5f903246e79dac11707013e4e8, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7564259254387528355}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 39ca3f5f903246e79dac11707013e4e8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2993348199731731935}
   m_SourcePrefab: {fileID: 100100000, guid: 39ca3f5f903246e79dac11707013e4e8, type: 3}
 --- !u!4 &32120300570592361 stripped
 Transform:
@@ -1948,7 +1951,6 @@ MonoBehaviour:
   vertID: Vert
   stateID: State
   jumpID: IsJump
-  lieEyeHeight: 0.18
 --- !u!114 &704971295103294544
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2083,12 +2085,16 @@ MonoBehaviour:
   attackStates:
   - Attack2H
   batShowDelay: 0.35
-  batHideDelay: 0.5
   sheatheTime: 0.9
+  batModel: {fileID: 1141309035379116954, guid: 64759d2bfa2981d4b80548269cac537c, type: 3}
+  batModelScale: 1
+  batKnobBelowHand: 0.05
   batLocalPos: {x: 0.079, y: 0.047, z: -0.085}
   batLocalEuler: {x: 70.181, y: -11.6, z: 16.606}
   syringeLocalPos: {x: 0.04, y: 0.03, z: 0.01}
   syringeLocalEuler: {x: 0, y: 0, z: 0}
+  radioLocalPos: {x: 0.04, y: 0.03, z: 0.01}
+  radioLocalEuler: {x: 0, y: 0, z: 0}
 --- !u!114 &8277510727008925932
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2122,6 +2128,34 @@ MonoBehaviour:
   animator: {fileID: 2603406669749608437}
   getUpSpeed: 1.5
   cameraTiltSpeed: 2.5
+  fallCamFollowSpeed: 8
+--- !u!114 &2993348199731731935
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8758046529069211445}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c87084801ebaa546ba8f4ad66ce2af1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAimPose
+  animator: {fileID: 0}
+  fpc: {fileID: 0}
+  equipment: {fileID: 0}
+  headAim: {fileID: 0}
+  knockdown: {fileID: 0}
+  handOffset: {x: 0.16, y: -0.12, z: 0.2}
+  handOffsetFigurine: {x: 0.13, y: -0.21, z: 0.2}
+  propPitch: 70
+  propPitchRadio: 20
+  propPitchFigurine: 5
+  handEulerTweak: {x: 0, y: 0, z: 0}
+  elbowOffset: {x: 0.38, y: -0.42, z: -0.02}
+  elbowWeight: 0.6
+  blendSpeed: 7
+  reachSafety: 0.94
 --- !u!4 &8883440529124987854 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1009913675706003882, guid: 39ca3f5f903246e79dac11707013e4e8, type: 3}

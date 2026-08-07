@@ -11,10 +11,10 @@ public class NetworkPlayerSpawner : MonoBehaviour
     [Tooltip("Resources 폴더의 프리팹 이름 (오프라인용 직접 참조도 겸함)")]
     [SerializeField] private GameObject playerPrefab;
 
-    [Tooltip("전망대 스폰 위치 (대기 상태). 접속 순번으로 배정")]
+    [Tooltip("베팅 방 스폰 위치 (대기 상태 — 각자 자기 방 안에서 시작). 접속 순번으로 배정")]
     [SerializeField] private Transform[] spawnPoints;
 
-    [Tooltip("지상 스폰 위치 — 매치 진행 중 합류/재접속자는 여기서 시작 (전망대에 갇힘 방지)")]
+    [Tooltip("지상 스폰 위치 — 매치 진행 중 합류/재접속자는 여기서 시작 (방에 갇힘 방지)")]
     [SerializeField] private Transform[] groundSpawnPoints;
 
     private System.Collections.IEnumerator Start()
@@ -44,9 +44,15 @@ public class NetworkPlayerSpawner : MonoBehaviour
             ? groundSpawnPoints : spawnPoints;
         Debug.Log($"[Spawner] 스폰 지점: {(points == groundSpawnPoints ? "지상" : "전망대")} (페이즈 {GameManager.Instance?.CurrentPhase})");
 
-        int idx = online
-            ? (PhotonNetwork.LocalPlayer.ActorNumber - 1) % Mathf.Max(1, points.Length)
-            : 0;
+        // 방 배정과 같은 규칙(액터번호 정렬 순번)이어야 "내 방"에 스폰된다 —
+        // 액터번호 % 개수 방식은 재입장으로 번호가 커지면 남의 방에 떨어진다
+        int idx = 0;
+        if (online)
+        {
+            var list = PhotonNetwork.PlayerList;   // 액터번호 오름차순 정렬
+            for (int i = 0; i < list.Length; i++)
+                if (list[i].IsLocal) { idx = i % Mathf.Max(1, points.Length); break; }
+        }
 
         Vector3 pos = points != null && points.Length > 0
             ? points[idx].position : Vector3.up;

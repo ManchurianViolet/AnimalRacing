@@ -24,6 +24,9 @@ public class PlayerHeadAim : MonoBehaviourPun, IPunObservable
     private float pitch;         // 화면에 적용 중인 각
     private float targetPitch;   // 원격: 마지막 수신값
 
+    /// <summary>현재 시선 상하각 — 원격 아바타의 손 IK(PlayerAimPose)가 조준 방향으로 사용.</summary>
+    public float CurrentPitch => pitch;
+
     private void Awake()
     {
         if (fpc == null) fpc = GetComponent<FirstPersonController>();

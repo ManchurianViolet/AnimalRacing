@@ -29,6 +29,10 @@ MonoBehaviour:
   meleeArcAngle: 150
   meleeImpactDelay: 0.45
   knockdownInvulnSeconds: 3
+  roomBotDoorDelay: 20
+  roomBotDoorLinger: 5
+  roomDoorSlideSeconds: 0.6
+  figurineScale: 0.33
   defaultRounds: 3
   bettingSeconds: 60
   loadoutSeconds: 2

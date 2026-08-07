@@ -40,6 +40,16 @@ public class GameConfig : ScriptableObject
     [Tooltip("기상 후 무적 시간 (초) — 무한 스턴 방지")]
     public float knockdownInvulnSeconds = 3f;
 
+    [Header("베팅 방 — 피트스탑 개인실 + 피규어 베팅")]
+    [Tooltip("봇 방 문이 열리는 시점 (베팅 시작 후 초) — '베팅 끝내고 나왔다' 연기")]
+    public float roomBotDoorDelay = 20f;
+    [Tooltip("봇 방 문이 열려 있는 시간 (초)")]
+    public float roomBotDoorLinger = 5f;
+    [Tooltip("방 문(차고 셔터) 슬라이드 시간 (초)")]
+    public float roomDoorSlideSeconds = 0.6f;
+    [Tooltip("피규어 크기 (동물 실물 대비 배율)")]
+    public float figurineScale = 0.33f;
+
     [Header("매치")]
     public int defaultRounds = 3;
     public float bettingSeconds = 60f;

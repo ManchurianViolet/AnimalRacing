@@ -334,7 +334,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 5088405639269051495, guid: 56712b7b9ad056746bb0ecd68dae4a6e, type: 2}
+  - {fileID: -4621484808779741411, guid: dd2808cb1a091ef40b17f1a3550b93ee, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -380,8 +380,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: JEbi
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 56712b7b9ad056746bb0ecd68dae4a6e, type: 2}
-  m_sharedMaterial: {fileID: 5088405639269051495, guid: 56712b7b9ad056746bb0ecd68dae4a6e, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: dd2808cb1a091ef40b17f1a3550b93ee, type: 2}
+  m_sharedMaterial: {fileID: -4621484808779741411, guid: dd2808cb1a091ef40b17f1a3550b93ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1607,6 +1607,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 9100000, guid: 8295eb42197f4f64c908a41718804334, type: 2}
     - target: {fileID: 5866666021909216657, guid: 39ca3f5f903246e79dac11707013e4e8, type: 3}
+      propertyPath: m_CullingMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: 39ca3f5f903246e79dac11707013e4e8, type: 3}
       propertyPath: m_ApplyRootMotion
       value: 0
       objectReference: {fileID: 0}
@@ -1946,6 +1950,9 @@ MonoBehaviour:
   pitchMax: 80
   headBone: {fileID: 0}
   eyeOffset: {x: 0, y: 0.05, z: 0.25}
+  idleHeadDeadzone: 0.12
+  idleHeadCatchUp: 0.4
+  headFollowBlend: 0.25
   animator: {fileID: 0}
   horID: Hor
   vertID: Vert
@@ -2086,15 +2093,26 @@ MonoBehaviour:
   - Attack2H
   batShowDelay: 0.35
   sheatheTime: 0.9
-  batModel: {fileID: 1141309035379116954, guid: 64759d2bfa2981d4b80548269cac537c, type: 3}
+  batModel: {fileID: 5780796462618306946, guid: 90a1849a875c6a44080137341c42288a, type: 3}
+  batModelLength: 0.9
   batModelScale: 1
+  batModelEuler: {x: 0, y: 0, z: 90}
   batKnobBelowHand: 0.05
+  radioModel: {fileID: 8933015644356454606, guid: 3799eec21196af64f8f13caeb737e053, type: 3}
+  radioModelHeight: 0.2
+  radioModelYaw: -49.5
+  radioTintStrength: 0.65
+  radioScreenFont: {fileID: 11400000, guid: 3f2e5a3565d47a8408117f2634df03d0, type: 2}
+  radioScreenCenter: {x: -0.247, y: 1.035, z: -0.212}
+  radioScreenSize: {x: 0.82, y: 0.358}
+  radioScreenLift: 0.02
+  radioScreenTextColor: {r: 1, g: 0.79, b: 0.32, a: 1}
   batLocalPos: {x: 0.079, y: 0.047, z: -0.085}
   batLocalEuler: {x: 70.181, y: -11.6, z: 16.606}
   syringeLocalPos: {x: 0.04, y: 0.03, z: 0.01}
   syringeLocalEuler: {x: 0, y: 0, z: 0}
-  radioLocalPos: {x: 0.04, y: 0.03, z: 0.01}
-  radioLocalEuler: {x: 0, y: 0, z: 0}
+  radioLocalPos: {x: 0.01000666, y: 0.0437801, z: -0.009236704}
+  radioLocalEuler: {x: -14.558, y: -94.088, z: 4.353}
 --- !u!114 &8277510727008925932
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2146,16 +2164,26 @@ MonoBehaviour:
   equipment: {fileID: 0}
   headAim: {fileID: 0}
   knockdown: {fileID: 0}
-  handOffset: {x: 0.16, y: -0.12, z: 0.2}
-  handOffsetFigurine: {x: 0.13, y: -0.21, z: 0.2}
+  handOffset: {x: 0.08, y: -0.03, z: 1.2}
+  handOffsetFigurine: {x: 0.22, y: -0.22, z: 0.42}
+  figurineViewOffset: {x: 0.045, y: -0.035, z: 0.18}
+  figurineHandOffset: {x: -0.015, y: 0.1, z: 0.06}
+  figurineViewSize: 0.18
+  figurineViewEuler: {x: 0, y: 140, z: 0}
+  raiseArmForFigurine: 1
   propPitch: 70
   propPitchRadio: 20
-  propPitchFigurine: 5
+  propPitchFigurine: 70
   handEulerTweak: {x: 0, y: 0, z: 0}
   elbowOffset: {x: 0.38, y: -0.42, z: -0.02}
   elbowWeight: 0.6
+  openHandForRadio: 1
+  openHandAmount: 1
+  openHandSpeed: 12
+  curlThumbOnRadio: 1
+  radioThumbCurl: {x: 62, y: 0, z: 0}
   blendSpeed: 7
-  reachSafety: 0.94
+  reachSafety: 0.99
 --- !u!4 &8883440529124987854 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1009913675706003882, guid: 39ca3f5f903246e79dac11707013e4e8, type: 3}

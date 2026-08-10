@@ -16,6 +16,10 @@ public class PlayerInteractor : MonoBehaviour
     private void Update()
     {
         current = null;
+
+        // 커서가 풀려 있으면(ESC 메뉴 등 UI 사용 중) 상호작용 중단 — 아이템/피규어와 같은 규칙
+        if (Cursor.lockState != CursorLockMode.Locked) return;
+
         var cam = Camera.main;
         if (cam == null) return;
 

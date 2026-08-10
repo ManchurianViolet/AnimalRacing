@@ -1,0 +1,11 @@
+Model Information:
+* title:	Handheld Transceiver | LowPoly
+* source:	https://sketchfab.com/3d-models/handheld-transceiver-lowpoly-e098706085a44898abbd549693d12a64
+* author:	VyrianStudios (https://sketchfab.com/vynatic)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Handheld Transceiver | LowPoly" (https://sketchfab.com/3d-models/handheld-transceiver-lowpoly-e098706085a44898abbd549693d12a64) by VyrianStudios (https://sketchfab.com/vynatic) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

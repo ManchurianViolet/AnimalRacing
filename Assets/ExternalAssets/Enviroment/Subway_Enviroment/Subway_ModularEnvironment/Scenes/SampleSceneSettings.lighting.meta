@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a90833d3014ff3d499b9bc84c117acad
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 4890085278179872738
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 224248
+  packageName: Subway Modular Environment
+  packageVersion: 1.1
+  assetPath: Assets/PretoriusLab/Subway_ModularEnvironment/Scenes/SampleSceneSettings.lighting
+  uploadId: 720980

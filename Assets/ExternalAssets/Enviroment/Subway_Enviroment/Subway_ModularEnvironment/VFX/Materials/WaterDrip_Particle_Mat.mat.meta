@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 8ddda8f808479d4429bbc3ce8bf100cf
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 224248
+  packageName: Subway Modular Environment
+  packageVersion: 1.1
+  assetPath: Assets/PretoriusLab/Subway_ModularEnvironment/VFX/Materials/WaterDrip_Particle_Mat.mat
+  uploadId: 720980

@@ -13,7 +13,6 @@ public class TitleMenu : MonoBehaviour
     [SerializeField] private NetworkLauncher launcher;
 
     [Header("공통")]
-    [SerializeField] private TMP_InputField nicknameInput;
     [SerializeField] private TMP_Text statusText;
 
     [Header("패널")]
@@ -62,9 +61,7 @@ public class TitleMenu : MonoBehaviour
 
     private void Start()
     {
-        nicknameInput.text = PlayerPrefs.GetString("nickname", $"플레이어{Random.Range(100, 1000)}");
         ApplyNickname();
-        nicknameInput.onEndEdit.AddListener(_ => ApplyNickname());
 
         launcher.OnStatus += s => { if (statusText != null) statusText.text = s; };
         launcher.OnRoomsChanged += RefreshRoomList;
@@ -76,8 +73,11 @@ public class TitleMenu : MonoBehaviour
 
     private void ApplyNickname()
     {
-        string nick = string.IsNullOrWhiteSpace(nicknameInput.text)
-            ? $"플레이어{Random.Range(100, 1000)}" : nicknameInput.text.Trim();
+        // 닉네임 입력칸은 v13에서 제거됨 — 스팀 닉네임 자동이 기본.
+        // 스팀 미실행 폴백 = 저장값, 그것도 없으면 랜덤 (SetNickname이 저장하므로 이후 고정).
+        string nick = SteamHub.IsAvailable ? SteamHub.PersonaName
+            : PlayerPrefs.GetString("nickname", "");
+        if (string.IsNullOrWhiteSpace(nick)) nick = $"플레이어{Random.Range(100, 1000)}";
         launcher.SetNickname(nick);
     }
 

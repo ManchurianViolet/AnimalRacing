@@ -19,6 +19,14 @@ public class CustomizationPanel : MonoBehaviour
     [Tooltip("커마 중에는 숨길 것들 (메인 메뉴 버튼/닉네임 등)")]
     [SerializeField] private GameObject[] hideWhileOpen;
 
+    [Header("카메라 연출 — 여는 동안 캐릭터 클로즈업")]
+    [Tooltip("커마 동안 카메라가 이동할 위치 (월드)")]
+    [SerializeField] private Vector3 camOpenPos = new Vector3(2.06f, 0.73f, -3.3f);
+    [Tooltip("커마 동안의 카메라 회전 (오일러)")]
+    [SerializeField] private Vector3 camOpenEuler = new Vector3(-12.348f, 0f, 0f);
+    [Tooltip("카메라 이동 시간 (초) — 0이면 즉시 스냅")]
+    [SerializeField] private float camMoveSeconds = 0.35f;
+
     [Header("모양")]
     [SerializeField] private Vector2 panelSize = new Vector2(620f, 700f);   // y는 내용에 맞춰 자동 재계산됨
     [SerializeField] private float rowHeight = 54f;
@@ -59,12 +67,15 @@ public class CustomizationPanel : MonoBehaviour
         SetMenuVisible(false);
         snapshot = target != null ? target.Encode() : "";
         RefreshAll();
+        CameraGlide.To(camOpenPos, Quaternion.Euler(camOpenEuler), camMoveSeconds);
     }
 
     public void Close()
     {
         SetMenuVisible(true);
         gameObject.SetActive(false);
+        // 복귀 이동은 카메라에 얹힌 헬퍼가 재생 — 패널이 방금 꺼졌어도 살아 있다
+        CameraGlide.Home(camMoveSeconds);
     }
 
     private void SetMenuVisible(bool visible)
@@ -345,5 +356,61 @@ public class CustomizationPanel : MonoBehaviour
         sRounded = Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(0.5f, 0.5f), 100f,
             0, SpriteMeshType.FullRect, new Vector4(14f, 14f, 14f, 14f));   // border=14 > R이라 모서리 보존
         return sRounded;
+    }
+
+    /// <summary>
+    /// 메인 카메라 이동 도우미. 패널 오브젝트는 닫히며 비활성화되므로(코루틴 사망)
+    /// 카메라 자신에게 얹어 이동을 재생한다. 최초 호출 시의 포즈를 "집"으로 기억해 복귀에 쓴다.
+    /// </summary>
+    private class CameraGlide : MonoBehaviour
+    {
+        private Vector3 homePos, toPos;
+        private Quaternion homeRot, toRot;
+        private Vector3 fromPos; private Quaternion fromRot;
+        private float t, dur;
+        private bool homeSaved;
+
+        private static CameraGlide Get()
+        {
+            var cam = Camera.main;
+            if (cam == null) return null;
+            var g = cam.GetComponent<CameraGlide>();
+            if (g == null) g = cam.gameObject.AddComponent<CameraGlide>();
+            return g;
+        }
+
+        public static void To(Vector3 pos, Quaternion rot, float seconds)
+        {
+            var g = Get();
+            if (g == null) return;
+            if (!g.homeSaved) { g.homePos = g.transform.position; g.homeRot = g.transform.rotation; g.homeSaved = true; }
+            g.Begin(pos, rot, seconds);
+        }
+
+        public static void Home(float seconds)
+        {
+            var g = Get();
+            if (g == null || !g.homeSaved) return;
+            g.Begin(g.homePos, g.homeRot, seconds);
+        }
+
+        private void Begin(Vector3 pos, Quaternion rot, float seconds)
+        {
+            fromPos = transform.position; fromRot = transform.rotation;
+            toPos = pos; toRot = rot;
+            dur = Mathf.Max(0.0001f, seconds);
+            t = 0f;
+            enabled = true;
+        }
+
+        private void Update()
+        {
+            t += Time.deltaTime / dur;
+            float k = Mathf.Clamp01(t);
+            k = k * k * (3f - 2f * k);   // 부드러운 가감속 (Mathf.SmoothStep의 보간 본체)
+            transform.position = Vector3.Lerp(fromPos, toPos, k);
+            transform.rotation = Quaternion.Slerp(fromRot, toRot, k);
+            if (t >= 1f) enabled = false;
+        }
     }
 }

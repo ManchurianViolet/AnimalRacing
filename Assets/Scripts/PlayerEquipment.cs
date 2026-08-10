@@ -13,6 +13,8 @@ using UnityEngine;
 /// </summary>
 public class PlayerEquipment : MonoBehaviourPun
 {
+    /// <summary>맨손 — 아무것도 안 든 상태. 무전기를 다 쓰면 이 상태로 되돌아간다.</summary>
+    public const int SlotNone = 0;
     public const int SlotBat = 1, SlotBoost = 2, SlotSlow = 3, SlotRadioSkill = 4, SlotRadioExec = 5;
 
     /// <summary>내 아바타의 장비 컴포넌트 (미접속=내 것 규칙).</summary>
@@ -36,21 +38,84 @@ public class PlayerEquipment : MonoBehaviourPun
     [Header("빠따 모델")]
     [Tooltip("ithappy Weapons_FREE의 baseball_bat_001. 비우면 예전 코드 생성 임시 빠따로 폴백")]
     [SerializeField] private GameObject batModel;
-    [Tooltip("모델 크기 배율 (원본 1.115m — 예전 임시 빠따와 같은 0.87m로 맞추려면 0.78)")]
+    [Tooltip("노브에서 배럴 끝까지 목표 전체 길이 (m). 0이면 정규화 없이 아래 배율만 쓴다 — " +
+             "glTF 모델은 원본 크기가 제각각(이 배트는 101유닛)이라 배율보다 길이 지정이 안전하다")]
+    [SerializeField] private float batModelLength = 0.9f;
+    [Tooltip("길이 정규화 위에 곱하는 미세조정 배율")]
     [SerializeField] private float batModelScale = 1f;
+    [Tooltip("모델의 길이축을 손 기준 +Y(위로 뻗음)로 돌리는 보정. " +
+             "손잡이가 -X면 (0,0,90) / 원본이 이미 +Y로 서 있으면 (0,0,0)")]
+    [SerializeField] private Vector3 batModelEuler = new Vector3(0f, 0f, 90f);
     [Tooltip("손잡이 끝(노브)이 주먹 아래로 나오는 길이 (m) — 실제로 배트를 쥔 모양")]
     [SerializeField] private float batKnobBelowHand = 0.05f;
+
+    [Header("무전기 모델")]
+    [Tooltip("handheld_transceiver__lowpoly 구운 프리팹. 비우면 예전 코드 생성 임시 무전기로 폴백")]
+    [SerializeField] private GameObject radioModel;
+    [Tooltip("안테나 끝까지 포함한 목표 전체 높이 (m) — 원본 3.52유닛을 이 크기로 정규화한다")]
+    [SerializeField] private float radioModelHeight = 0.20f;
+    [Tooltip("모델 정면(스피커 그릴)이 -Z를 보게 하는 요 보정 (도) — 원본이 49.5도 돌아가 있다")]
+    [SerializeField] private float radioModelYaw = -49.5f;
+    [Tooltip("모델 본체에 먹이는 색 틴트의 세기 (0=원본 색 그대로, 1=지정색 100%)")]
+    [Range(0f, 1f)]
+    [SerializeField] private float radioTintStrength = 0.65f;
+
+    [Header("무전기 디스플레이 (주황 패널)")]
+    [Tooltip("LCD 글씨용 TMP 폰트 (LABDigital SDF). 비우면 화면을 안 만든다")]
+    [SerializeField] private TMPro.TMP_FontAsset radioScreenFont;
+    [Tooltip("주황 패널 중심 — 모델 로컬 좌표 (텍스처 UV로 실측한 값)")]
+    [SerializeField] private Vector3 radioScreenCenter = new Vector3(-0.247f, 1.035f, -0.212f);
+    [Tooltip("주황 패널 크기 — 모델 로컬 단위 (가로 × 세로)")]
+    [SerializeField] private Vector2 radioScreenSize = new Vector2(0.820f, 0.358f);
+    [Tooltip("패널 표면에서 글씨를 띄우는 거리 — z-fighting 방지 (모델 로컬 단위)")]
+    [SerializeField] private float radioScreenLift = 0.02f;
+    [Tooltip("LCD 글씨 색. TMP는 조명을 안 받으므로(Unlit) 밝게 주면 백라이트 켜진 것처럼 보인다 — " +
+             "실내가 어두워서(ambient 0.4) 검정 글씨는 배경과 같이 묻힌다")]
+    [SerializeField] private Color radioScreenTextColor = new Color(1f, 0.79f, 0.32f);
 
     [Header("소품 위치 (오른손 본 기준 로컬) — 플레이 중 바꾸면 즉시 반영")]
     [SerializeField] private Vector3 batLocalPos = new Vector3(0.04f, 0.03f, 0.01f);
     [SerializeField] private Vector3 batLocalEuler = Vector3.zero;
     [SerializeField] private Vector3 syringeLocalPos = new Vector3(0.04f, 0.03f, 0.01f);
     [SerializeField] private Vector3 syringeLocalEuler = Vector3.zero;
-    [SerializeField] private Vector3 radioLocalPos = new Vector3(0.04f, 0.03f, 0.01f);
-    [SerializeField] private Vector3 radioLocalEuler = Vector3.zero;
+    [SerializeField] private Vector3 radioLocalPos = new Vector3(0.01000666f, 0.0437801f, -0.009236704f);
+    [SerializeField] private Vector3 radioLocalEuler = new Vector3(-14.558f, -94.088f, 4.353f);
+
+    /// <summary>
+    /// 이 아바타가 내 것인가. static Local과 달리 인스턴스에 물어보므로 앞선 아바타가 파괴돼도 흔들리지 않는다.
+    /// ⚠ Awake에 1회 캐시하면 안 된다 — 씬 배치 아바타는 Photon 접속이 확정되기 전에 Awake가 돌아
+    ///    "내 것이 아님"으로 굳어버린다 (실사고). 매번 계산해도 비용은 없다.
+    /// </summary>
+    public bool IsLocalAvatar => !PhotonNetwork.IsConnected || photonView == null || photonView.IsMine;
 
     public int HeldSlot { get; private set; } = SlotBat;   // 준비 페이즈가 없으므로 시작은 빠따
     public bool CanSwing => Time.time >= nextSwingTime;
+
+    /// <summary>
+    /// 빠따 내구도 (남은 명중 횟수). 내 아바타에서만 의미 있다 — 판정처럼 로컬에서 깎이고,
+    /// 0이 되면 PlayerItemController의 재고 규칙(HasStockFor)이 자동 수납한다.
+    /// 라운드 시작(Betting)마다 GameConfig.batDurabilityMax로 회복.
+    /// </summary>
+    public int BatDurability { get; private set; } = int.MaxValue;
+
+    /// <summary>남은 내구도 비율 (HUD 게이지용, 0~1).</summary>
+    public float BatDurabilityRatio
+    {
+        get
+        {
+            int max = BatDurabilityMax;
+            return max <= 0 ? 1f : Mathf.Clamp01((float)BatDurability / max);
+        }
+    }
+
+    private static int BatDurabilityMax
+    {
+        get
+        {
+            var cfg = GameManager.Instance != null ? GameManager.Instance.Config : null;
+            return cfg != null ? cfg.batDurabilityMax : 10;
+        }
+    }
 
     /// <summary>오른손 본 — 소품이 붙는 자리. 베팅 방 피규어도 같은 손에 쥔다.</summary>
     public Transform RightHandBone => rightHand;
@@ -69,8 +134,7 @@ public class PlayerEquipment : MonoBehaviourPun
         if (animator == null) animator = GetComponentInChildren<Animator>(true);
 
         // 내 것 판정: 미접속=내 것 (프로젝트 공통 규칙)
-        if (!PhotonNetwork.IsConnected || photonView == null || photonView.IsMine)
-            Local = this;
+        if (IsLocalAvatar) Local = this;
 
         rightHand = FindBone(transform, "RightHand");
         knockdown = GetComponent<PlayerKnockdown>();
@@ -84,15 +148,33 @@ public class PlayerEquipment : MonoBehaviourPun
             armedLayer = animator.GetLayerIndex("ArmedUpper");
             holdLayer = animator.GetLayerIndex("HoldRight");
         }
+        BatDurability = BatDurabilityMax;
         ApplyHeld(HeldSlot, HeldSlot, true);
     }
+
+    private void OnEnable() => GameEvents.OnPhaseChanged += HandlePhaseChanged;
+    private void OnDisable() => GameEvents.OnPhaseChanged -= HandlePhaseChanged;
+
+    // 라운드가 새로 열리면(베팅) 빠따 수리 — 아이템 균등 지급과 같은 리듬. 로비 복귀도 회복.
+    private void HandlePhaseChanged(GamePhase p)
+    {
+        if (p == GamePhase.Betting || p == GamePhase.Lobby)
+            BatDurability = BatDurabilityMax;
+    }
+
+    /// <summary>
+    /// 빠따 내구도 소모 (기본 1). 명중한 스윙에서만 호출 — 헛스윙은 무료.
+    /// public인 이유: 테스트/연출(부서짐 이펙트 등)에서 재사용할 수 있게.
+    /// </summary>
+    public void ApplyBatWear(int amount = 1) =>
+        BatDurability = Mathf.Max(0, BatDurability - amount);
 
     // ---- 입력 진입점 (로컬 플레이어 전용, PlayerItemController가 호출) ----
 
     public void Select(int slot)
     {
         if (knockdown != null && knockdown.IsDown) return;   // 누워서 슬롯 전환 금지
-        slot = Mathf.Clamp(slot, SlotBat, SlotRadioExec);
+        slot = Mathf.Clamp(slot, SlotNone, SlotRadioExec);
         if (slot == HeldSlot) return;
 
         if (PhotonNetwork.InRoom && photonView != null)
@@ -104,6 +186,7 @@ public class PlayerEquipment : MonoBehaviourPun
     public void Swing()
     {
         if (HeldSlot != SlotBat || !CanSwing) return;
+        if (BatDurability <= 0) return;                      // 부서진 빠따 — 자동 수납 직전 프레임 가드
         if (knockdown != null && knockdown.IsDown) return;   // 누워서 휘두르기 금지
         nextSwingTime = Time.time + swingCooldown;
 
@@ -124,8 +207,12 @@ public class PlayerEquipment : MonoBehaviourPun
         yield return new WaitForSeconds(cfg != null ? cfg.meleeImpactDelay : 0.45f);
         if (knockdown != null && knockdown.IsDown) yield break;   // 휘두르다 내가 먼저 맞음
 
-        foreach (var v in FindVictimsInArc())
+        var victims = FindVictimsInArc();
+        foreach (var v in victims)
             v.RequestKnockdown();
+
+        // 명중한 스윙만 내구도 1 소모 (여럿을 한 번에 맞혀도 1) — 다 닳으면 재고 규칙이 자동 수납
+        if (victims.Count > 0) ApplyBatWear();
     }
 
     /// <summary>전방 부채꼴(GameConfig: meleeRange/meleeArcAngle) 안의 타격 가능 대상 목록.</summary>
@@ -297,23 +384,30 @@ public class PlayerEquipment : MonoBehaviourPun
     {
         var root = NewProp("Prop_Bat", batLocalPos, batLocalEuler);
 
-        // 에셋 모델이 있으면 그것을 쓴다. 이 모델도 로컬 +Y로 뻗어 있어 코드 생성판과 축 규약이 같으므로
-        // 인스펙터에 잡아둔 batLocalEuler(손에 쥔 각도)가 그대로 유효하다.
+        // 에셋 모델이 있으면 그것을 쓴다. batModelEuler로 길이축을 +Y(손 위로 뻗음)에 맞추면
+        // 코드 생성판과 축 규약이 같아져서 인스펙터에 잡아둔 batLocalEuler(쥔 각도)가 그대로 유효하다.
         if (batModel != null)
         {
             var model = Instantiate(batModel, root.transform);
             model.name = "BatModel";
-            model.transform.localRotation = Quaternion.identity;
-            model.transform.localScale = Vector3.one * batModelScale;
+            model.transform.localPosition = Vector3.zero;
+            model.transform.localRotation = Quaternion.Euler(batModelEuler);
+            model.transform.localScale = Vector3.one;
 
             // 소품 콜라이더는 CC/동물과 부딪히면 안 된다 (에셋 프리팹에 MeshCollider가 붙어 있음)
             foreach (var c in model.GetComponentsInChildren<Collider>(true)) Destroy(c);
 
-            // 모델 원점은 그립 중앙이라 그냥 붙이면 노브가 주먹 밑으로 24cm 삐져나온다 —
-            // 메시 최하단을 실측해 "노브가 주먹 아래 batKnobBelowHand" 위치로 올린다
-            float bottom = LocalBottomY(model.transform);
-            model.transform.localPosition =
-                new Vector3(0f, -batKnobBelowHand - bottom * batModelScale, 0f);
+            // ⚠ 축 보정 "뒤"에 재야 한다 — 회전 전 크기로 계산하면 축이 뒤바뀐 값이 나온다
+            var raw = LocalMeshBounds(root.transform);
+            float scale = batModelScale;
+            if (batModelLength > 0.0001f && raw.size.y > 0.0001f)
+                scale *= batModelLength / raw.size.y;
+            model.transform.localScale = Vector3.one * scale;
+
+            // 노브가 주먹 아래 batKnobBelowHand에 오도록 세우고, 좌우 중심은 손에 맞춘다
+            var fitted = LocalMeshBounds(root.transform);
+            model.transform.localPosition = new Vector3(
+                -fitted.center.x, -batKnobBelowHand - fitted.min.y, -fitted.center.z);
             return root;
         }
 
@@ -326,25 +420,6 @@ public class PlayerEquipment : MonoBehaviourPun
         AddSphere(root, "Tip", wood, new Vector3(0f, 0.80f, 0f), 0.075f);
 
         return root;
-    }
-
-    /// <summary>모델 루트 로컬 기준 메시 최하단 y (스케일 적용 전 단위).</summary>
-    private static float LocalBottomY(Transform modelRoot)
-    {
-        float bottom = float.MaxValue;
-        foreach (var mf in modelRoot.GetComponentsInChildren<MeshFilter>(true))
-        {
-            if (mf.sharedMesh == null) continue;
-            var b = mf.sharedMesh.bounds;
-            for (int i = 0; i < 8; i++)
-            {
-                var corner = b.center + Vector3.Scale(b.extents,
-                    new Vector3((i & 1) == 0 ? -1f : 1f, (i & 2) == 0 ? -1f : 1f, (i & 4) == 0 ? -1f : 1f));
-                float y = modelRoot.InverseTransformPoint(mf.transform.TransformPoint(corner)).y;
-                if (y < bottom) bottom = y;
-            }
-        }
-        return bottom == float.MaxValue ? 0f : bottom;
     }
 
     private GameObject BuildSyringe(string name, Color liquid)
@@ -367,17 +442,158 @@ public class PlayerEquipment : MonoBehaviourPun
     {
         var root = NewProp(name, radioLocalPos, radioLocalEuler);
 
+        // 실제 모델이 있으면 그것을 쓴다. 원본은 +Y가 안테나 방향이라 코드 생성판과 축 규약이 같고,
+        // 요(yaw)만 49.5도 돌아가 있어 그것만 보정하면 스피커 그릴이 -Z(=코드 생성판 그릴 면)를 본다.
+        if (radioModel != null)
+        {
+            var model = Instantiate(radioModel, root.transform);
+            model.name = "RadioModel";
+            model.transform.localRotation = Quaternion.Euler(0f, radioModelYaw, 0f);
+
+            // 소품 콜라이더는 CC/동물과 부딪히면 안 된다
+            foreach (var c in model.GetComponentsInChildren<Collider>(true)) Destroy(c);
+
+            // 원본이 3.52유닛짜리라 목표 높이로 정규화 — 요 회전은 y를 안 건드리니 회전 전 실측으로 충분하다
+            var raw = LocalMeshBounds(model.transform);
+            float scale = raw.size.y > 0.0001f ? radioModelHeight / raw.size.y : 1f;
+            model.transform.localScale = Vector3.one * scale;
+
+            // 손 원점이 무전기 바닥이 되게 (코드 생성판처럼 +Y로 선다)
+            model.transform.localPosition = new Vector3(0f, -raw.min.y * scale, 0f);
+
+            TintRadio(model, body);
+            var lampRenderer = AddRadioMarks(root, lamp);
+            AddRadioScreen(model, name.Contains("Exec") ? ItemKind.Execute : ItemKind.SkillTrigger,
+                           lampRenderer, lamp);
+            return root;
+        }
+
         var bodyMat = MakeMat(body);
         var darkMat = MakeMat(new Color(0.08f, 0.08f, 0.08f));
         var lampMat = MakeMat(lamp);
 
-        // 본체(세로 박스) + 스피커 그릴(어두운 판) + 안테나 + 상태 램프 — 손 위(+Y)로 서는 워키토키
+        // 폴백: 본체(세로 박스) + 스피커 그릴(어두운 판) + 안테나 + 상태 램프 — 손 위(+Y)로 서는 워키토키
         AddCube(root, "Body", bodyMat, new Vector3(0f, 0.09f, 0f), new Vector3(0.065f, 0.15f, 0.035f));
         AddCube(root, "Grille", darkMat, new Vector3(0f, 0.11f, -0.019f), new Vector3(0.045f, 0.06f, 0.004f));
         AddCylinder(root, "Antenna", darkMat, new Vector3(-0.02f, 0.215f, 0f), new Vector3(0.008f, 0.05f, 0.008f));
         AddSphere(root, "Lamp", lampMat, new Vector3(0.02f, 0.17f, -0.017f), 0.008f);
 
         return root;
+    }
+
+    /// <summary>모델 본체에 색을 먹인다. 원본 텍스처가 어두워서 곱셈 틴트가 죽지 않게 밝기를 정규화한다.</summary>
+    private void TintRadio(GameObject model, Color body)
+    {
+        float peak = Mathf.Max(body.r, Mathf.Max(body.g, body.b));
+        Color vivid = peak > 0.01f ? new Color(body.r / peak, body.g / peak, body.b / peak) : Color.white;
+        Color tint = Color.Lerp(Color.white, vivid, radioTintStrength);
+
+        foreach (var r in model.GetComponentsInChildren<Renderer>(true))
+        {
+            var mats = r.materials;                    // 인스턴스화 — 원본 에셋을 건드리지 않는다
+            for (int i = 0; i < mats.Length; i++)
+            {
+                if (mats[i] == null) continue;
+                if (mats[i].HasProperty("_BaseColor")) mats[i].SetColor("_BaseColor", tint);
+                else if (mats[i].HasProperty("_Color")) mats[i].SetColor("_Color", tint);
+            }
+            r.materials = mats;
+        }
+    }
+
+    /// <summary>
+    /// 주황 패널 위에 LCD 글씨(TMP)를 얹는다. 모델의 자식이라 회전·스케일을 그대로 따라간다.
+    /// 패널 좌표는 텍스처의 주황 픽셀 UV로 역산한 실측값이라 모델이 바뀌면 다시 재야 한다.
+    /// </summary>
+    private void AddRadioScreen(GameObject model, ItemKind kind, Renderer lampRenderer, Color lampColor)
+    {
+        if (radioScreenFont == null) return;
+
+        var go = new GameObject("Screen");
+        go.transform.SetParent(model.transform, false);
+
+        // 앞면 법선 — 원본 모델이 요 방향으로 돌아가 있으므로 radioModelYaw에서 역산한다
+        Vector3 normal = Quaternion.Euler(0f, -radioModelYaw, 0f) * Vector3.back;
+        go.transform.localPosition = radioScreenCenter + normal * radioScreenLift;
+        // ⚠ TMP는 로컬 +Z가 "보는 쪽"이 아니라 "글자 뒤통수" 방향이다.
+        //    forward를 패널 바깥(normal)으로 두면 좌우반전된 글자를 보게 된다 — 반드시 안쪽(-normal).
+        //    셰이더가 Cull Off라 뒤를 향해도 정상적으로 그려진다.
+        go.transform.localRotation = Quaternion.LookRotation(-normal, Vector3.up);
+
+        var tmp = go.AddComponent<TMPro.TextMeshPro>();
+        tmp.font = radioScreenFont;
+        tmp.color = radioScreenTextColor;
+        tmp.alignment = TMPro.TextAlignmentOptions.Center;
+        tmp.enableWordWrapping = false;
+        tmp.enableAutoSizing = true;
+        // ⚠ 상한을 패널 크기로 주면 안 된다 — TMP fontSize는 rect 단위와 1:1이 아니라서
+        //    이 폰트는 3.5쯤 돼야 패널을 채운다 (0.358로 묶으니 글자가 1/10 크기로 나왔음).
+        //    넉넉히 열어두고 자동 크기가 rect에 맞춰 줄이게 둔다.
+        tmp.fontSizeMin = 0.05f;
+        tmp.fontSizeMax = 20f;
+        tmp.text = "0000";
+
+        var rt = tmp.rectTransform;
+        rt.sizeDelta = radioScreenSize;
+        rt.pivot = new Vector2(0.5f, 0.5f);
+
+        go.AddComponent<RadioScreen>().Init(kind, this, lampRenderer, lampColor);
+    }
+
+    /// <summary>무전기 2종을 확실히 구분하는 표식 — 안테나 밑동의 컬러 밴드 + 상태 램프.</summary>
+    private Renderer AddRadioMarks(GameObject root, Color lamp)
+    {
+        // ⚠ 밴드와 램프가 머티리얼을 공유하면 램프를 깜빡일 때 밴드까지 같이 깜빡인다 — 따로 만든다
+        var bandMat = MakeMat(lamp);
+        var lampMat = MakeMat(lamp);
+        var b = LocalMeshBounds(root.transform);       // 이미 정규화된 크기 기준
+
+        float bodyTop = b.min.y + b.size.y * 0.60f;    // 본체와 안테나가 갈리는 높이 (실측 2.11/3.52)
+        float halfW = b.size.x * 0.5f;
+        float halfD = b.size.z * 0.5f;
+
+        // 본체 상단을 두르는 컬러 띠 — 사방에서 보이는 주 식별 신호.
+        // ⚠ 원기둥으로 만들면 사각 본체에 내접해 파묻힌다 (실사고) — 반드시 큐브로.
+        AddCube(root, "Band", bandMat,
+            new Vector3(b.center.x, bodyTop - b.size.y * 0.035f, b.center.z),
+            new Vector3(b.size.x * 1.06f, b.size.y * 0.026f, b.size.z * 1.06f));
+
+        // 앞면(-Z) 상단 모서리에 걸치는 작은 상태 램프 — 보조 신호 + 발동 완료 시 깜빡임
+        AddSphere(root, "Lamp", lampMat,
+            new Vector3(b.center.x - halfW * 0.35f, bodyTop + b.size.y * 0.005f, b.min.z + halfD * 0.35f),
+            b.size.y * 0.017f);
+
+        var lampT = root.transform.Find("Lamp");
+        return lampT != null ? lampT.GetComponent<Renderer>() : null;
+    }
+
+    /// <summary>
+    /// 루트 로컬 기준 메시 바운즈.
+    /// ⚠ 정점을 직접 훑는다 — mesh.bounds의 코너 8개를 변환하면 회전이 걸린 자식에서 AABB가
+    /// 한 번 더 부풀어 실제보다 √2배 커진다 (밴드가 쟁반만 해지던 실사고).
+    /// </summary>
+    private static Bounds LocalMeshBounds(Transform root)
+    {
+        bool any = false;
+        var min = Vector3.one * float.MaxValue;
+        var max = Vector3.one * float.MinValue;
+
+        foreach (var mf in root.GetComponentsInChildren<MeshFilter>(true))
+        {
+            if (mf.sharedMesh == null) continue;
+            foreach (var v in mf.sharedMesh.vertices)
+            {
+                var p = root.InverseTransformPoint(mf.transform.TransformPoint(v));
+                min = Vector3.Min(min, p);
+                max = Vector3.Max(max, p);
+                any = true;
+            }
+        }
+
+        if (!any) return new Bounds(Vector3.zero, Vector3.zero);
+        var bounds = new Bounds();
+        bounds.SetMinMax(min, max);
+        return bounds;
     }
 
     private GameObject NewProp(string name, Vector3 pos, Vector3 euler)

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 8764febc22f8fc445816a3e1f7da0442
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 224248
+  packageName: Subway Modular Environment
+  packageVersion: 1.1
+  assetPath: Assets/PretoriusLab/Subway_ModularEnvironment/VFX/Materials/WaterRipple_Particle_Mat.mat
+  uploadId: 720980

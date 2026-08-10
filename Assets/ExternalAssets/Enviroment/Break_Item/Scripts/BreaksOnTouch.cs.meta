@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 1d9304989302c8a4da69e3664d5356ee
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 255067
+  packageName: Break Items - Toon VFX
+  packageVersion: 1.0
+  assetPath: Assets/Break_Items_Toon_VFX/Scripts/BreaksOnTouch.cs
+  uploadId: 597517

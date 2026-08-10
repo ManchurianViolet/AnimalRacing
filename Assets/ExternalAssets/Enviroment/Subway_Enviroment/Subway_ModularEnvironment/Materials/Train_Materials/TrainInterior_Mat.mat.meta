@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: d204a82a7385d8a4194fed76ca96769b
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 224248
+  packageName: Subway Modular Environment
+  packageVersion: 1.1
+  assetPath: Assets/PretoriusLab/Subway_ModularEnvironment/Materials/Train_Materials/TrainInterior_Mat.mat
+  uploadId: 720980

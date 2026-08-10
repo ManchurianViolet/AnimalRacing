@@ -31,6 +31,7 @@ public class InspectStand : MonoBehaviour
         fig.transform.localPosition = Vector3.zero;
         fig.transform.localRotation = Quaternion.identity;
         fig.transform.localScale = Vector3.one * fig.ShelfScale;
+        fig.SetHeld(false);                                              // 받침대 복원
         if (fig.PickCollider != null) fig.PickCollider.enabled = true;   // 다시 집을 수 있게
         fig.SetRunning(true);                                            // 전시대 위에서만 달린다
     }

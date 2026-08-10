@@ -198,7 +198,7 @@ public class RaceManager : MonoBehaviour
 
     private void Update()
     {
-        if (!racing) return;
+        if (!racing) { UpdateMirrorProgress(); return; }
         float dt = Time.deltaTime;
 
         UpdateSkillContext();
@@ -233,8 +233,41 @@ public class RaceManager : MonoBehaviour
     // ---- 조회 ----
     public Racer GetRacer(int id) => racers.FirstOrDefault(r => r.RacerId == id);
 
-    public Racer GetLastPlaceRacer() =>
-        racers.Where(r => !r.HasFinished).OrderBy(r => r.Progress).FirstOrDefault();
+    /// <summary>
+    /// 지금 처형이 터지면 죽을 동물 — 완주자·탈락자는 HasFinished로 자동 제외된다.
+    /// ⚠ 처형 무전기 화면이 이걸 매 프레임 부르므로 LINQ 대신 단순 루프로 돈다(할당 0).
+    ///    표시와 실제 탈락자가 갈리면 안 되므로 ExecuteLastPlace도 반드시 이 메서드를 쓴다.
+    /// </summary>
+    public Racer GetLastPlaceRacer()
+    {
+        Racer worst = null;
+        float worstProg = float.MaxValue;
+        for (int i = 0; i < racers.Count; i++)
+        {
+            var r = racers[i];
+            if (r == null || r.HasFinished) continue;
+            if (r.Progress < worstProg) { worstProg = r.Progress; worst = r; }
+        }
+        return worst;
+    }
+
+    /// <summary>
+    /// [클라 전용] 시뮬은 호스트만 돌지만 순위를 읽는 쪽(처형 무전기 화면 등)은 클라에도 있다.
+    /// 미러된 위치로 진행도만 채워 Progress를 유효하게 유지한다 — 완주/스킬 판정은 하지 않는다.
+    /// 이게 없으면 클라의 Progress가 0에 멈춰 있어 "꼴등"이 엉뚱하게 잡힌다.
+    /// </summary>
+    private void UpdateMirrorProgress()
+    {
+        if (IsAuthority || path == null) return;
+        if (GameManager.Instance == null || GameManager.Instance.CurrentPhase != GamePhase.Racing) return;
+
+        for (int i = 0; i < racers.Count; i++)
+        {
+            var r = racers[i];
+            if (r == null || r.HasFinished) continue;
+            r.SetProgress(path.GetDistanceNear(r.transform.position, r.Progress));
+        }
+    }
 
     public float GetLeaderProgressRatio()
     {

@@ -1,7 +1,14 @@
 fileFormatVersion: 2
 guid: a700f913ae9f442b69eab646a38124a1
+AssetOrigin:
+  serializedVersion: 1
+  productId: 362994
+  packageName: Stylized racing track set
+  packageVersion: 1.0
+  assetPath: Assets/Stylized Racing Track Set/Imported-FBX/Arch-Start_Blue_Gantry.fbx
+  uploadId: 873898
 ModelImporter:
-  serializedVersion: 22200
+  serializedVersion: 24200
   internalIDToNameTable: []
   externalObjects:
   - first:
@@ -55,7 +62,7 @@ ModelImporter:
     extraExposedTransformPaths: []
     extraUserProperties: []
     clipAnimations: []
-    isReadable: 0
+    isReadable: 1
   meshes:
     lODScreenPercentages: []
     globalScale: 1
@@ -81,6 +88,9 @@ ModelImporter:
     maxBonesPerVertex: 4
     minBoneWeight: 0.001
     optimizeBones: 1
+    generateMeshLods: 0
+    meshLodGenerationFlags: 0
+    maximumMeshLod: -1
     meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
@@ -130,10 +140,3 @@ ModelImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 362994
-  packageName: Stylized racing track set
-  packageVersion: 1.0
-  assetPath: Assets/Stylized Racing Track Set/Imported-FBX/Arch-Start_Blue_Gantry.fbx
-  uploadId: 873898

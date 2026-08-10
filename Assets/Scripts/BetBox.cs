@@ -44,6 +44,7 @@ public class BetBox : MonoBehaviour
         fig.transform.localPosition = Vector3.zero;
         fig.transform.localRotation = Quaternion.identity;
         fig.transform.localScale = Vector3.one * fig.ShelfScale;         // 손에서 줄여둔 크기 원복
+        fig.SetHeld(false);                                              // 받침대 복원
         if (fig.PickCollider != null) fig.PickCollider.enabled = true;   // 다시 집을 수 있게
     }
 

@@ -29,6 +29,13 @@ public class PlayerAimPose : MonoBehaviour
              "화면 중앙에 두면 팔 한계 거리의 거대한 손이 시야·조준을 다 가린다 — 우하단 구석이 정답")]
     [SerializeField] private Vector3 handOffsetFigurine = new Vector3(0.22f, -0.22f, 0.42f);
 
+    [Header("주사기 찌르기 연출")]
+    [Tooltip("발사 순간 손을 당기는 거리(m) — 팔이 평소 최대 신장이라 '당겼다 스냅'이 찌르기로 읽힌다")]
+    [SerializeField] private float thrustPullDistance = 0.22f;
+    [Tooltip("찌르기 전체 시간(초) — 앞 35%가 당김, 뒤 65%가 앞으로 스냅")]
+    [SerializeField] private float thrustSeconds = 0.28f;
+
+
     [Header("베팅 방 피규어 — 내 화면 전용 배치")]
     [Tooltip("팔을 안 드는 모드(raiseArmForFigurine=꺼짐)에서만 쓰는 눈 기준 위치 (조준축: x=오른쪽 / y=위 / z=앞). " +
              "팔을 드는 기본 모드에선 아래 figurineHandOffset(손 본 기준)이 쓰인다")]
@@ -279,6 +286,30 @@ public class PlayerAimPose : MonoBehaviour
         }
     }
 
+    private float thrustElapsed = float.MaxValue;   // 찌르기 경과 시간 (MaxValue = 휴면)
+
+    private void OnEnable() => GameEvents.OnItemUsed += HandleItemUsed;
+    private void OnDisable() => GameEvents.OnItemUsed -= HandleItemUsed;
+
+    /// <summary>
+    /// 주사기(부스트/감속) 발사 순간 찌르기 시작. OnItemUsed는 게이트웨이가 전 클라로 중계하므로
+    /// 원격 아바타도 자기 주인의 발사에 맞춰 각자 로컬 재생 — 네트워크 추가 통신 0 (부스트 먼지 철학).
+    /// </summary>
+    private void HandleItemUsed(int playerId, ItemDefinition item, int racerId)
+    {
+        if (item == null || (item.kind != ItemKind.Boost && item.kind != ItemKind.Slow)) return;
+        if (!IsAvatarOf(playerId)) return;
+        thrustElapsed = 0f;
+    }
+
+    /// <summary>이 아바타가 그 플레이어의 것인가 — 온라인은 포톤 소유자, 오프라인은 나뿐 (봇은 아바타 없음).</summary>
+    private bool IsAvatarOf(int playerId)
+    {
+        var pv = GetComponent<Photon.Pun.PhotonView>();
+        if (pv != null && Photon.Pun.PhotonNetwork.IsConnected) return pv.OwnerActorNr == playerId;
+        return playerId == NetworkPlayers.LocalPlayerId;
+    }
+
     private void OnAnimatorIK(int layerIndex)
     {
         if (layerIndex != 0 || animator == null || headBone == null) return;
@@ -314,6 +345,19 @@ public class PlayerAimPose : MonoBehaviour
             float max = armLength * reachSafety;
             if (fromShoulder.magnitude > max)
                 target = rightUpperArm.position + fromShoulder.normalized * max;
+        }
+
+        // [주사기 찌르기] 발사 순간 당겼다(35%) 앞으로 스냅(65%).
+        // ⚠ 반드시 클램프 뒤에 적용 — handOffset(z 1.2)은 팔 한계 너머라 클램프가 항상 작동 중이어서,
+        //   클램프 앞에서 당기면 "한계 밖에서 한계 밖으로" 이동일 뿐 잘린 결과가 그대로다 (실측 1.5cm — 실사고)
+        if (thrustElapsed < thrustSeconds)
+        {
+            thrustElapsed += Time.deltaTime;
+            float p = Mathf.Clamp01(thrustElapsed / thrustSeconds);
+            float pull = p < 0.35f
+                ? Mathf.Sin(p / 0.35f * Mathf.PI * 0.5f)              // 빠르게 당김 (0→1)
+                : Mathf.Cos((p - 0.35f) / 0.65f * Mathf.PI * 0.5f);   // 앞으로 스냅 (1→0)
+            target -= aim * Vector3.forward * (thrustPullDistance * pull);
         }
 
         // 손 회전 — 소품은 손 로컬 +Y로 뻗으므로, 그 축을 조준 기준 "위~앞" 사이로 눕힌다

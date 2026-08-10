@@ -2166,6 +2166,8 @@ MonoBehaviour:
   knockdown: {fileID: 0}
   handOffset: {x: 0.08, y: -0.03, z: 1.2}
   handOffsetFigurine: {x: 0.22, y: -0.22, z: 0.42}
+  thrustPullDistance: 0.22
+  thrustSeconds: 0.28
   figurineViewOffset: {x: 0.045, y: -0.035, z: 0.18}
   figurineHandOffset: {x: -0.015, y: 0.1, z: 0.06}
   figurineViewSize: 0.18

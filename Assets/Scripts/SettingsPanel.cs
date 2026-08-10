@@ -15,6 +15,14 @@ public class SettingsPanel : MonoBehaviour
     [SerializeField] private Slider volumeSlider;
     [SerializeField] private TMP_Text volumeValue;
 
+    [Header("배경음")]
+    [SerializeField] private Slider bgmSlider;
+    [SerializeField] private TMP_Text bgmValue;
+
+    [Header("효과음")]
+    [SerializeField] private Slider sfxSlider;
+    [SerializeField] private TMP_Text sfxValue;
+
     [Header("감도")]
     [SerializeField] private Slider sensSlider;
     [SerializeField] private TMP_Text sensValue;
@@ -48,6 +56,20 @@ public class SettingsPanel : MonoBehaviour
         volumeSlider.maxValue = 1f;
         volumeSlider.onValueChanged.AddListener(v => { SettingsStore.Volume = v; RefreshLabels(); });
 
+        // 신규 슬라이더는 씬 배선 누락에 대비해 null 가드 (v8 단말기 복제 배선 누락 실사고 교훈)
+        if (bgmSlider != null)
+        {
+            bgmSlider.minValue = 0f;
+            bgmSlider.maxValue = 1f;
+            bgmSlider.onValueChanged.AddListener(v => { SettingsStore.BgmVolume = v; RefreshLabels(); });
+        }
+        if (sfxSlider != null)
+        {
+            sfxSlider.minValue = 0f;
+            sfxSlider.maxValue = 1f;
+            sfxSlider.onValueChanged.AddListener(v => { SettingsStore.SfxVolume = v; RefreshLabels(); });
+        }
+
         sensSlider.minValue = SettingsStore.SensMin;
         sensSlider.maxValue = SettingsStore.SensMax;
         sensSlider.onValueChanged.AddListener(v => { SettingsStore.Sensitivity = v; RefreshLabels(); });
@@ -71,6 +93,8 @@ public class SettingsPanel : MonoBehaviour
         wantFullscreen = Screen.fullScreen;
         gameObject.SetActive(true);
         volumeSlider.SetValueWithoutNotify(SettingsStore.Volume);
+        if (bgmSlider != null) bgmSlider.SetValueWithoutNotify(SettingsStore.BgmVolume);
+        if (sfxSlider != null) sfxSlider.SetValueWithoutNotify(SettingsStore.SfxVolume);
         sensSlider.SetValueWithoutNotify(SettingsStore.Sensitivity);
         fovSlider.SetValueWithoutNotify(SettingsStore.Fov);
         RefreshLabels();
@@ -148,6 +172,8 @@ public class SettingsPanel : MonoBehaviour
     private void RefreshLabels()
     {
         Set(volumeValue, $"{Mathf.RoundToInt(SettingsStore.Volume * 100)}%");
+        Set(bgmValue, $"{Mathf.RoundToInt(SettingsStore.BgmVolume * 100)}%");
+        Set(sfxValue, $"{Mathf.RoundToInt(SettingsStore.SfxVolume * 100)}%");
         Set(sensValue, $"x{SettingsStore.Sensitivity:F2}");
         Set(fovValue, $"{Mathf.RoundToInt(SettingsStore.Fov)}°");
         if (sizes.Count > 0) Set(resValue, $"{sizes[resIndex].x} × {sizes[resIndex].y}");

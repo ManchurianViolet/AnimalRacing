@@ -692,6 +692,36 @@ TrackPath 빌드 검진 로그+기즈모.
 
 표기 의무 없음(참고): ithappy Creative_Characters_FREE / Weapons_FREE, Kevin Iglesias Human Melee 2.0 FREE(Fab Standard), Beautify, Mixamo 애니메이션, LAB디지털 폰트(유저 확보 — ⚠ 폰트 라이선스는 유저가 재확인 필요), **Facepunch.Steamworks(MIT — v13)**, Pretendard(OFL).
 ---
+15. ★ 사운드 (v14 세션 구축 — 인프라 완료, 에셋 소싱 중)
+15-1. 인프라 (구축 완료, 씬 배선까지 끝 — 클립만 꽂으면 소리 남)
+`AudioLibrary.cs` — `SfxId`/`BgmTrack` enum + 소리 데이터 SO. 클립 변형 배열(재생마다 랜덤)·볼륨·피치 랜덤 폭·3D 최대 거리를 전부 SO에서 튜닝 (GameConfig 철학). ⚠ **enum 번호는 SO에 int로 저장되므로 재배치 금지** (AnimalSkill과 같은 규칙) — 새 소리는 그룹 뒷번호에 추가(그룹당 10칸 여유: UI 1x / 레이스 2x / 빠따 3x / 아이템 4x / 스킬 5x / 베팅방 6x).
+`SoundManager.cs` — 씬 넘어 유지되는 싱글턴(`DontDestroyOnLoad`, 중복 인스턴스는 자기 파괴). **SFX** = AudioSource 풀 16개 원샷, 호출부는 `SoundManager.PlaySfx(SfxId.BatHit)` (2D) 또는 `PlaySfx(id, worldPos)` (3D 거리 감쇠) 한 줄. `PlayClipAtPoint`는 볼륨 배율을 못 태우고 GC가 나와서 안 쓴다. **BGM** = 2채널 크로스페이드(1.2초, `Time.unscaledDeltaTime`이라 ESC 메뉴 중에도 진행) + **페이즈 방송 구독 자동 전환** — 페이즈는 이미 전 클라 중계라 **네트워크 추가 통신 0**(부스트 먼지·무전기 LCD와 같은 철학).
+· BGM 페이즈 매핑(`TrackForPhase` 한 곳만 고치면 됨): 타이틀→Title / Lobby→Lobby / Betting·Loadout→Betting / **Countdown→None(무음 페이드 — 긴장감)** / Racing→Racing / Settlement→Settlement.
+· 씬 로드 시에도 판단(빌드 0=타이틀, 그 외=Lobby) — 매치 중 합류·재접속자는 곧 도착하는 페이즈 방송이 교정.
+· 클립이 비어 있는 항목은 재생 요청이 와도 **조용히 스킵** — 에셋을 채우는 대로 소리가 나기 시작한다(배선을 미리 다 깔아도 안전).
+**볼륨 3단 분리**: 마스터 = `AudioListener.volume`(기존 `SettingsStore.Volume` 그대로) × BGM/SFX 배율(`SettingsStore.BgmVolume` 기본 0.8 / `SfxVolume` 기본 1.0). BGM은 대입 즉시 재생 중인 곡에 반영(`SoundManager.NotifyBgmVolumeChanged`), SFX는 재생 시점에 읽으므로 통지 불필요. **AudioMixer는 안 씀** — 코드로 생성이 안 되고 지금 요구(슬라이더 3개)엔 과하다. 덕킹(레이스 중 BGM 낮추기) 같은 게 필요해지면 그때 얹을 것.
+씬 배선(양쪽 씬 동일, 실측 검증 완료): 설정 카드 600→**740** 확장 + 8행 리플로우(간격 70), **배경음(y175)·효과음(y105) 행 추가**, "볼륨"→"전체 볼륨" 개명, `SoundManager` 오브젝트(GameScene=`시스템` 밑 / TitleScene=`Managerrs` 밑) + `AudioLibrary.asset` 배선.
+15-2. ★ Suno BGM 프롬프트 (유저 확정 — 타이틀 A안 채택, 나머지 4곡은 그 결에 맞춤)
+**공통 규칙**: ⚠ **"연주곡"(Instrumental) 체크 필수** — 안 하면 AI 보컬이 노래를 부른다. 프롬프트 끝 `instrumental` 태그는 보험. ⚠ **Suno 유료 플랜이어야 상업 이용 가능**(유저 = 플러스 회원, 확인됨). 곡당 3~4번 돌려 고르고, 마음에 드는 게 나오면 Cover/Remaster로 파생시키면 결 유지가 쉽다. 길이 2~3분(정산만 1분대 OK).
+**공통 DNA (전 곡 유지 — 이게 "같은 밴드가 연주하는 느낌"의 정체)**: `muted trumpet / upright bass / brushed drums / speakeasy`.
+① **Title** (확정 채택 — 게임 톤의 기준점):
+`sleazy speakeasy jazz, electro swing, playful and mischievous, muted trumpet, upright bass, brushed drums, medium tempo 110 bpm, vintage casino atmosphere, instrumental`
+② **Lobby** (제일 오래 듣는 곡 — `sparse/minimal/subdued`가 핵심. 화려하면 금방 질림):
+`laid-back speakeasy jazz, slow swing shuffle, muted trumpet, upright bass, brushed drums, warm piano and vibraphone, relaxed 92 bpm, smoky lounge atmosphere, playful but subdued, background music, minimal and sparse, instrumental`
+③ **Betting** (`ticking clock`이 60초 타이머와 붙어 시간 압박으로 들림):
+`tense speakeasy jazz, electro swing, ticking clock rhythm, muted trumpet stabs, sneaky walking bassline, pizzicato strings, brushed drums, rising suspense, 118 bpm, heist planning scene, scheming and shady, instrumental`
+④ **Racing** (4분 관전의 심장 — 제일 공들일 곡. `galloping shuffle`=말발굽 박자가 정체성. ⚠ **카운트다운이 무음이라 도입부가 빵 터지는 버전을 고를 것** — 페이드인 시작은 피함):
+`high energy electro swing, fast gypsy jazz guitar, driving brass section, muted trumpet lead, slap upright bass, galloping shuffle rhythm 142 bpm, frantic and comedic chase, horse race excitement, speakeasy big band gone wild, instrumental`
+⑤ **Settlement** (짧은 페이즈 — **앞 30초가 좋은 곡**으로 고르면 됨):
+`triumphant speakeasy big band, celebratory brass fanfare, muted trumpet flourish, upright bass, snappy horn hits, showbiz results reveal, 124 bpm, playful and grand finale, vintage casino jackpot, instrumental`
+**기각된 타이틀 후보 2종(이력 — 재제안 전에 이 축을 이미 봤음을 상기할 것)**: B안 화려한 쇼 오프닝(`grand big band swing overture, showtime fanfare, ... racetrack grandstand excitement`) / C안 코믹 카툰(`comedic cartoon ragtime, circus-like carnival march, honky-tonk piano, tuba oompah bass, slide whistle`). 세 축의 차이 = A "수상한 도박장에 오신 걸 환영합니다" / B "대망의 레이스가 시작됩니다!" / C "여기 미친 놈들밖에 없습니다".
+15-3. 유저 작업 순서 (BGM 꽂기)
+① `Assets/Audio/BGM/`에 파일 넣기(title/lobby/betting/racing/settlement) → ② `Assets/ScriptableObject/AudioLibrary.asset` 인스펙터 → **배경음** 배열 Size 5 → 트랙별 클립 꽂기 → ③ 곡끼리 음량 차이 나면 각 항목 volume으로 조절. **씬 배선은 이미 끝나서 꽂자마자 소리 남.**
+15-4. 남은 일
+· **SFX 호출 배선** (다음 작업) — ★★★부터: 빠따 스윙/명중/부서짐·쓰러짐, 카운트다운·출발·완주·처형, 스킬 3종. 그다음 ★★ 아이템(주사기/무전기/슬롯 전환)·베팅방(문/피규어/확정), ★ UI·관중 앰비언스. **클립이 없어도 배선은 미리 가능**(빈 항목은 조용히 스킵).
+· **SFX 에셋 소싱** (유저) — 추천: Kenney(CC0, 표기 의무 없음), Sonniss GDC 무료팩, 에셋스토어 무료팩. ⚠ freesound.org는 파일마다 라이선스가 달라 하나씩 확인 필요 — **CC0 우선**이 제일 속 편함. CC-BY를 쓰면 **§14 표에 한 줄 추가**할 것.
+· 미정: 레이스 막판 곡 고조, 덕킹(중요 사건 때 BGM 낮추기), 관중 앰비언스 루프.
+---
 — 끝. 코드가 진실, 이 문서는 지도다.
 **v13 다음 첫 안건**: ① **씬 저장 확인 — GameScene(ESC 메뉴) + TitleScene(유령 카메라 `__captureCam` 삭제분, §11)** → ② v13 멀티 실기(서버 선택·스팀 신원 — 스탠드얼론 필요, ESC/휠/찌르기 원격 화면) + v11 이월 멀티(클라 순위 `UpdateMirrorProgress`·무전기 수납 원격) → ③ 빌드 확인(해상도/화면모드/FOV — 에디터 불가) → ④ 유저 육안(§7 v13 목록) → ⑤ **출시 전: 스팀 App ID 교체 + 언어 로컬라이제이션 세션**(§7) → ⑥ 리롤 간격 결정(§8) → ⑦ 밸런스 재조정 → ⑧ 감속 아이템 연출 → ⑨ 킥 잔여 → ⑩ 성능 최적화 → ⑪ §14 크레딧.
 (v12 안건 순서, 이력용): ① **씬 저장 확인** (TitleScene 마지막 작업(커마 카메라/hideWhileOpen)이 dirty로 남았을 수 있음) → ② **유저가 예고한 "중요한 것"** — v12 말미에 "이제 중요한 거 남았다"며 새 대화를 팠다. 내용 미상, 유저 발주를 먼저 들을 것 → ③ v11 이월: 무전기·아이템 멀티 실기(MPPM — 특히 클라 순위 표시 `UpdateMirrorProgress`) + 빠따 내구도 멀티(부서짐 수납이 남의 화면에 보이는지) → ④ 베팅 방 멀티 실기 → ⑤ 유저 육안(§7 v12·v11 목록) → ⑥ **리롤 간격 결정**(§8) → ⑦ 밸런스 재조정 → ⑧ 감속 아이템 연출 → ⑨ 킥 잔여 → ⑩ 성능 최적화 → ⑪ 출시 전 §14 크레딧.

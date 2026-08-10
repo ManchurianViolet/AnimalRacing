@@ -8,7 +8,9 @@ using UnityEngine;
 /// </summary>
 public static class SettingsStore
 {
-    public const string KeyVolume = "opt_volume";        // 0~1
+    public const string KeyVolume = "opt_volume";        // 0~1 (마스터)
+    public const string KeyBgm = "opt_bgm";              // 0~1 (배경음 배율)
+    public const string KeySfx = "opt_sfx";              // 0~1 (효과음 배율)
     public const string KeySensitivity = "opt_sens";     // 마우스 감도 배율
     public const string KeyFov = "opt_fov";              // 1인칭 시야각 (도)
 
@@ -20,6 +22,8 @@ public static class SettingsStore
 
     // 매 프레임 읽는 소비자(FPC)가 있으므로 캐시 — PlayerPrefs 왕복 방지
     private static float? volumeCache;
+    private static float? bgmCache;
+    private static float? sfxCache;
     private static float? sensCache;
     private static float? fovCache;
 
@@ -36,6 +40,37 @@ public static class SettingsStore
             volumeCache = Mathf.Clamp01(value);
             PlayerPrefs.SetFloat(KeyVolume, volumeCache.Value);
             AudioListener.volume = volumeCache.Value;
+        }
+    }
+
+    /// <summary>배경음 볼륨 0~1. 대입 즉시 재생 중인 BGM에 반영 (SoundManager).</summary>
+    public static float BgmVolume
+    {
+        get
+        {
+            bgmCache ??= Mathf.Clamp01(PlayerPrefs.GetFloat(KeyBgm, 0.8f));
+            return bgmCache.Value;
+        }
+        set
+        {
+            bgmCache = Mathf.Clamp01(value);
+            PlayerPrefs.SetFloat(KeyBgm, bgmCache.Value);
+            SoundManager.NotifyBgmVolumeChanged();
+        }
+    }
+
+    /// <summary>효과음 볼륨 0~1. SFX는 재생 시점에 읽으므로 별도 통지 불필요.</summary>
+    public static float SfxVolume
+    {
+        get
+        {
+            sfxCache ??= Mathf.Clamp01(PlayerPrefs.GetFloat(KeySfx, 1f));
+            return sfxCache.Value;
+        }
+        set
+        {
+            sfxCache = Mathf.Clamp01(value);
+            PlayerPrefs.SetFloat(KeySfx, sfxCache.Value);
         }
     }
 

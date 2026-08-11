@@ -1,4 +1,4 @@
-「짜고 치는 레이스」(가제, 영문 후보 Dirty Derby — §8) — Claude Code 인수인계 문서 (v13)
+「짜고 치는 레이스」(가제, 영문 후보 Dirty Derby — §8) — Claude Code 인수인계 문서 (v14)
 > 이 문서는 이전 Claude 세션이 다음 세션에게 넘기는 완전 인수인계서다.
 > 독자(Claude Code)는 프로젝트 파일에 직접 접근할 수 있다 — 이 문서는 코드의 지도이자 맥락이다.
 > 코드와 문서가 어긋나면 **코드가 진실**이다 (실제로 문서-코드 불일치 사고 이력 있음).
@@ -8,7 +8,8 @@
 > **v6 세션(이번)에서 게임의 결이 크게 바뀜: ① 아이템 4슬롯(빠따/주사기2/무전기) + 든 것 시스템 ② 빠따 PvP 피격(부채꼴 판정→한 방 쓰러짐→아무 키 기상) ③ 채점 개편(1등/2등이상/3등이상, 90/50/30) ④ 커마 폴백 버그 픽스 ⑤ 타이틀 아이들 연기 ⑥ 뷰티파이 두 씬 적용. — §6 참조.**
 > **v6의 최대 미해결이던 "기상 때 1인칭 카메라 몸뚫림"은 v7 세션에서 두 안(몸 렌더러 숨기기 / 카메라 얼굴 앞 유지)을 구현·검증까지 마쳤으나 유저가 둘 다 기각 — "뚫리더라도 일어날 때 몸이 보이는 게 더 사실적" 결정으로 원본 유지, 수용된 한계 확정 (§7). 재제안 금지.**
 > v7 세션: ① 1인칭 껍데기 픽스(PlayerHeadAim 내 머리 회전 제거) ② 쓰러짐 카메라 리얼 연출(머리 본 추종 + 얼굴 앞 눈 앵커) ③ 기상 애니 교체(Anims3, 1.8초) ④ 인스펙터 피격 재생 버튼 ⑤ 커마 패널 UI 폴리싱 ⑥ 타이틀씬 대공사(터레인+원형 트랙+동물 퍼레이드+부스트 쇼+경주 시설물+픽셀 UI 통일+앵커). 빠따 duel MPPM은 유저 실기 통과.
-> **v13 세션(이번) — 스팀 출시 준비 + UX 대공사: ① 글로벌 서버**(Photon Fixed "kr" 해제 → Best Region 자동, 대시보드 화이트리스트 kr;us;eu — 유저가 직접 설정, 타이틀 좌하단 서버바+변경 팝업, `PhotonRegions` 단일 출처. 자동→kr(핑2ms)/us 전환/복귀 실측) ② **스팀 연동**(Facepunch.Steamworks 2.5.2 → `SteamHub`: 닉네임 자동 + **SteamID=Photon UserId** — §10 재접속 신원 문제 구조적 해결. 폴백=수동 닉네임, MPPM 가상 플레이어는 스팀 스킵+`mppm-N` UserId. ⚠ App ID 480 임시 — 출시 전 교체) ③ **타이틀 개편**(닉네임 입력칸 삭제, 설정 버튼 신설 → **설정 패널**: 볼륨/감도/시야각 50~90/해상도/화면모드/언어(잠금) — `SettingsStore` 단일 출처, 감도·FOV는 FPC 라이브 적용) ④ **방참가 대개편**(900×720 + 열 고정 테이블(방이름/인원/라운드/잠금 헤더) + ScrollRect 스크롤 — 열 정렬 -12px 사고 2건(TMP 마진 잔재+pivot 순서) 실측 0.0px 교정) ⑤ **게임씬 ESC 메뉴**(왼쪽 40% 다크+돌아가기/설정/게임종료, timeScale 무수정, 피격 통과+쓰러지면 자동 닫힘, ESC→빠따 부활 버그 픽스) ⑥ **손맛**(휠 슬롯 순환 1↔5 랩·빈 슬롯 포함, 주사기 찌르기(당김→스냅), 무전기 엄지 62°+램프 에미션 14) ⑦ 기각: 무전기 입가 모션+전파 링(구현·검증 후 유저 "안 와닿는다" — 롤백 완료) — §6, §7 참조.**
+> **v14 세션(이번) — 사운드 전면 배선: ① BGM 방향 확정**(유저 결정: **파티게임이라 친구들 음성 대화 위에 브금이 깔리면 서로 묻힘** → 타이틀 곡만 채우고 인게임은 무음, 나중에 넣어도 "평화로운 것"만. 인프라는 5트랙 그대로 두고 클립만 비움 = 자동 무음 페이드) ② **SFX 호출 배선 완료**(§15-5 — 신규 `SfxRelay`(전 클라 중계 이벤트 → 소리, 통신 0) + `UiClickSfx`(EventSystem 레이캐스트로 UI 클릭·호버 자동 감지 — 런타임 생성 버튼까지 커버). 둘 다 **SoundManager가 자동 부착**이라 씬 배선 0) ③ 개별 배선 10곳(빠따 스윙·타격·부서짐·쓰러짐·기상 / 슬롯 전환 / 문 / 피규어 / 확정 / LCD 타이핑 / 패널 3종) ④ `AudioLibrary.asset` **27+5칸 미리 채움**(3D 거리·피치 랜덤 폭까지 세팅 — 유저는 클립만 드래그) ⑤ `SfxId.SkillCatWalk` 추가. ⚠ **실제 소리는 미검증** — 클립이 하나도 없어 컴파일·타입까지만 확인. — §15, §6 참조.**
+> **v13 세션 — 스팀 출시 준비 + UX 대공사: ① 글로벌 서버**(Photon Fixed "kr" 해제 → Best Region 자동, 대시보드 화이트리스트 kr;us;eu — 유저가 직접 설정, 타이틀 좌하단 서버바+변경 팝업, `PhotonRegions` 단일 출처. 자동→kr(핑2ms)/us 전환/복귀 실측) ② **스팀 연동**(Facepunch.Steamworks 2.5.2 → `SteamHub`: 닉네임 자동 + **SteamID=Photon UserId** — §10 재접속 신원 문제 구조적 해결. 폴백=수동 닉네임, MPPM 가상 플레이어는 스팀 스킵+`mppm-N` UserId. ⚠ App ID 480 임시 — 출시 전 교체) ③ **타이틀 개편**(닉네임 입력칸 삭제, 설정 버튼 신설 → **설정 패널**: 볼륨/감도/시야각 50~90/해상도/화면모드/언어(잠금) — `SettingsStore` 단일 출처, 감도·FOV는 FPC 라이브 적용) ④ **방참가 대개편**(900×720 + 열 고정 테이블(방이름/인원/라운드/잠금 헤더) + ScrollRect 스크롤 — 열 정렬 -12px 사고 2건(TMP 마진 잔재+pivot 순서) 실측 0.0px 교정) ⑤ **게임씬 ESC 메뉴**(왼쪽 40% 다크+돌아가기/설정/게임종료, timeScale 무수정, 피격 통과+쓰러지면 자동 닫힘, ESC→빠따 부활 버그 픽스) ⑥ **손맛**(휠 슬롯 순환 1↔5 랩·빈 슬롯 포함, 주사기 찌르기(당김→스냅), 무전기 엄지 62°+램프 에미션 14) ⑦ 기각: 무전기 입가 모션+전파 링(구현·검증 후 유저 "안 와닿는다" — 롤백 완료) — §6, §7 참조.**
 > **v12 세션 — 손맛/비주얼 폴리싱: ① 피규어 손 정렬 종결(눈 기준 → IK 손 본 기준 — 하늘/땅 볼 때 손과 갈라지던 것 픽스) + 받침 손 연출(손 우하단·손바닥 위·손가락 완전 폄) ② **빠따 내구도**(명중 10대 소진, HUD 세로 게이지 초록→주황50%→빨강20%, 라운드마다 회복 — §3-9) ③ **타이틀 UI 리스킨**(픽셀 → 다크 라운드+앰버 호버, PixelBorder 제거) ④ **Pretendard 폰트 전면 교체**(무전기 LCD·로고만 제외) ⑤ 타이틀 자연물 365개 산포(나무70/바위35/잔디260 — TitleNatureGen) ⑥ 커마 열기 카메라 클로즈업 연출(CameraGlide) — §6 참조. ⚠ 받침대(색 원판) 쥘 때 표시는 시도 후 유저 기각 — 숨김 확정, 재제안 금지.**
 > **v11 세션 — 소품이 진짜가 됨 + glTF 파이프라인: ① `GltfBaker` 신규(glb/gltf → 유니티 네이티브 메시·머티리얼·프리팹으로 굽기, 런타임 로더 무설치. 노멀맵 자동 임포트 포함) ② 무전기·빠따를 Sketchfab 실물 모델로 교체(⚠ 둘 다 CC-BY — 크레딧 의무 §14) ③ **무전기 LCD 디스플레이**(LAB디지털 TMP 폰트, 발동=이름 한 글자씩 타이핑 / 처형=실시간 꼴등 표시) + 램프 3회 깜빡 → 자동 수납 ④ 아이템 재고 규칙(`SlotNone` 신설 — 다 쓴 슬롯은 들면 빈손, 소진 시 자동 수납) ⑤ 무전기 손 모양(손가락 펴고 엄지만 접어 감싸 쥠) ⑥ 조명 A안(ambient 0.4→0.75로 맵 전체 복구 + 실내등 낮춰 방 어두움 유지) ⑦ 버그픽스 2건(`IsLocalAvatar` 굳음 / **클라에서 `Racer.Progress`가 0에 멈춰 순위가 틀리던 것**) — §3-13, §6 참조.**
 > **v10 세션 — 베팅이 UI에서 공간으로: ① 1인칭 아이템 팔 IK(주사기·무전기를 시야 안에 들어올림) ② 빠따를 ithappy 실제 모델로 교체 ③ 트랙 웨이포인트 175개 자동 교정(도로 밖 19개 → 0) ④ 로고 프롬프트 작업(Dirty Derby 워드마크, 유저가 이미지 생성) ⑤ **2D 베팅 패널 전면 폐기 → 피트스탑 개인실 4개**(피규어를 유리 상자에 넣어 예측, 문 개폐, 남의 방 진입 차단, 전시대+스크린, 실내 조명 연출) ⑥ 1인칭 시점 안정화(서 있을 때 아이들 고갯짓이 화면을 안 흔듦, 남의 화면은 정상) — §3-12, §6 참조. ⚠ 씬 저장은 유저가 직접(Ctrl+S) — 세션 중 저장 안 함이 기본.**
@@ -277,7 +278,18 @@ NetPlayer 프리팹(Resources): FPC+카메라+PlayerInteractor+PhotonView+Transf
 동물 프리팹 7종(Resources): 모델+Animator+Rigidbody(FreezeRotation)+Racer+RacerMotor+PhotonView+TransformView+AnimatorView+NetworkRacerSetup+RacerNumberPlate(루트)+번호판. v4: 등 1판 → 양 옆구리 2세트(PlateCubeL/R + PlateNumL/R, 형제 구조)로 교체 — 부모는 v3 그대로 등뼈 본(개 spine.005/고양이 spine.006/말 spine.006/치킨 spine.003/펭귄 spine.005/호랑이 spine.010/사슴 spine.004)이라 달릴 때 출렁임 유지. 옆구리 x오프셋은 스킨드메시 정점 실측(뿔/날개로 바운즈 과대인 사슴·펭귄 대응), TMP는 LookRotation(±x, up)으로 좌우 각각 바깥면·숫자 직립 보장. v4: 치킨·고양이 루트 스케일 1.5배(유저 요청 — 몸통 콜라이더는 스폰 시 자동 산출이라 무추가작업, 대신 §11 콜라이더 로컬 단위 법칙 참조).
 Run In Background 설정됨. 동기화 컴포넌트 변경 시 재빌드 철칙 (v3·v4 변경분은 전부 동기화 무변경 — 단 프리팹 비주얼 변경(번호판/크기)은 클라 로컬 스폰이라 멀티 테스트 시 빌드 갱신 필요).
 ---
-6. 최근 완료 (v13 세션 하이라이트)
+6. 최근 완료 (v14 세션 하이라이트)
+**BGM 방향 확정 (기획 결정 — 유저)**: v13에서 Suno 프롬프트 5곡을 뽑아뒀지만, 유저가 **타이틀 곡만 구하고 멈췄다**. 이유가 중요하다 — "**파티게임이라 친구들끼리 말을 많이 하는데 뒤에 브금이 깔리면 좀 그럴 것 같다**". 그래서 인게임은 **무음이 기본**이고, 나중에 넣더라도 "평화로운 것"만. 인프라는 손대지 않았다(5트랙 항목 그대로, 클립만 비움) — `SwitchBgm`이 빈 클립을 무음 페이드로 처리하므로 **타이틀 → 게임 씬 진입 시 1.2초 페이드아웃 후 조용**해진다. 나중에 마음이 바뀌면 Lobby 칸에 클립 하나 꽂는 것으로 끝. §15-2의 나머지 4곡 프롬프트는 그대로 보존(폐기 아님, 보류).
+**SFX 호출 배선 (§15-5)**: 유저 발주 "SFX 호출 배선 따줘". 신규 2개 + 개별 10곳.
+· **`SfxRelay.cs` (신규)** — 아이템 사용·완주/탈락·스킬 발동·페이즈를 한곳에서 구독해 소리를 낸다. **몰아둔 이유가 핵심**: 이 사건들을 일으키는 코드(`ItemExecutor`, `Racer.SimTick`, `RaceManager`)는 **전부 호스트 전용**이라 그 자리에 소리를 넣으면 **게스트 화면이 조용하다**. 반면 `GameEvents`는 게이트웨이가 전 클라로 중계하므로 구독해서 각자 로컬 재생하면 **네트워크 추가 통신 0** (부스트 먼지·무전기 LCD와 같은 철학). 반대로 "내 손"에서 나는 소리(스윙·슬롯·피규어)는 각 호출부에 직접 넣었다 — 그쪽은 애초에 로컬/RPC 재생 지점이다.
+· **`UiClickSfx.cs` (신규)** — 버튼마다 `onClick`을 배선하는 대신 **EventSystem 레이캐스트**로 잡는다. 방 목록·커마 패널·설정 행처럼 **런타임에 생기는 버튼이 많아서** 씬에서 하나씩 연결하면 새 버튼이 계속 빠진다(그리고 버튼이 늘 때마다 배선을 잊는다). 호버음은 **다른 버튼으로 넘어간 순간에만**, 커서 잠긴 동안(1인칭 조작 중)은 통째로 스킵.
+· **둘 다 `SoundManager.Awake`가 자동 부착** — `DontDestroyOnLoad` 오브젝트에 얹히므로 두 씬 모두 커버되고 **씬 배선이 0**이다(씬을 또 dirty로 만들지 않아도 됨).
+· **소리 위치 규칙**: 남에게도 들려야 하는 건 전 클라 재생 지점(RPC/중계 이벤트)에 넣고 3D, 내 화면 전용은 2D. 예 — 타격음은 **때린 쪽 로컬 판정이 아니라 피해자의 `RpcKnockdown`**에 넣었다(때린 쪽에 넣으면 정작 맞은 사람 화면이 조용하다). 아이템 발사음은 쏜 본인만 2D, 명중음은 동물 자리에서 3D.
+· ⚠ **스킬음은 문자열 매칭이라 문구를 고치면 조용히 깨진다** — 중계되는 게 피드 문자열뿐이라 `"포효"/"루돌프"/"냅다 달린다"/"사뿐사뿐"` 키워드로 가른다(RoarFx와 같은 방식). `Racer`/`RacerMotor`/`RaceManager`의 피드 문구를 바꾸면 `SfxRelay` 키워드도 같이 바꿀 것(코드에도 ⚠ 주석 있음).
+**`AudioLibrary.asset` 미리 채움**: 배열이 **둘 다 비어 있어서**(SFX 0칸/BGM 0칸) 그대로면 유저가 항목을 손으로 만들고 enum을 골라야 했다 → **SFX 27칸 + BGM 5칸을 MCP로 생성**하고 3D 최대 거리(포효 80m / 주사기 명중 40m / 플레이어·문 25m / 나머지 2D)와 피치 랜덤 폭(타격류만 0.95~1.05, UI·카운트다운은 1.0 고정)까지 세팅. 이제 **클립만 드래그하면 끝**. `Assets/Audio/BGM`·`SFX` 폴더도 생성.
+**검증 범위 (정직하게)**: 컴파일 성공 + 새 타입/enum 로드 + 씬 `SoundManager` 존재까지 MCP로 확인. **실제 소리는 못 들어봤다** — 클립이 하나도 없어 전부 "조용히 스킵" 경로만 탄 셈. 3D 거리감·타이밍(특히 쓰러짐 `thudDelay` 0.45초)은 클립을 넣고 들어봐야 조정 가능.
+---
+6-03. 이전 세션 완료 (v13 하이라이트)
 **글로벌 서버 (스팀 출시 준비 1탄)**: 유저 발주 "kr 고정 풀고 서버 선택 줘야 하나" → 논의로 확정: **자동(Best Region) 기본 + 수동 선택은 대륙 간 친구 파티용**(Photon 방 목록은 지역별 분리라 필수). 유저가 겪던 "kr/jp/asia가 자꾸 바뀜" = 동네 이웃 지역 핑 동점 뒤집힘 + 유저풀 파편화 → **Photon 대시보드 리전 허가 리스트 kr;us;eu**(유저가 직접 설정)로 해결 — 지역 추가는 패치 없이 대시보드 클릭(asia/sa는 유저 늘면 켜기로). 클라: PhotonServerSettings FixedRegion 해제, `NetworkLauncher.Connect/ChangeRegion`(끊고 재접속), `PhotonRegions`(코드/한글이름 단일 출처 — 지역 추가 시 여기 한 줄), 타이틀 좌하단 **서버바**(다크 라운드, "서버: 자동 (한국)")+변경 팝업. 실측: 자동=kr 핑2ms·화이트리스트 3개 확인·us 전환·자동 복귀 풀사이클.
 **스팀 연동 (2탄)**: Facepunch.Steamworks 2.5.2 (`Assets/Plugins/Facepunch.Steamworks/` — 릴리스의 Unity 폴더 그대로, .meta 포함이라 플랫폼 설정 자동. MIT — 크레딧 의무 없음). `SteamHub`(static): 부팅 시 Init → 닉네임(실측 "제비꽃 하나")+SteamID 제공, 실패 시 IsAvailable=false. `NetworkLauncher`가 **SteamID를 Photon UserId(AuthValues)로** — 창 껐다 켜도 같은 사람 = §10 "재접속 복귀 UserId" 문제 구조적 해결. `MppmTestClient`는 `mppm-N` UserId 고정(전 창 같은 스팀 계정이라 SteamID 겹침 방지, §11). ⚠ **App ID 480(Spacewar) 임시 — 출시 전 SteamHub.AppId + 루트 steam_appid.txt 교체**.
 **타이틀 개편**: 닉네임 입력칸 삭제(스팀 자동, 폴백=저장값/랜덤 코드 처리), 버튼 5개 재배치(방만들기/방참가/커마/**설정**/종료). **설정 패널**(다크 카드 600): 볼륨·감도 슬라이더 / **시야각 50~90°**(FPC 라이브 적용 — 인게임 ESC에서 바꿔도 즉시) / 해상도·화면모드 ◀▶(에디터 체감 불가 — 빌드 확인) / 언어 잠금("한국어 (추후 지원)" — **로컬라이제이션은 문자열 추출 대작업이라 별도 세션**, §7). `SettingsStore`(static, PlayerPrefs+전역 적용) / `SettingsPanel`(UI 흐름, hideWhileOpen 패턴). 검증: 값→AudioListener/프리퍼런스 실측, 원복 확인.
@@ -375,7 +387,9 @@ MPPM 멀티 실기 테스트 (§10): 빌드 없이 2인 테스트 성공. 옷 �
 게임 제목 논의: 영문 Dirty Derby 추천(§8), 스플래시아트 AI 생성 프롬프트 세트 전달됨.
 ---
 7. ★ 다음 작업 큐 (우선순위순)
-★ **v13 0순위: 씬 저장 확인 2건** — ① GameScene: ESC 메뉴(PauseMenu+SettingsPanel 복제)가 미저장일 수 있음 ② TitleScene: **유령 카메라(`__captureCam`) 삭제분이 미저장**(세션 말미 픽스 — 저장 안 하면 다음 실행에 유령 카메라 부활). 프리팹(NetPlayer/RoomItem)·PhotonServerSettings·스크립트는 저장 완료.
+★ **v14 0순위: 사운드 실플레이 검증** — 배선은 끝났고 클립만 없다. ① 유저가 **타이틀 곡을 `AudioLibrary.asset` 배경음 Element 0(Title)에 꽂고** 타이틀 진입 → 재생·볼륨 슬라이더·게임 씬 진입 시 페이드아웃 확인 (⚠ BGM 임포트 설정 = **Load Type: Streaming / Vorbis / Preload 끄기**) ② SFX 클립을 채우는 대로 **소리 나는지 + 타이밍 감** 확인 — 특히 쓰러짐 `thudDelay`(0.45초, PlayerKnockdown 인스펙터), 3D 거리(포효 80m·주사기 명중 40m가 관전 거리에서 적절한지), 카운트다운 비프 간격(1초 고정). ③ UI 클릭·호버음이 **과한지** (호버는 버튼 넘어갈 때만 나지만 메뉴가 촘촘하면 시끄러울 수 있음 — 거슬리면 `UiClickSfx`에서 호버 한 줄 제거).
+★ **v14 미검증**: 멀티에서 3D 소리 위치·남의 스윙/타격이 들리는지(전 클라 RPC 재생이라 이론상 동작), 무전기 LCD 타이핑음이 원격에서 안 나는 것(의도 — `IsMine` 가드).
+★ **v13 0순위(이월, v14에서 확인 안 함): 씬 저장 확인 2건** — ① GameScene: ESC 메뉴(PauseMenu+SettingsPanel 복제)가 미저장일 수 있음 ② TitleScene: **유령 카메라(`__captureCam`) 삭제분이 미저장**(세션 말미 픽스 — 저장 안 하면 다음 실행에 유령 카메라 부활). 프리팹(NetPlayer/RoomItem)·PhotonServerSettings·스크립트는 저장 완료.
 ★ **v13 출시 전 필수**: ① SteamHub.AppId 480 + 루트 steam_appid.txt → **진짜 스팀 App ID로 교체**(스팀워크스 등록 $100 후) ② **언어 로컬라이제이션 별도 세션**(전 코드/씬 하드코딩 한국어 수백 개 키 추출이 본체 — 콘텐츠 불어나기 전이 쌈. 설정 패널 언어 칸은 잠금 상태로 대기 중).
 ★ **v13 멀티 실기 미검증**: 서버 수동 선택을 다른 지역 2인으로(방 목록 분리 체감), 스팀 신원 2인(닉네임/UserId — MPPM은 스팀 스킵이라 스탠드얼론 필요), ESC 메뉴 중 남이 보는 내 모습(그냥 서 있음 — 의도), 휠 순환·주사기 찌르기의 원격 화면(이론상 동일).
 ★ **v13 유저 육안/빌드 확인**: 해상도·화면모드 전환(에디터 불가 — **빌드에서**), 인게임 FOV 슬라이더 체감, ESC 패널 어둡기(0.8)/버튼 배치, 실제 ESC 키 손맛, 설정 패널 감성(카드 크기·행 간격), 휠 방향(아래=다음 — 뒤집기 한 줄), 찌르기 감성(`thrustPullDistance` 0.22/`thrustSeconds` 0.28), 엄지 62°·램프 14 체감, 서버바/팝업 디자인.
@@ -624,6 +638,9 @@ GameConfig.debugProgressLog: [투영점프]/NaN 감시.
 TrackPath 빌드 검진 로그+기즈모.
 ---
 13. 세션별 생긴 에셋/파일 (경로 지도)
+[v14 신규 — 코드 2] `Assets/Scripts/SfxRelay.cs`(전 클라 중계 이벤트 → 효과음, 통신 0) · `Assets/Scripts/UiClickSfx.cs`(EventSystem 레이캐스트 기반 UI 클릭·호버음). **둘 다 씬 배선 없음 — `SoundManager.Awake`가 자동 부착**.
+[v14 수정 — 코드 12] AudioLibrary.cs(`SkillCatWalk = 53` 추가 — 그룹 뒷번호, 재배치 아님) · SoundManager.cs(위 2종 자동 부착) · PlayerEquipment.cs(스윙 3D·부서짐 2D + `ApplyBatWear` 0 가드) · PlayerKnockdown.cs(타격·바닥 쿵·기상 3D + `thudDelay` 필드 신설) · PlayerItemController.cs(슬롯 전환 — 손이 실제로 바뀐 프레임만) · BettingRoom.cs(셔터 슬라이드 3D + `doorMoving` 상태) · FigurineBetting.cs(집기/놓기 3지점) · RoomConfirmButton.cs(확정 — 호스트 접수 성공 시에만) · RadioScreen.cs(LCD 타이핑음, 글자당 1회) · SettingsPanel.cs · PauseMenu.cs · CustomizationPanel.cs(패널 열기/닫기)
+[v14 에셋] `AudioLibrary.asset` — **SFX 27칸 + BGM 5칸 생성**(클립은 전부 비어 있음 = 조용히 스킵. 3D 거리·피치 랜덤 폭 세팅 완료, `AssetDatabase.SaveAssets`로 저장됨) · 폴더 `Assets/Audio/BGM`, `Assets/Audio/SFX` 생성. **씬·프리팹은 v14에서 건드리지 않음**.
 [v13 신규 — 코드 6] `Assets/Scripts/Network/PhotonRegions.cs`(지역 코드/한글명 단일 출처) · `Network/SteamHub.cs`(스팀 초기화+신원, App ID 480 임시) · `RegionSelector.cs`(서버바 UI) · `SettingsStore.cs`(옵션 값 단일 출처) · `SettingsPanel.cs`(설정 UI — 타이틀+게임씬 복제 공용) · `PauseMenu.cs`(ESC 메뉴)
 [v13 신규 — 외부/기타] `Assets/Plugins/Facepunch.Steamworks/`(2.5.2, MIT — 릴리스 Unity 폴더 그대로, Win64/Posix DLL+redistributable) · 루트 `steam_appid.txt`(480 — 출시 전 교체) · 루트 debug_방참가_스크롤_상단/하단.png(참고 캡처)
 [v13 수정 — 코드 10] NetworkLauncher.cs(지역 자동/수동 접속·ChangeRegion·SteamID→AuthValues) · TitleMenu.cs(닉네임 입력칸 제거 — 스팀 자동+폴백) · MppmTestClient.cs(mppm-N UserId 고정) · FirstPersonController.cs(감도 배율+FOV 라이브 적용) · PlayerInteractor.cs(커서 가드) · PlayerItemController.cs(휠 순환 wheelSlot 커서) · PlayerAimPose.cs(주사기 찌르기 — 클램프 뒤·엄지 62° X축) · RadioScreen.cs(램프 에미션 14) · FigurineBetting.cs(PauseMenu 동결 한 줄) · RoomListItem.cs(열 구조 재작성)
@@ -692,7 +709,7 @@ TrackPath 빌드 검진 로그+기즈모.
 
 표기 의무 없음(참고): ithappy Creative_Characters_FREE / Weapons_FREE, Kevin Iglesias Human Melee 2.0 FREE(Fab Standard), Beautify, Mixamo 애니메이션, LAB디지털 폰트(유저 확보 — ⚠ 폰트 라이선스는 유저가 재확인 필요), **Facepunch.Steamworks(MIT — v13)**, Pretendard(OFL).
 ---
-15. ★ 사운드 (v14 세션 구축 — 인프라 완료, 에셋 소싱 중)
+15. ★ 사운드 (v14 — 인프라 + 호출 배선 전부 완료, **남은 건 에셋 소싱뿐**)
 15-1. 인프라 (구축 완료, 씬 배선까지 끝 — 클립만 꽂으면 소리 남)
 `AudioLibrary.cs` — `SfxId`/`BgmTrack` enum + 소리 데이터 SO. 클립 변형 배열(재생마다 랜덤)·볼륨·피치 랜덤 폭·3D 최대 거리를 전부 SO에서 튜닝 (GameConfig 철학). ⚠ **enum 번호는 SO에 int로 저장되므로 재배치 금지** (AnimalSkill과 같은 규칙) — 새 소리는 그룹 뒷번호에 추가(그룹당 10칸 여유: UI 1x / 레이스 2x / 빠따 3x / 아이템 4x / 스킬 5x / 베팅방 6x).
 `SoundManager.cs` — 씬 넘어 유지되는 싱글턴(`DontDestroyOnLoad`, 중복 인스턴스는 자기 파괴). **SFX** = AudioSource 풀 16개 원샷, 호출부는 `SoundManager.PlaySfx(SfxId.BatHit)` (2D) 또는 `PlaySfx(id, worldPos)` (3D 거리 감쇠) 한 줄. `PlayClipAtPoint`는 볼륨 배율을 못 태우고 GC가 나와서 안 쓴다. **BGM** = 2채널 크로스페이드(1.2초, `Time.unscaledDeltaTime`이라 ESC 메뉴 중에도 진행) + **페이즈 방송 구독 자동 전환** — 페이즈는 이미 전 클라 중계라 **네트워크 추가 통신 0**(부스트 먼지·무전기 LCD와 같은 철학).
@@ -701,7 +718,9 @@ TrackPath 빌드 검진 로그+기즈모.
 · 클립이 비어 있는 항목은 재생 요청이 와도 **조용히 스킵** — 에셋을 채우는 대로 소리가 나기 시작한다(배선을 미리 다 깔아도 안전).
 **볼륨 3단 분리**: 마스터 = `AudioListener.volume`(기존 `SettingsStore.Volume` 그대로) × BGM/SFX 배율(`SettingsStore.BgmVolume` 기본 0.8 / `SfxVolume` 기본 1.0). BGM은 대입 즉시 재생 중인 곡에 반영(`SoundManager.NotifyBgmVolumeChanged`), SFX는 재생 시점에 읽으므로 통지 불필요. **AudioMixer는 안 씀** — 코드로 생성이 안 되고 지금 요구(슬라이더 3개)엔 과하다. 덕킹(레이스 중 BGM 낮추기) 같은 게 필요해지면 그때 얹을 것.
 씬 배선(양쪽 씬 동일, 실측 검증 완료): 설정 카드 600→**740** 확장 + 8행 리플로우(간격 70), **배경음(y175)·효과음(y105) 행 추가**, "볼륨"→"전체 볼륨" 개명, `SoundManager` 오브젝트(GameScene=`시스템` 밑 / TitleScene=`Managerrs` 밑) + `AudioLibrary.asset` 배선.
-15-2. ★ Suno BGM 프롬프트 (유저 확정 — 타이틀 A안 채택, 나머지 4곡은 그 결에 맞춤)
+**자동 부착 (v14)**: `SoundManager.Awake`가 `SfxRelay`·`UiClickSfx`를 자기 오브젝트에 얹는다 — `DontDestroyOnLoad` 덕에 두 씬 모두 커버되고 **씬을 또 건드릴 필요가 없다**. 새 사운드 컴포넌트가 생기면 같은 자리에 한 줄 추가하는 게 규약.
+15-2. ★ Suno BGM 프롬프트 (⚠ **타이틀만 채택 — 나머지 4곡은 v14에서 보류**, 폐기 아님)
+**⚠ v14 기획 결정**: 유저가 타이틀 곡만 구하고 멈췄다 — "**파티게임이라 친구들끼리 말을 많이 하는데 뒤에 브금이 깔리면 좀 그럴 것 같다**". 인게임은 **무음이 기본**, 나중에 넣더라도 "평화로운 것"만. 아래 ②~⑤ 프롬프트는 그때 쓸 수 있게 그대로 둔다. **다시 제안할 땐 이 이유(음성 대화와의 충돌)부터 짚을 것.**
 **공통 규칙**: ⚠ **"연주곡"(Instrumental) 체크 필수** — 안 하면 AI 보컬이 노래를 부른다. 프롬프트 끝 `instrumental` 태그는 보험. ⚠ **Suno 유료 플랜이어야 상업 이용 가능**(유저 = 플러스 회원, 확인됨). 곡당 3~4번 돌려 고르고, 마음에 드는 게 나오면 Cover/Remaster로 파생시키면 결 유지가 쉽다. 길이 2~3분(정산만 1분대 OK).
 **공통 DNA (전 곡 유지 — 이게 "같은 밴드가 연주하는 느낌"의 정체)**: `muted trumpet / upright bass / brushed drums / speakeasy`.
 ① **Title** (확정 채택 — 게임 톤의 기준점):
@@ -715,15 +734,41 @@ TrackPath 빌드 검진 로그+기즈모.
 ⑤ **Settlement** (짧은 페이즈 — **앞 30초가 좋은 곡**으로 고르면 됨):
 `triumphant speakeasy big band, celebratory brass fanfare, muted trumpet flourish, upright bass, snappy horn hits, showbiz results reveal, 124 bpm, playful and grand finale, vintage casino jackpot, instrumental`
 **기각된 타이틀 후보 2종(이력 — 재제안 전에 이 축을 이미 봤음을 상기할 것)**: B안 화려한 쇼 오프닝(`grand big band swing overture, showtime fanfare, ... racetrack grandstand excitement`) / C안 코믹 카툰(`comedic cartoon ragtime, circus-like carnival march, honky-tonk piano, tuba oompah bass, slide whistle`). 세 축의 차이 = A "수상한 도박장에 오신 걸 환영합니다" / B "대망의 레이스가 시작됩니다!" / C "여기 미친 놈들밖에 없습니다".
-15-3. 유저 작업 순서 (BGM 꽂기)
-① `Assets/Audio/BGM/`에 파일 넣기(title/lobby/betting/racing/settlement) → ② `Assets/ScriptableObject/AudioLibrary.asset` 인스펙터 → **배경음** 배열 Size 5 → 트랙별 클립 꽂기 → ③ 곡끼리 음량 차이 나면 각 항목 volume으로 조절. **씬 배선은 이미 끝나서 꽂자마자 소리 남.**
+15-3. 유저 작업 순서 (클립 꽂기 — v14에서 항목을 미리 다 만들어둠)
+**BGM**: ① `Assets/Audio/BGM/`에 파일 넣기 → ② `Assets/ScriptableObject/AudioLibrary.asset` 인스펙터 → **배경음** 배열의 **Element 0 (Track = Title)** 의 `Clip`에 드래그 → ③ 음량은 항목 `volume`(기본 0.8)으로. **배열 5칸이 이미 만들어져 있으므로 Size를 건드릴 필요 없다.** 나머지 4칸은 비워두면 자동 무음(= 현재 기획 방향).
+· ⚠ **BGM 임포트 설정**: 파일이 길어서 **Load Type = Streaming / Compression = Vorbis / Preload Audio Data 끄기**로 둬야 메모리를 안 잡아먹는다.
+**SFX**: `Assets/Audio/SFX/`에 넣고 **효과음** 배열의 해당 항목 `Clips`에 드래그. **27칸이 이미 enum·3D 거리·피치 폭까지 세팅된 채로 있다.** `Clips`에 **2~3개를 넣으면 재생마다 랜덤**이라 빠따 타격음처럼 자주 나는 소리가 훨씬 덜 지겹다.
 15-4. 남은 일
-· **SFX 호출 배선** (다음 작업) — ★★★부터: 빠따 스윙/명중/부서짐·쓰러짐, 카운트다운·출발·완주·처형, 스킬 3종. 그다음 ★★ 아이템(주사기/무전기/슬롯 전환)·베팅방(문/피규어/확정), ★ UI·관중 앰비언스. **클립이 없어도 배선은 미리 가능**(빈 항목은 조용히 스킵).
-· **SFX 에셋 소싱** (유저) — 추천: Kenney(CC0, 표기 의무 없음), Sonniss GDC 무료팩, 에셋스토어 무료팩. ⚠ freesound.org는 파일마다 라이선스가 달라 하나씩 확인 필요 — **CC0 우선**이 제일 속 편함. CC-BY를 쓰면 **§14 표에 한 줄 추가**할 것.
-· 미정: 레이스 막판 곡 고조, 덕킹(중요 사건 때 BGM 낮추기), 관중 앰비언스 루프.
+· **SFX 에셋 소싱** (유저 — 이제 이것만 남았다) — 추천: Kenney(CC0, 표기 의무 없음), Sonniss GDC 무료팩, 에셋스토어 무료팩. ⚠ freesound.org는 파일마다 라이선스가 달라 하나씩 확인 필요 — **CC0 우선**이 제일 속 편함. CC-BY를 쓰면 **§14 표에 한 줄 추가**할 것.
+· 우선순위: ★★★ 빠따(스윙/타격/부서짐)·쓰러짐/기상·카운트다운/출발·처형 → ★★ 주사기 발사/명중·무전기·슬롯 전환·문·피규어·확정 → ★ UI 클릭/호버·완주.
+· 미정: 레이스 막판 곡 고조, 덕킹(중요 사건 때 BGM 낮추기), 관중 앰비언스 루프, **부서짐 이펙트**(소리는 배선됐지만 비주얼은 여전히 없음 — v12 백로그).
+15-5. ★ SFX 호출 배선 지도 (v14 — 어디서 무슨 소리가 나는가)
+**설계 규칙 2줄**: ① 남에게도 들려야 하면 **전 클라 재생 지점**(RPC 또는 중계 이벤트)에 넣고 **3D**, 내 화면 전용은 **2D**. ② 호스트 전용 코드에는 소리를 넣지 않는다 — 게스트가 조용해진다.
+| 소리 | 넣은 자리 | 방식 |
+|---|---|---|
+| BatSwing | `PlayerEquipment.RpcSwing` | 3D · 전 클라 |
+| BatHit | `PlayerKnockdown.RpcKnockdown` (때린 쪽 판정이 아니라 **피해자 RPC**) | 3D · 전 클라 |
+| Knockdown | `PlayerKnockdown.FallToDown`의 `thudDelay`(0.45초) 지점 | 3D · 전 클라 |
+| GetUp | `PlayerKnockdown.RpcGetUp` | 3D · 전 클라 |
+| BatBreak | `PlayerEquipment.ApplyBatWear`가 0이 되는 순간 | 2D · 내 것만(내구도가 로컬 상태) |
+| SlotSwitch | `PlayerItemController.SelectSlot` — **손이 실제로 바뀐 프레임만** | 2D |
+| SyringeShot / RadioUse | `SfxRelay.HandleItemUsed` 중 `pid == 내 ID` | 2D · 성공한 사용만 |
+| SyringeHitBoost / Slow | 같은 곳, 대상 동물 위치 | 3D(40m) |
+| RadioTyping | `RadioScreen.TypeOut` 글자당 1회 | 2D · `IsMine` 가드 안 |
+| CountdownBeep / RaceStart | `SfxRelay.HandlePhaseChanged` (비프는 1초 간격 코루틴) | 2D |
+| RacerFinish | `SfxRelay.HandleRacerFinished`, **상위 3등만**(`finishSfxTopRanks`) | 2D |
+| Execution | 같은 곳, `eliminated=true` | 2D · 판 전체의 사건 |
+| SkillRoar/Rudolph/Dash/CatWalk | `SfxRelay.HandleSkillProc` — **피드 문자열 키워드 매칭** | 3D(동물 위치) |
+| DoorSlide | `BettingRoom.Update` 셔터가 움직이기 시작하는 프레임 | 3D(25m) |
+| FigurinePick / Place | `FigurineBetting.PickUp` / 놓기 3지점 | 2D · 내 방 로컬 |
+| BetConfirm | `RoomConfirmButton` 콜백 **`ok == true`일 때만** | 2D |
+| PanelOpen / Close | SettingsPanel · PauseMenu · CustomizationPanel | 2D |
+| UiClick / UiHover | `UiClickSfx` — EventSystem 레이캐스트 (배선 없음) | 2D |
+⚠ **스킬음 4종은 문자열 매칭이라 피드 문구를 바꾸면 에러 없이 조용해진다** — `Racer`/`RacerMotor`/`RaceManager`의 문구를 고치면 `SfxRelay`의 키워드(`"포효"/"루돌프"/"냅다 달린다"/"사뿐사뿐"`)도 같이 고칠 것. 이게 v14 배선에서 유일하게 깨지기 쉬운 지점이다.
 ---
 — 끝. 코드가 진실, 이 문서는 지도다.
-**v13 다음 첫 안건**: ① **씬 저장 확인 — GameScene(ESC 메뉴) + TitleScene(유령 카메라 `__captureCam` 삭제분, §11)** → ② v13 멀티 실기(서버 선택·스팀 신원 — 스탠드얼론 필요, ESC/휠/찌르기 원격 화면) + v11 이월 멀티(클라 순위 `UpdateMirrorProgress`·무전기 수납 원격) → ③ 빌드 확인(해상도/화면모드/FOV — 에디터 불가) → ④ 유저 육안(§7 v13 목록) → ⑤ **출시 전: 스팀 App ID 교체 + 언어 로컬라이제이션 세션**(§7) → ⑥ 리롤 간격 결정(§8) → ⑦ 밸런스 재조정 → ⑧ 감속 아이템 연출 → ⑨ 킥 잔여 → ⑩ 성능 최적화 → ⑪ §14 크레딧.
+**v14 다음 첫 안건**: ① **사운드 실플레이** — 타이틀 곡을 AudioLibrary 배경음 Element 0에 꽂고 확인(§15-3, 임포트 Streaming 주의), SFX는 클립을 채우는 대로 타이밍·거리감 조정(§7 v14 0순위) → ② **씬 저장 확인 (v13 이월, v14에서 확인 안 함)** — GameScene(ESC 메뉴)·TitleScene(유령 카메라 `__captureCam` 삭제분, §11) → ③ 멀티 실기(v13 서버/스팀 + v11 클라 순위 `UpdateMirrorProgress` + **v14 소리의 원격 확인**) → ④ 빌드 확인(해상도/화면모드/FOV) → ⑤ **출시 전: 스팀 App ID 교체 + 언어 로컬라이제이션 세션**(§7) → ⑥ 리롤 간격 결정(§8) → ⑦ 밸런스 재조정 → ⑧ 감속 아이템 연출 → ⑨ 킥 잔여 → ⑩ 성능 최적화 → ⑪ §14 크레딧.
+(v13 안건 순서, 이력용): ① **씬 저장 확인 — GameScene(ESC 메뉴) + TitleScene(유령 카메라 `__captureCam` 삭제분, §11)** → ② v13 멀티 실기(서버 선택·스팀 신원 — 스탠드얼론 필요, ESC/휠/찌르기 원격 화면) + v11 이월 멀티(클라 순위 `UpdateMirrorProgress`·무전기 수납 원격) → ③ 빌드 확인(해상도/화면모드/FOV — 에디터 불가) → ④ 유저 육안(§7 v13 목록) → ⑤ **출시 전: 스팀 App ID 교체 + 언어 로컬라이제이션 세션**(§7) → ⑥ 리롤 간격 결정(§8) → ⑦ 밸런스 재조정 → ⑧ 감속 아이템 연출 → ⑨ 킥 잔여 → ⑩ 성능 최적화 → ⑪ §14 크레딧.
 (v12 안건 순서, 이력용): ① **씬 저장 확인** (TitleScene 마지막 작업(커마 카메라/hideWhileOpen)이 dirty로 남았을 수 있음) → ② **유저가 예고한 "중요한 것"** — v12 말미에 "이제 중요한 거 남았다"며 새 대화를 팠다. 내용 미상, 유저 발주를 먼저 들을 것 → ③ v11 이월: 무전기·아이템 멀티 실기(MPPM — 특히 클라 순위 표시 `UpdateMirrorProgress`) + 빠따 내구도 멀티(부서짐 수납이 남의 화면에 보이는지) → ④ 베팅 방 멀티 실기 → ⑤ 유저 육안(§7 v12·v11 목록) → ⑥ **리롤 간격 결정**(§8) → ⑦ 밸런스 재조정 → ⑧ 감속 아이템 연출 → ⑨ 킥 잔여 → ⑩ 성능 최적화 → ⑪ 출시 전 §14 크레딧.
 (v11 안건 순서, 이력용): ① **씬 저장** (v11 조명 A안이 dirty로 남아 있을 수 있음 — `ambientIntensity` 0.75인지 확인) → ② **무전기·아이템 멀티 실기(MPPM 2인)** — 특히 **클라 순위 표시**(`UpdateMirrorProgress`가 실제로 맞는지 = 처형 무전기 화면이 게스트에서도 정답인지), 무전기 수납이 남의 화면에서도 되는지 → ③ 베팅 방 멀티 실기(v10 이월: 방 배정·남의 방 차단·문 4상태·피규어 비공개) → ④ 유저 육안(§7 v11 목록) → ⑤ **리롤 간격 결정**(§8, 밸런싱의 대전제) → ⑥ 밸런스 재조정(corner_sim_v9.py, 밴드 23~28) → ⑦ 감속 아이템 연출 → ⑧ 킥 잔여(익명 저격) → ⑨ 성능 최적화 → ⑩ **출시 전: §14 크레딧 반영**.
 (v10 안건 순서, 이력용): ① **씬 저장 확인** (v10 작업 전부 미저장 상태로 넘어왔을 수 있음 — 베팅방1~4·셔터·실내등·HUD·웨이포인트가 씬에 있는지 먼저 확인, 없으면 §3-12 좌표로 재조립) → ② 베팅 방 멀티 실기(MPPM 2인: 방 배정 겹침·남의 방 진입 차단·문 상태 4종·피규어 비공개·확정 버튼 게이트웨이 경로) → ③ 유저 육안 확인(§7 v10 목록: 시점 안정화 데드존 0.12·전시대 감성·실내 밝기 0.55/2.2·손 슬롯 아이콘) → ④ 베팅 방 아트(유저 — 회색 골조) → ⑤ **리롤 간격 결정**(§8, 밸런싱의 대전제) → ⑥ 밸런스 재조정(corner_sim_v9.py, 밴드 23~28) → ⑦ 감속 아이템 연출 → ⑧ 킥 잔여(익명 저격) → ⑨ 성능 최적화.

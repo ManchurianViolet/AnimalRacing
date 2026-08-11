@@ -154,6 +154,7 @@ public class FigurineBetting : MonoBehaviour
             {
                 box.Place(held);
                 held = null;
+                SoundManager.PlaySfx(SfxId.FigurinePlace);
             }
         }
         else if (stand != null)
@@ -163,12 +164,17 @@ public class FigurineBetting : MonoBehaviour
             {
                 stand.Place(held);
                 held = null;
+                SoundManager.PlaySfx(SfxId.FigurinePlace);
             }
         }
         else
         {
             Hint = held.HoverName;
-            if (Input.GetMouseButtonDown(0)) ForceDrop();   // 빈 곳 클릭 = 선반 복귀
+            if (Input.GetMouseButtonDown(0))
+            {
+                ForceDrop();                            // 빈 곳 클릭 = 선반 복귀
+                SoundManager.PlaySfx(SfxId.FigurinePlace);
+            }
         }
     }
 
@@ -191,6 +197,9 @@ public class FigurineBetting : MonoBehaviour
         fig.transform.localPosition = holdLocalPos;
         fig.transform.localRotation = Quaternion.Euler(holdLocalEuler);
         fig.transform.localScale = Vector3.one * heldScale;
+
+        // 피규어는 내 방에만 로컬 생성되므로 소리도 나만 듣는다 (2D)
+        SoundManager.PlaySfx(SfxId.FigurinePick);
     }
 
     private bool InteractionAllowed()

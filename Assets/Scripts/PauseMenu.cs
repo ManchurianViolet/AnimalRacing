@@ -48,6 +48,7 @@ public class PauseMenu : MonoBehaviour
     {
         IsOpen = true;
         panel.SetActive(true);
+        SoundManager.PlaySfx(SfxId.PanelOpen);
         LocalFpc()?.SetControlEnabled(false);
     }
 
@@ -55,6 +56,7 @@ public class PauseMenu : MonoBehaviour
     {
         IsOpen = false;
         panel.SetActive(false);
+        SoundManager.PlaySfx(SfxId.PanelClose);
         if (settingsPanel != null && settingsPanel.gameObject.activeSelf) settingsPanel.Close();
         LocalFpc()?.SetControlEnabled(true);
     }

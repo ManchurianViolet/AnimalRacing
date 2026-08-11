@@ -12,6 +12,183 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3948c7e8a437a346b6cfe0e74c45ea4, type: 3}
   m_Name: AudioLibrary
   m_EditorClassIdentifier: Assembly-CSharp::AudioLibrary
-  sfx: []
-  bgm: []
+  sfx:
+  - id: 10
+    clips: []
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 11
+    clips: []
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 12
+    clips: []
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 13
+    clips: []
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 20
+    clips: []
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 21
+    clips: []
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 22
+    clips: []
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 23
+    clips: []
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 30
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 25
+  - id: 31
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 25
+  - id: 32
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 30
+  - id: 33
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 25
+  - id: 34
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 25
+  - id: 40
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 30
+  - id: 41
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 40
+  - id: 42
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 40
+  - id: 43
+    clips: []
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 44
+    clips: []
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 45
+    clips: []
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 50
+    clips: []
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 80
+  - id: 51
+    clips: []
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 50
+  - id: 52
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 50
+  - id: 53
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 50
+  - id: 60
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 25
+  - id: 61
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 30
+  - id: 62
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 30
+  - id: 63
+    clips: []
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  bgm:
+  - track: 1
+    clip: {fileID: 0}
+    volume: 0.8
+  - track: 2
+    clip: {fileID: 0}
+    volume: 0.8
+  - track: 3
+    clip: {fileID: 0}
+    volume: 0.8
+  - track: 4
+    clip: {fileID: 0}
+    volume: 0.8
+  - track: 5
+    clip: {fileID: 0}
+    volume: 0.8
   bgmCrossfadeSeconds: 1.2

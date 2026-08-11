@@ -92,6 +92,7 @@ public class SettingsPanel : MonoBehaviour
         BuildSizes();
         wantFullscreen = Screen.fullScreen;
         gameObject.SetActive(true);
+        SoundManager.PlaySfx(SfxId.PanelOpen);
         volumeSlider.SetValueWithoutNotify(SettingsStore.Volume);
         if (bgmSlider != null) bgmSlider.SetValueWithoutNotify(SettingsStore.BgmVolume);
         if (sfxSlider != null) sfxSlider.SetValueWithoutNotify(SettingsStore.SfxVolume);
@@ -108,6 +109,7 @@ public class SettingsPanel : MonoBehaviour
         foreach (var go in hideWhileOpen)
             if (go != null) go.SetActive(true);
         gameObject.SetActive(false);
+        SoundManager.PlaySfx(SfxId.PanelClose);
     }
 
     private void Update()

@@ -64,6 +64,7 @@ public class CustomizationPanel : MonoBehaviour
     {
         Build();
         gameObject.SetActive(true);
+        SoundManager.PlaySfx(SfxId.PanelOpen);
         SetMenuVisible(false);
         snapshot = target != null ? target.Encode() : "";
         RefreshAll();
@@ -74,6 +75,7 @@ public class CustomizationPanel : MonoBehaviour
     {
         SetMenuVisible(true);
         gameObject.SetActive(false);
+        SoundManager.PlaySfx(SfxId.PanelClose);
         // 복귀 이동은 카메라에 얹힌 헬퍼가 재생 — 패널이 방금 꺼졌어도 살아 있다
         CameraGlide.Home(camMoveSeconds);
     }

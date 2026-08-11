@@ -84,6 +84,11 @@ public class SoundManager : MonoBehaviour
         bgmFront = CreateBgmChannel("BGM_A");
         bgmBack = CreateBgmChannel("BGM_B");
 
+        // 사건 중계기·UI 클릭음은 여기 얹혀 산다 — 씬마다 따로 배치할 필요가 없고,
+        // DontDestroyOnLoad 덕에 타이틀↔게임 씬 양쪽에서 그대로 동작한다.
+        if (GetComponent<SfxRelay>() == null) gameObject.AddComponent<SfxRelay>();
+        if (GetComponent<UiClickSfx>() == null) gameObject.AddComponent<UiClickSfx>();
+
         GameEvents.OnPhaseChanged += HandlePhaseChanged;
         SceneManager.sceneLoaded += HandleSceneLoaded;
     }

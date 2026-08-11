@@ -197,6 +197,8 @@ public class RadioScreen : MonoBehaviour
         for (int i = 0; i <= n; i++)
         {
             SetText(text.Substring(0, i) + Repeat(blankChar, n - i));
+            // 글자가 하나 뜰 때마다 (2D — 이 연출은 내 손의 화면에서만 도는 것이라 거리 감쇠가 의미 없다)
+            if (i > 0) SoundManager.PlaySfx(SfxId.RadioTyping);
             if (i < n) yield return new WaitForSeconds(step);
         }
 

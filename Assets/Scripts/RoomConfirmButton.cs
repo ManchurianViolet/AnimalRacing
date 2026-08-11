@@ -43,6 +43,8 @@ public class RoomConfirmButton : MonoBehaviour, IInteractable
         {
             busy = false;
             // 성공 시 문은 submitted 미러로 자동 열림. 실패(시간 초과 등)면 다시 시도 가능.
+            // 소리도 호스트가 접수를 확인한 뒤에만 — 거부당했는데 "확정!" 소리가 나면 거짓말이 된다
+            if (ok) SoundManager.PlaySfx(SfxId.BetConfirm);
         });
     }
 }

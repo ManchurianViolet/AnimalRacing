@@ -40,6 +40,7 @@ public enum SfxId
     SkillRoar = 50,
     SkillRudolph = 51,
     SkillDash = 52,
+    SkillCatWalk = 53,
 
     // ---- 베팅 방 (6x) ----
     DoorSlide = 60,

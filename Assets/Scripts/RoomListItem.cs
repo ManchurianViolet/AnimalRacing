@@ -3,12 +3,19 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>방 목록 한 줄: 방이름 · 인원 · 라운드 · 자물쇠 + 입장 버튼.</summary>
+/// <summary>
+/// 방 목록 한 줄 — v13 스크롤 개편: 열 고정 배치 (방 이름 | 인원 | 라운드 | 잠금 | 참가 버튼).
+/// 잠금은 전용 열이라 비밀방/오픈방이 섞여도 줄이 안 흔들린다. 열 x좌표는 헤더(ListHeader)와 맞춰 유지할 것.
+/// </summary>
 public class RoomListItem : MonoBehaviour
 {
-    [SerializeField] private TMP_Text nameText;
-    [SerializeField] private TMP_Text infoText;
-    [SerializeField] private GameObject lockIcon;   // 비밀방 표시 (선택)
+    private static readonly Color LockOn = new(0.737f, 0.482f, 0.247f);   // 앰버
+    private static readonly Color LockOff = new(0.45f, 0.45f, 0.45f);
+
+    [SerializeField] private TMP_Text nameText;      // 말줄임
+    [SerializeField] private TMP_Text playersText;   // "2/4"
+    [SerializeField] private TMP_Text roundsText;    // "3"
+    [SerializeField] private TMP_Text lockText;      // "잠금" / "—"
     [SerializeField] private Button joinButton;
 
     public void Bind(RoomInfo room, System.Action onJoin)
@@ -19,8 +26,13 @@ public class RoomListItem : MonoBehaviour
                      ? (int)r : 3;
 
         if (nameText != null) nameText.text = room.Name;
-        if (infoText != null) infoText.text = $"{room.PlayerCount}/{room.MaxPlayers}명 · {rounds}라운드";
-        if (lockIcon != null) lockIcon.SetActive(hasPw);
+        if (playersText != null) playersText.text = $"{room.PlayerCount}/{room.MaxPlayers}";
+        if (roundsText != null) roundsText.text = rounds.ToString();
+        if (lockText != null)
+        {
+            lockText.text = hasPw ? "잠금" : "—";
+            lockText.color = hasPw ? LockOn : LockOff;
+        }
 
         joinButton.onClick.RemoveAllListeners();
         joinButton.onClick.AddListener(() => onJoin());

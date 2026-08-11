@@ -29,14 +29,20 @@ MonoBehaviour:
   meleeArcAngle: 150
   meleeImpactDelay: 0.45
   knockdownInvulnSeconds: 3
+  batDurabilityMax: 10
+  batGaugeWarnRatio: 0.5
+  batGaugeDangerRatio: 0.2
+  batGaugeColorFull: {r: 0.25, g: 0.8, b: 0.3, a: 0.55}
+  batGaugeColorWarn: {r: 1, g: 0.6, b: 0.1, a: 0.55}
+  batGaugeColorDanger: {r: 0.95, g: 0.2, b: 0.15, a: 0.55}
   roomBotDoorDelay: 20
   roomBotDoorLinger: 5
   roomDoorSlideSeconds: 0.6
   figurineScale: 0.33
   defaultRounds: 3
   bettingSeconds: 60
-  loadoutSeconds: 2
-  countdownSeconds: 2
+  loadoutSeconds: 10
+  countdownSeconds: 3
   resultSeconds: 15
   lookAhead: 4
   maxAssistAccel: 20

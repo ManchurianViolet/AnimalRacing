@@ -97,8 +97,15 @@ public class FirstPersonController : MonoBehaviour
             foreach (var t in GetComponentsInChildren<Transform>(true))
                 if (t.name == "Head") { headBone = t; break; }
         }
+
+        // 설정의 시야각 적용 — 1인칭 카메라만 (타이틀 카메라는 연출값 유지)
+        fpCam = GetComponentInChildren<Camera>(true);
+        if (fpCam != null) fpCam.fieldOfView = SettingsStore.Fov;
+
         ApplyCursor();
     }
+
+    private Camera fpCam;   // 시야각 라이브 적용용 캐시
 
     /// <summary>
     /// 눈을 머리 본에 따라붙인다. 애니메이터가 본을 갱신한 뒤여야 하므로 LateUpdate.
@@ -107,6 +114,10 @@ public class FirstPersonController : MonoBehaviour
     /// </summary>
     private void LateUpdate()
     {
+        // 시야각 라이브 반영 — 인게임 설정(ESC 메뉴)에서 바꾸는 즉시 적용 (값 같으면 no-op)
+        if (fpCam != null && !Mathf.Approximately(fpCam.fieldOfView, SettingsStore.Fov))
+            fpCam.fieldOfView = SettingsStore.Fov;
+
         if (cameraPivot == null || headBone == null) return;
 
         // 단말기 등 UI 사용 중(조작 잠금)엔 카메라 소유권이 연출 쪽(BettingTerminal)에 있다 —
@@ -196,8 +207,10 @@ public class FirstPersonController : MonoBehaviour
 
     private void LookUpdate()
     {
-        float mx = Input.GetAxis("Mouse X") * mouseSensitivity;
-        float my = Input.GetAxis("Mouse Y") * mouseSensitivity;
+        // 설정의 감도 배율(SettingsStore)을 곱한다 — 기본 1이면 기존과 동일
+        float sens = mouseSensitivity * SettingsStore.Sensitivity;
+        float mx = Input.GetAxis("Mouse X") * sens;
+        float my = Input.GetAxis("Mouse Y") * sens;
 
         transform.Rotate(Vector3.up, mx);
         pitch = Mathf.Clamp(pitch - my, pitchMin, pitchMax);

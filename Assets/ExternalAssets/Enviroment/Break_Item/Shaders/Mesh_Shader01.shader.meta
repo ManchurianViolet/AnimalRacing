@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: be422a90d27deeb4281f96a90a9b27c6
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  preprocessorOverride: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 255067
+  packageName: Break Items - Toon VFX
+  packageVersion: 1.0
+  assetPath: Assets/Break_Items_Toon_VFX/Shaders/Mesh_Shader01.shader
+  uploadId: 597517

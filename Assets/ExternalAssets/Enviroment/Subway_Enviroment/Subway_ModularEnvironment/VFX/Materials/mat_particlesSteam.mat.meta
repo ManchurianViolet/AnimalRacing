@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c5d917d1447547f418d87c6b8e0984af
+timeCreated: 1464364160
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 224248
+  packageName: Subway Modular Environment
+  packageVersion: 1.1
+  assetPath: Assets/PretoriusLab/Subway_ModularEnvironment/VFX/Materials/mat_particlesSteam.mat
+  uploadId: 720980

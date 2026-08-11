@@ -93,6 +93,10 @@ public class FigurineBetting : MonoBehaviour
         PointerBusy = false;
         FocusRacerId = -1;
 
+        // ESC 메뉴 중엔 방 모드 상태를 동결 — 커서 해제를 "방 조작 끝"으로 오판해
+        // 숨겨둔 빠따가 되살아나는 것 방지 (실사고: ESC 누르면 방망이 등장, §11 캡처 사고와 같은 뿌리)
+        if (PauseMenu.IsOpen) return;
+
         if (!InteractionAllowed()) { ForceDrop(); SetRoomMode(false); return; }
         SetRoomMode(true);
 
@@ -182,6 +186,7 @@ public class FigurineBetting : MonoBehaviour
         if (fig.InStand != null) fig.InStand.Take();    // 전시대에서 집으면 달리기 정지
         held = fig;
         fig.PickCollider.enabled = false;               // 든 것이 레이를 가리지 않게
+        fig.SetHeld(true);                              // 받침대는 숨긴다 (본체만 크게 보이게)
         fig.transform.SetParent(hand, false);
         fig.transform.localPosition = holdLocalPos;
         fig.transform.localRotation = Quaternion.Euler(holdLocalEuler);

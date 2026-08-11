@@ -77,7 +77,7 @@ MonoBehaviour:
     m_Value: 0
   sharpenIntensity:
     m_OverrideState: 1
-    m_Value: 7.1
+    m_Value: 9.57
   sharpenDepthThreshold:
     m_OverrideState: 0
     m_Value: 0.035
@@ -666,10 +666,10 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
   outlineColor:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: {r: 0, g: 0, b: 0, a: 0.8}
   outlineTechnique:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   outlineMinSeparation:
     m_OverrideState: 0
@@ -679,13 +679,13 @@ MonoBehaviour:
     m_Value: 0
   outlineThreshold:
     m_OverrideState: 1
-    m_Value: 0.2
+    m_Value: 0.5
   outlineMinDepthThreshold:
     m_OverrideState: 0
     m_Value: 0
   outlineSaturationDiffThreshold:
-    m_OverrideState: 0
-    m_Value: 0.015
+    m_OverrideState: 1
+    m_Value: 0.023
   outlineCustomize:
     m_OverrideState: 0
     m_Value: 0

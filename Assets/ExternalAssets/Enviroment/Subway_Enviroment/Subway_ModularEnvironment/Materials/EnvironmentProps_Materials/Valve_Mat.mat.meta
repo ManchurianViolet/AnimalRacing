@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: fdc0f2fee6ecf204c9adbd9e8fdcea4b
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 224248
+  packageName: Subway Modular Environment
+  packageVersion: 1.1
+  assetPath: Assets/PretoriusLab/Subway_ModularEnvironment/Materials/EnvironmentProps_Materials/Valve_Mat.mat
+  uploadId: 720980

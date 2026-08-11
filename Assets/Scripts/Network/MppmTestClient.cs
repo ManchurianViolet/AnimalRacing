@@ -41,6 +41,11 @@ public class MppmTestClient : MonoBehaviour
     {
         index = ResolveIndex();
         PlayerLook.Override = LookPresets[(index - 2 + LookPresets.Length) % LookPresets.Length];
+
+        // UserId 고정 (§10 복귀 테스트 처방): 창을 껐다 켜도 같은 사람으로 인식되고,
+        // NetworkLauncher의 스팀 신원(AuthValues == null일 때만 대입)도 이걸 보고 비켜간다.
+        PhotonNetwork.AuthValues = new Photon.Realtime.AuthenticationValues($"mppm-{index}");
+
         Debug.Log($"[MPPM] 가상 플레이어 #{index} 시작 — 외형 {PlayerLook.Override}");
     }
 

@@ -39,6 +39,20 @@ public class GameConfig : ScriptableObject
     public float meleeImpactDelay = 0.45f;
     [Tooltip("기상 후 무적 시간 (초) — 무한 스턴 방지")]
     public float knockdownInvulnSeconds = 3f;
+    [Tooltip("빠따 내구도 — 명중한 스윙이 이 횟수에 도달하면 부서진다 (헛스윙은 무료, 라운드마다 회복)")]
+    public int batDurabilityMax = 10;
+    [Tooltip("HUD 내구도 게이지가 주황색으로 바뀌는 잔량 비율 (0.5 = 50%)")]
+    [Range(0f, 1f)]
+    public float batGaugeWarnRatio = 0.5f;
+    [Tooltip("HUD 내구도 게이지가 빨간색으로 바뀌는 잔량 비율 (0.2 = 20%)")]
+    [Range(0f, 1f)]
+    public float batGaugeDangerRatio = 0.2f;
+    [Tooltip("내구도 게이지 색 — 충분할 때. 알파를 낮추면 '들고 있음' 앰버 하이라이트와 겹쳐 경계가 안 읽힌다")]
+    public Color batGaugeColorFull = new Color(0.25f, 0.8f, 0.3f, 0.85f);
+    [Tooltip("내구도 게이지 색 — 경고(warnRatio 이하)")]
+    public Color batGaugeColorWarn = new Color(1f, 0.6f, 0.1f, 0.85f);
+    [Tooltip("내구도 게이지 색 — 위험(dangerRatio 이하)")]
+    public Color batGaugeColorDanger = new Color(0.95f, 0.2f, 0.15f, 0.85f);
 
     [Header("베팅 방 — 피트스탑 개인실 + 피규어 베팅")]
     [Tooltip("봇 방 문이 열리는 시점 (베팅 시작 후 초) — '베팅 끝내고 나왔다' 연기")]

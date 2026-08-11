@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c20f4d68691df264098efdc2ed37a886
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 224248
+  packageName: Subway Modular Environment
+  packageVersion: 1.1
+  assetPath: Assets/PretoriusLab/Subway_ModularEnvironment/Materials/Train_Materials/TrainDoor_Mat.mat
+  uploadId: 720980

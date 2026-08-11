@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 7cd08f801b94d0e47af6bb4e5f6084a6
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 255067
+  packageName: Break Items - Toon VFX
+  packageVersion: 1.0
+  assetPath: Assets/Break_Items_Toon_VFX/Materials/M_BubbleSplash.mat
+  uploadId: 597517

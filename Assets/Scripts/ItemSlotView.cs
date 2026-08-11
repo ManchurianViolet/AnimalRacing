@@ -16,6 +16,9 @@ public class ItemSlotView : MonoBehaviour
     [Tooltip("들고 있을 때 켜지는 테두리/배경 오브젝트")]
     [SerializeField] private GameObject selectedFrame;
     [SerializeField] private TMP_Text hotkeyLabel;   // "1"~"4" (선택)
+    [Tooltip("빠따 슬롯 전용 내구도 게이지 (Image Type=Filled). 잔량 비율만큼 채워지고 " +
+             "GameConfig의 warn/danger 비율에서 초록→주황→빨강으로 바뀐다. 다른 슬롯은 비워둠")]
+    [SerializeField] private Image durabilityFill;
 
     private PlayerItemController controller;
     private ItemDefinition item;     // 주사기 슬롯만 사용, 빠따/무전기는 null
@@ -46,6 +49,18 @@ public class ItemSlotView : MonoBehaviour
 
         if (selectedFrame != null)
             selectedFrame.SetActive(controller.HeldSlot == slotIndex);
+
+        // 빠따 내구도 게이지 — 잔량 비율만큼 채우고, 문턱값 아래로 내려가면 색 경고
+        if (durabilityFill != null && PlayerEquipment.Local != null)
+        {
+            float ratio = PlayerEquipment.Local.BatDurabilityRatio;
+            durabilityFill.fillAmount = ratio;
+            var cfg = GameManager.Instance != null ? GameManager.Instance.Config : null;
+            if (cfg != null)
+                durabilityFill.color = ratio <= cfg.batGaugeDangerRatio ? cfg.batGaugeColorDanger
+                                     : ratio <= cfg.batGaugeWarnRatio ? cfg.batGaugeColorWarn
+                                     : cfg.batGaugeColorFull;
+        }
 
         // 소모형 슬롯은 다 쓰면 흐리게 (빠따/무전기는 항상 또렷)
         var cg = GetComponent<CanvasGroup>();

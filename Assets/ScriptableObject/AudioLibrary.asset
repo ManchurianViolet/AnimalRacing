@@ -177,7 +177,7 @@ MonoBehaviour:
     maxDistance: 30
   bgm:
   - track: 1
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 479684ad8924e9246a7961c6fc6d9fc6, type: 3}
     volume: 0.8
   - track: 2
     clip: {fileID: 0}

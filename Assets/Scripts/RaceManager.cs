@@ -349,6 +349,14 @@ public class RaceManager : MonoBehaviour
             if (roarFx == null) roarFx = go.AddComponent<RoarFx>();
             roarFx.Init(racer, config);
         }
+
+        // [치킨] 냅다 달리기 무지개 자취 — 위와 같은 피드 구독이라 클라도 통신 0으로 동작
+        if (racer.Definition != null && racer.Definition.skill == AnimalSkill.Dash)
+        {
+            var dashFx = go.GetComponent<ChickenDashFx>();
+            if (dashFx == null) dashFx = go.AddComponent<ChickenDashFx>();
+            dashFx.Init(racer, config);
+        }
     }
 
     /// <summary>

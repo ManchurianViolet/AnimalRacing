@@ -78,6 +78,12 @@ MonoBehaviour:
   rudolphTrailWidth: 0.28
   rudolphTrailColorA: {r: 1, g: 0.3, b: 0.22, a: 1}
   rudolphTrailColorB: {r: 1, g: 0.85, b: 0.35, a: 1}
+  dashTrailTime: 0.9
+  dashTrailWidth: 0.75
+  dashTrailEndScale: 1.25
+  dashTrailCount: 1
+  dashTrailSpread: 0.34
+  dashTrailBrightness: 1.2
   roarHeadScale: 1.7
   roarHeadForward: 0.18
   roarFxSeconds: 1.2

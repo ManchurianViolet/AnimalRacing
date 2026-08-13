@@ -24216,6 +24216,7 @@ MonoBehaviour:
   - {fileID: 1494034412}
   - {fileID: 414877605}
   - {fileID: 576615462}
+  titleActor: {fileID: 0}
   camOpenPos: {x: 2.06, y: 0.73, z: -3.3}
   camOpenEuler: {x: -12.348, y: 0, z: 0}
   camMoveSeconds: 0.35
@@ -32941,7 +32942,7 @@ RectTransform:
   m_GameObject: {fileID: 1494034412}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.3004, y: 1.3004, z: 1.3004}
+  m_LocalScale: {x: 1.15, y: 1.15, z: 1.15}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2098988478}
@@ -32954,7 +32955,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 812.37, y: -121}
+  m_AnchoredPosition: {x: 9, y: -90}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1494034414
@@ -48420,7 +48421,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.11, g: 0.11, b: 0.12, a: 0.88}
+  m_Color: {r: 0.11, g: 0.11, b: 0.12, a: 0.9647059}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -50408,6 +50409,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TitleIdleAnimator
   animator: {fileID: 2201382845787275350}
+  danceStates:
+  - Dance_Chicken
+  - Dance_Locking
+  - Dance_Snake
+  - Dance_Ymca
+  danceHold: {x: 9, y: 15}
+  idleStates:
+  - Idle_Relaxed
+  - Idle_Look_Around
   idleHold: {x: 6, y: 12}
   blendTime: 0.25
   debugLog: 0

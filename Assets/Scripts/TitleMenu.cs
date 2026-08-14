@@ -77,7 +77,7 @@ public class TitleMenu : MonoBehaviour
         // 스팀 미실행 폴백 = 저장값, 그것도 없으면 랜덤 (SetNickname이 저장하므로 이후 고정).
         string nick = SteamHub.IsAvailable ? SteamHub.PersonaName
             : PlayerPrefs.GetString("nickname", "");
-        if (string.IsNullOrWhiteSpace(nick)) nick = $"플레이어{Random.Range(100, 1000)}";
+        if (string.IsNullOrWhiteSpace(nick)) nick = Loc.Format("title.player", Random.Range(100, 1000));
         launcher.SetNickname(nick);
     }
 
@@ -154,7 +154,7 @@ public class TitleMenu : MonoBehaviour
         }
         else if (statusText != null)
         {
-            statusText.text = "비밀번호가 틀렸습니다";
+            statusText.text = Loc.Get("title.wrongpw");
         }
     }
 }

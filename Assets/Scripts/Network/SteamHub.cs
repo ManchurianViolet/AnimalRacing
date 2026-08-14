@@ -17,6 +17,10 @@ public static class SteamHub
     public static string PersonaName { get; private set; } = "";
     public static string SteamId { get; private set; } = "";
 
+    /// <summary>[로컬라이제이션] 스팀이 이 게임에 지정한 언어 코드명("koreana"/"english"/"japanese"...).
+    /// 스팀 미실행이면 빈 문자열 — SettingsStore가 OS 언어로 폴백.</summary>
+    public static string GameLanguage { get; private set; } = "";
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Boot()
     {
@@ -32,6 +36,7 @@ public static class SteamHub
             IsAvailable = true;
             PersonaName = Steamworks.SteamClient.Name;
             SteamId = Steamworks.SteamClient.SteamId.Value.ToString();
+            GameLanguage = Steamworks.SteamApps.GameLanguage;
             Debug.Log($"[STEAM] 초기화 성공 — {PersonaName} ({SteamId})");
 
             Application.quitting += Shutdown;   // 에디터 플레이 종료에도 호출됨 — 재진입 Init 실패 방지

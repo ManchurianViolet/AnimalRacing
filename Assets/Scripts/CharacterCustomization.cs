@@ -116,7 +116,7 @@ public class CharacterCustomization : MonoBehaviour
         Bind();
         var def = library.slots[slot];
         int i = selection[slot];
-        if (i < 0 || i >= def.parts.Length) return "없음";
+        if (i < 0 || i >= def.parts.Length) return Loc.Get("custom.none");
         return def.parts[i].displayName;
     }
 

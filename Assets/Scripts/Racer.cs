@@ -8,7 +8,13 @@ using UnityEngine;
 public class Racer : MonoBehaviour
 {
     public int RacerId { get; private set; }
-    public string DisplayName { get; private set; }
+    public int PostNumber { get; private set; }   // 등번호 (1부터) — 번호판·전광판과 같은 값
+
+    /// <summary>표기 이름 ("4번 호랑이" / "#4 Tiger"). [로컬라이제이션] 캐시하지 않고
+    /// 그때그때 조립 — 캐시하면 인게임 언어 전환이 이름에 안 먹는다. (종명은 5단계에서 키 전환 예정)</summary>
+    public string DisplayName => Definition != null
+        ? Loc.Format("racer.name", PostNumber, Definition.LocalizedName)
+        : Loc.Format("racer.fallback", PostNumber);
     public AnimalDefinition Definition { get; private set; }
 
     /// <summary>누적 주행거리 (랩 포함, 음수 = 출발선 뒤 그리드). 경로 좌표가 필요하면 TrackPath.WrapProgress 경유.</summary>
@@ -154,7 +160,7 @@ public class Racer : MonoBehaviour
     {
         RacerId = id;
         Definition = def;
-        DisplayName = $"{postNumber}번 {def.displayName}";
+        PostNumber = postNumber;
         animator = GetComponentInChildren<Animator>();
         rb = GetComponent<Rigidbody>();
 
@@ -200,7 +206,7 @@ public class Racer : MonoBehaviour
                 case AnimalSkill.CatWalk:
                     activeConsumed = true;
                     catWalkRemaining = SkillTuning.CatWalkDuration;
-                    GameEvents.RaiseSkillProc($"{DisplayName}이(가) 사뿐사뿐, 코너를 풀스피드로 파고든다!");
+                    GameEvents.RaiseSkillEvent(SkillFeedEvent.CatWalk, RacerId);
                     break;
 
                 case AnimalSkill.Dash:
@@ -208,7 +214,7 @@ public class Racer : MonoBehaviour
                     // 셀프 효과라 AddEffect 관문(펭귄/비행 면역)을 거치지 않고 직접 추가
                     effects.Add(new StatusEffect(StatusEffectType.Boost,
                         SkillTuning.DashDuration, SkillTuning.DashMult));
-                    GameEvents.RaiseSkillProc($"{DisplayName}이(가) 냅다 달린다!!");
+                    GameEvents.RaiseSkillEvent(SkillFeedEvent.Dash, RacerId);
                     break;
             }
         }

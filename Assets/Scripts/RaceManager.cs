@@ -284,7 +284,7 @@ public class RaceManager : MonoBehaviour
         int rank = racers.Count - eliminatedCount;   // 첫 탈락 = 꼴찌 확정
         eliminatedCount++;
         victim.Eliminate(rank);
-        GameEvents.RaiseSkillProc($"무전 한 방! {victim.DisplayName}이(가) 레이스에서 끌려 나갔다!");
+        GameEvents.RaiseSkillEvent(SkillFeedEvent.ExecuteHit, victim.RacerId);
         return true;
     }
 
@@ -446,7 +446,7 @@ public class RaceManager : MonoBehaviour
             if (tiger == null) continue;
             if (!tiger.TryConsumeActive(AnimalSkill.Roar)) continue;
 
-            GameEvents.RaiseSkillProc($"{tiger.DisplayName}의 포효!! 전원이 움츠러든다!");
+            GameEvents.RaiseSkillEvent(SkillFeedEvent.Roar, tiger.RacerId);
             foreach (var other in racers)
             {
                 if (other == null || other == tiger || other.HasFinished) continue;
@@ -454,7 +454,7 @@ public class RaceManager : MonoBehaviour
                     SkillTuning.RoarDuration, SkillTuning.RoarMult));
                 // 면역자(펭귄/비행 중 사슴)는 관문에서 튕김 — 펭귄만 관전 재미로 피드
                 if (other.Definition.skill == AnimalSkill.Apathy)
-                    GameEvents.RaiseSkillProc($"...{other.DisplayName}은(는) 관심이 없다.");
+                    GameEvents.RaiseSkillEvent(SkillFeedEvent.PenguinIgnore, other.RacerId);
             }
         }
     }

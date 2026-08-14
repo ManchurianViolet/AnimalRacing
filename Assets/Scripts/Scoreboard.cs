@@ -27,12 +27,12 @@ public class Scoreboard : MonoBehaviour
         if (phaseText == null) return;
         phaseText.text = p switch
         {
-            GamePhase.Lobby      => "대기 중",
-            GamePhase.Betting    => "베팅 접수 중",
-            GamePhase.Loadout    => "아이템 준비",
-            GamePhase.Countdown  => "출발 준비",
-            GamePhase.Racing     => "경기 중",
-            GamePhase.Settlement => "정산 중",
+            GamePhase.Lobby      => Loc.Get("phase.lobby"),
+            GamePhase.Betting    => Loc.Get("board.betting"),
+            GamePhase.Loadout    => Loc.Get("board.loadout"),
+            GamePhase.Countdown  => Loc.Get("phase.countdown"),
+            GamePhase.Racing     => Loc.Get("phase.racing"),
+            GamePhase.Settlement => Loc.Get("board.settlement"),
             _ => ""
         };
     }

@@ -64,8 +64,16 @@ public class MinimapBoard : MonoBehaviour
         if (rowTemplate != null) rowTemplate.SetActive(false);
     }
 
-    private void OnEnable() => GameEvents.OnRacerFinished += HandleFinished;
-    private void OnDisable() => GameEvents.OnRacerFinished -= HandleFinished;
+    private void OnEnable()
+    {
+        GameEvents.OnRacerFinished += HandleFinished;
+        Loc.OnLanguageChanged += Rebuild;   // 행 이름이 만들 때 구워지므로 언어 전환 = 재구성
+    }
+    private void OnDisable()
+    {
+        GameEvents.OnRacerFinished -= HandleFinished;
+        Loc.OnLanguageChanged -= Rebuild;
+    }
 
     private void HandleFinished(int racerId, int rank, bool eliminated)
     {
@@ -180,7 +188,7 @@ public class MinimapBoard : MonoBehaviour
             badgeText.color = RacerColors.TextOn(post);
 
             var nameText = go.transform.Find("NameText").GetComponent<TMP_Text>();
-            nameText.text = racer.Definition != null ? racer.Definition.displayName : racer.DisplayName;
+            nameText.text = racer.Definition != null ? racer.Definition.LocalizedName : racer.DisplayName;
 
             entry.marker = CreateMarker(post);
             entries.Add(entry);

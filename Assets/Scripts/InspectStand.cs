@@ -13,7 +13,7 @@ public class InspectStand : MonoBehaviour
     /// <summary>올려져 있는 피규어 (없으면 null) — 스크린이 이걸 읽어 정보를 띄운다.</summary>
     public BetFigurine Current { get; private set; }
 
-    public string PlaceHint => "여기에 올려 살펴보기";
+    public string PlaceHint => Loc.Get("bet.inspect");
 
     private Transform Slot => slot != null ? slot : transform;
 

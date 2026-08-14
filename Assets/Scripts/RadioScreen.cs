@@ -106,7 +106,7 @@ public class RadioScreen : MonoBehaviour
         if (raceManager == null) return null;
 
         var victim = raceManager.GetLastPlaceRacer();   // 실제 처형과 같은 단일 출처
-        return victim != null && victim.Definition != null ? victim.Definition.displayName : null;
+        return victim != null && victim.Definition != null ? victim.Definition.LcdName : null;
     }
 
     private void HandleItemUsed(int playerId, ItemDefinition item, int racerId)
@@ -166,7 +166,7 @@ public class RadioScreen : MonoBehaviour
         if (raceManager == null) return null;
 
         var racer = raceManager.GetRacer(racerId);
-        return racer != null && racer.Definition != null ? racer.Definition.displayName : null;
+        return racer != null && racer.Definition != null ? racer.Definition.LcdName : null;
     }
 
     /// <summary>

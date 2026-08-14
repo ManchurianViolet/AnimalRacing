@@ -22,24 +22,45 @@ public class ItemSlotView : MonoBehaviour
 
     private PlayerItemController controller;
     private ItemDefinition item;     // 주사기 슬롯만 사용, 빠따/무전기는 null
+    private string nameKey;          // 아이템 없는 슬롯(빠따/무전기)의 이름 키 (strings.csv)
     private int slotIndex;
 
-    /// <summary>slot: PlayerEquipment.Slot* 번호. item은 소모형 슬롯(주사기)만, 나머지는 null.</summary>
-    public void Init(PlayerItemController controller, int slot, ItemDefinition item, string displayName, string hotkey)
+    /// <summary>
+    /// slot: PlayerEquipment.Slot* 번호. item은 소모형 슬롯(주사기)만, 나머지는 null.
+    /// [로컬라이제이션] nameKey는 완성 문자열이 아니라 키("item.bat") — 언어가 바뀌면
+    /// 여기서 다시 조회해 갈아끼운다 (완성 문자열을 받으면 전환 때 옛 언어로 굳는다).
+    /// </summary>
+    public void Init(PlayerItemController controller, int slot, ItemDefinition item, string nameKey, string hotkey)
     {
         this.controller = controller;
         this.item = item;
+        this.nameKey = nameKey;
         slotIndex = slot;
-        if (nameLabel != null) nameLabel.text = item != null ? item.itemName : displayName;
+        RefreshName();
         if (hotkeyLabel != null) hotkeyLabel.text = hotkey;
 
         var btn = GetComponent<Button>();
         if (btn != null) btn.onClick.AddListener(() => controller.SelectSlot(slot));
     }
 
+    /// <summary>
+    /// 슬롯은 HUD가 페이즈/베팅방 상태에 따라 SetActive를 수시로 토글한다 —
+    /// 꺼진 동안 언어가 바뀌면 이벤트 구독으로는 놓치므로, Update에서 값이 다를 때만
+    /// 갈아끼운다 (같으면 TMP를 안 건드림 — 커마 패널 규칙).
+    /// </summary>
+    private void RefreshName()
+    {
+        if (nameLabel == null) return;
+        string want = item != null ? item.LocalizedName
+                    : !string.IsNullOrEmpty(nameKey) ? Loc.Get(nameKey) : null;
+        if (want != null && nameLabel.text != want) nameLabel.text = want;
+    }
+
     private void Update()
     {
         if (controller == null) return;
+
+        RefreshName();   // 언어 전환 대응
 
         if (countLabel != null)
             countLabel.text = item != null ? $"×{controller.CountOf(item)}" : "";

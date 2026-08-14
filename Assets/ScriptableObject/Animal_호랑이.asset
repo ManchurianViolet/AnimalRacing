@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: "Animal_\uD638\uB791\uC774"
   m_EditorClassIdentifier: Assembly-CSharp::AnimalDefinition
   displayName: "\uD638\uB791\uC774"
+  nameKey: animal.tiger
   description: 
   prefab: {fileID: 6986229597723647235, guid: 09ee7b9bf9a56f74a9e52c7423774910, type: 3}
   icon: {fileID: 0}

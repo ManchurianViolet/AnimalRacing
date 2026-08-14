@@ -20,7 +20,7 @@ public class TimelineFeed : MonoBehaviour
     {
         GameEvents.OnItemUsed      += HandleItemUsed;
         GameEvents.OnRacerFinished += HandleFinished;
-        GameEvents.OnSkillProc     += HandleSkill;
+        GameEvents.OnSkillEvent    += HandleSkill;
         GameEvents.OnPhaseChanged  += HandlePhase;
     }
 
@@ -28,7 +28,7 @@ public class TimelineFeed : MonoBehaviour
     {
         GameEvents.OnItemUsed      -= HandleItemUsed;
         GameEvents.OnRacerFinished -= HandleFinished;
-        GameEvents.OnSkillProc     -= HandleSkill;
+        GameEvents.OnSkillEvent    -= HandleSkill;
         GameEvents.OnPhaseChanged  -= HandlePhase;
     }
 
@@ -42,16 +42,31 @@ public class TimelineFeed : MonoBehaviour
         }
     }
 
+    // [로컬라이제이션] 사건은 id로 받고 문장은 각자 자기 언어로 조립 — 색/굵기 태그는 CSV 서식에 포함
     private void HandleItemUsed(int pid, ItemDefinition item, int rid)
         => Push(rid >= 0
-            ? $"<b>[{PlayerName(pid)}]</b> {RacerName(rid)}에게 <color=#FFB020>{item.itemName}</color>!"
-            : $"<b>[{PlayerName(pid)}]</b> <color=#FFB020>{item.itemName}</color>!");   // 처형 무전기: 대상은 5초 후 확정
+            ? Loc.Format("feed.item.target", PlayerName(pid), RacerName(rid), item.LocalizedName)
+            : Loc.Format("feed.item.notarget", PlayerName(pid), item.LocalizedName));   // 처형 무전기: 대상은 5초 후 확정
     private void HandleFinished(int rid, int rank, bool eliminated)
         => Push(eliminated
-            ? $"{RacerName(rid)} <color=#FF6B6B><b>탈락!</b></color>"
-            : $"{RacerName(rid)} <b>{rank}위</b> 결승선 통과");
-    private void HandleSkill(string line)
-        => Push($"<color=#8FD3FF>{line}</color>");
+            ? Loc.Format("feed.eliminated", RacerName(rid))
+            : Loc.Format("feed.finish", RacerName(rid), rank));
+
+    private void HandleSkill(SkillFeedEvent evt, int rid)
+    {
+        string line = evt switch
+        {
+            SkillFeedEvent.Roar           => Loc.Format("feed.skill.roar", RacerName(rid)),
+            SkillFeedEvent.PenguinIgnore  => Loc.Format("feed.skill.ignore", RacerName(rid)),
+            SkillFeedEvent.CatWalk        => Loc.Format("feed.skill.catwalk", RacerName(rid)),
+            SkillFeedEvent.Dash           => Loc.Format("feed.skill.dash", RacerName(rid)),
+            SkillFeedEvent.Rudolph        => Loc.Format("feed.skill.rudolph", RacerName(rid)),
+            SkillFeedEvent.ExecuteWarning => Loc.Get("feed.exec.warning"),
+            SkillFeedEvent.ExecuteHit     => Loc.Format("feed.exec.hit", RacerName(rid)),
+            _ => null
+        };
+        if (line != null) Push($"<color=#8FD3FF>{line}</color>");
+    }
 
     private void Push(string line)
     {
@@ -70,6 +85,6 @@ public class TimelineFeed : MonoBehaviour
     private string RacerName(int id)
     {
         var r = raceManager.GetRacer(id);
-        return r != null ? r.DisplayName : $"{id + 1}번";   // 레인 번호는 1부터
+        return r != null ? r.DisplayName : Loc.Format("racer.fallback", id + 1);   // 레인 번호는 1부터
     }
 }

@@ -2,8 +2,8 @@ using UnityEngine;
 
 /// <summary>
 /// [호랑이] 포효 연출 — 발동 순간 머리 본을 확 키우고 살짝 앞으로 내밀어 "소리 지르는" 그림.
-/// 발동 감지는 전 클라로 이미 중계되는 스킬 피드(OnSkillProc) 문자열 — "OO의 포효"로 시작하면
-/// 그 OO(내 DisplayName)일 때 재생. 네트워크 추가 통신 0 (BoostDustFx의 OnItemUsed 구독과 같은 철학).
+/// 발동 감지는 전 클라로 이미 중계되는 스킬 사건(OnSkillEvent) — Roar + 내 RacerId면 재생.
+/// 네트워크 추가 통신 0 (BoostDustFx의 OnItemUsed 구독과 같은 철학).
 /// 본 스케일은 애니메이터가 안 건드리는 채널이라 안전, 전방 오프셋은 LateUpdate에서 포즈 위에 덧셈.
 /// RaceManager가 호랑이에만 부착.
 /// </summary>
@@ -60,13 +60,13 @@ public class RoarFx : MonoBehaviour
         return deepest;
     }
 
-    private void OnEnable()  => GameEvents.OnSkillProc += HandleSkillProc;
-    private void OnDisable() => GameEvents.OnSkillProc -= HandleSkillProc;
+    private void OnEnable()  => GameEvents.OnSkillEvent += HandleSkillEvent;
+    private void OnDisable() => GameEvents.OnSkillEvent -= HandleSkillEvent;
 
-    private void HandleSkillProc(string line)
+    private void HandleSkillEvent(SkillFeedEvent evt, int rid)
     {
-        if (racer == null || head == null || string.IsNullOrEmpty(line)) return;
-        if (line.StartsWith(racer.DisplayName + "의 포효")) timer = 0f;
+        if (racer == null || head == null) return;
+        if (evt == SkillFeedEvent.Roar && rid == racer.RacerId) timer = 0f;
     }
 
     private void LateUpdate()

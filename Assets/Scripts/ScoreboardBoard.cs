@@ -54,12 +54,14 @@ public class ScoreboardBoard : MonoBehaviour
     {
         GameEvents.OnPhaseChanged += HandlePhase;
         GameEvents.OnRacerFinished += HandleFinished;
+        Loc.OnLanguageChanged += Rebuild;   // 행 이름이 만들 때 구워지므로 언어 전환 = 재구성
     }
 
     private void OnDisable()
     {
         GameEvents.OnPhaseChanged -= HandlePhase;
         GameEvents.OnRacerFinished -= HandleFinished;
+        Loc.OnLanguageChanged -= Rebuild;
     }
 
     private void HandlePhase(GamePhase p)
@@ -117,7 +119,7 @@ public class ScoreboardBoard : MonoBehaviour
             row.dispSpeed = Mathf.Lerp(row.dispSpeed, rawSpeed, dt / Mathf.Max(0.05f, speedSmooth));
 
             row.value.text = row.finished
-                ? (row.eliminated ? "탈락" : FormatTime(row.finishTime))
+                ? (row.eliminated ? Loc.Get("board.eliminated") : FormatTime(row.finishTime))
                 : $"{row.dispSpeed:F1} m/s";
         }
 
@@ -176,7 +178,7 @@ public class ScoreboardBoard : MonoBehaviour
             row.icon.enabled = sprite != null;   // 아이콘 없는 동물은 칸만 비움
 
             row.name = go.transform.Find("NameText").GetComponent<TMP_Text>();
-            row.name.text = racer.Definition != null ? racer.Definition.displayName : racer.DisplayName;
+            row.name.text = racer.Definition != null ? racer.Definition.LocalizedName : racer.DisplayName;
 
             row.value = go.transform.Find("ValueText").GetComponent<TMP_Text>();
             row.value.text = "";

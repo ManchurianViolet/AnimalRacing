@@ -364,6 +364,6 @@ public class BettingRoomManager : MonoBehaviour
                     && LocalRoom != null
                     && !LocalSubmitted
                     && !LocalInsideRoom;
-        Guidance = need ? "자기 방에 들어가 베팅하세요!" : "";
+        Guidance = need ? Loc.Get("room.guidance") : "";
     }
 }

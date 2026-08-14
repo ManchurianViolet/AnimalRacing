@@ -37,10 +37,10 @@ public class NetworkSessionGuard : MonoBehaviourPunCallbacks
         if (!reconnecting)
         {
             reconnecting = true;
-            SetStatus("연결이 끊겼습니다 — 재접속 중...");
+            SetStatus(Loc.Get("net.reconnecting"));
             Debug.LogWarning($"[SessionGuard] 접속 끊김({cause}) → ReconnectAndRejoin 시도");
             if (!PhotonNetwork.ReconnectAndRejoin())
-                GoToTitle("재접속 실패");
+                GoToTitle(Loc.Get("net.reconnectfail"));
         }
         else
         {
@@ -60,7 +60,7 @@ public class NetworkSessionGuard : MonoBehaviourPunCallbacks
 
     public override void OnJoinRoomFailed(short returnCode, string message)
     {
-        if (reconnecting) GoToTitle("방 복귀 실패 (매치가 끝났거나 자리가 만료됨)");
+        if (reconnecting) GoToTitle(Loc.Get("net.rejoinfail"));
     }
 
     // ---- 방장 이탈 ----
@@ -78,7 +78,7 @@ public class NetworkSessionGuard : MonoBehaviourPunCallbacks
             if (PhotonNetwork.IsMasterClient)                        // 내가 새 방장이면
                 PhotonNetwork.CurrentRoom.IsOpen = true;             // 방 재개방 (N/4 노출)
 
-            SetStatus("방장이 나가서 매치가 중단되었습니다 — 대기실로 복귀");
+            SetStatus(Loc.Get("net.hostleft"));
             Invoke(nameof(ClearStatus), 4f);
             Debug.LogWarning($"[SessionGuard] 매치 중단 → 대기실 (새 방장: {newMaster.NickName})");
         }

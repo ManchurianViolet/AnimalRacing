@@ -151,7 +151,7 @@ public class CustomizationPanel : MonoBehaviour
 
         // ---- 제목 (가운데 + 강조색 밑줄 + 구분선) ----
         MakeText("Title", rt, new Vector2(0f, -20f), new Vector2(w - Margin * 2f, 44f),
-            "커스터마이징", titleSize, TextAlignmentOptions.Center,
+            Loc.Get("custom.title"), titleSize, TextAlignmentOptions.Center,
             new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
         MakeImage("TitleAccent", rt, new Vector2(0f, -64f), new Vector2(72f, 5f), AccentColor,
             new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), false);
@@ -161,7 +161,7 @@ public class CustomizationPanel : MonoBehaviour
         if (slots == null)
         {
             MakeText("Warn", rt, Vector2.zero, new Vector2(w - Margin * 2f, 60f),
-                "부위 라이브러리가 연결되지 않았습니다", labelSize, TextAlignmentOptions.Center,
+                Loc.Get("custom.nolib"), labelSize, TextAlignmentOptions.Center,
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
             return;
         }
@@ -184,15 +184,15 @@ public class CustomizationPanel : MonoBehaviour
         const float gap = 12f;
         float bw = (w - Margin * 2f - gap * 2f) / 3f;
         MakeButton("Random", rt, new Vector2(Margin, 30f), new Vector2(bw, 54f),
-            "랜덤", () => { target.Randomize(); RefreshAll(); },
+            Loc.Get("custom.random"), () => { target.Randomize(); RefreshAll(); },
             new Vector2(0f, 0f), new Vector2(0f, 0f), buttonColor, textColor);
         MakeButton("Cancel", rt, new Vector2(Margin + bw + gap, 30f), new Vector2(bw, 54f),
-            "취소", Cancel, new Vector2(0f, 0f), new Vector2(0f, 0f), buttonColor, textColor);
+            Loc.Get("custom.cancel"), Cancel, new Vector2(0f, 0f), new Vector2(0f, 0f), buttonColor, textColor);
         MakeButton("Confirm", rt, new Vector2(Margin + (bw + gap) * 2f, 30f), new Vector2(bw, 54f),
-            "확정", Confirm, new Vector2(0f, 0f), new Vector2(0f, 0f), AccentColor, AccentTextColor);
+            Loc.Get("custom.confirm"), Confirm, new Vector2(0f, 0f), new Vector2(0f, 0f), AccentColor, AccentTextColor);
 
         var hint = MakeText("Hint", rt, new Vector2(0f, 7f), new Vector2(w - Margin * 2f, 18f),
-            "Esc = 취소", 15, TextAlignmentOptions.Center,
+            Loc.Get("custom.eschint"), 15, TextAlignmentOptions.Center,
             new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
         hint.color = new Color(1f, 1f, 1f, 0.35f);
     }

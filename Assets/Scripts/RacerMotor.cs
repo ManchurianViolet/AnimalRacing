@@ -277,7 +277,7 @@ public class RacerMotor : MonoBehaviour
             SkillTuning.RudolphFlightSeconds * (targetProg - racer.Progress) / fullLead);
         rb.isKinematic = true;
 
-        GameEvents.RaiseSkillProc($"{racer.DisplayName}이(가) 하늘로 날아올랐다! 루돌프다!");
+        GameEvents.RaiseSkillEvent(SkillFeedEvent.Rudolph, racer.RacerId);
     }
 
     private void FlightTick(float dt)

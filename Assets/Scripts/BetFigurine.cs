@@ -9,13 +9,15 @@ public class BetFigurine : MonoBehaviour
 {
     public int RacerId { get; private set; } = -1;
     public int PostNumber { get; private set; }          // 출전 번호 (1부터)
-    public string AnimalName { get; private set; }
+
+    /// <summary>종명 — 캐시하지 않고 그때그때 조회 (언어 전환이 즉시 먹게).</summary>
+    public string AnimalName => Def != null ? Def.LocalizedName : "?";
 
     /// <summary>원본 동물 정의 — HUD 손 칸 아이콘/모니터 상세가 참조.</summary>
     public AnimalDefinition Def { get; private set; }
 
-    /// <summary>조준 안내문: "4번 펭귄"</summary>
-    public string HoverName => $"{PostNumber}번 {AnimalName}";
+    /// <summary>조준 안내문: "4번 펭귄" — 동물 표기 이름과 같은 서식(racer.name) 공유.</summary>
+    public string HoverName => Loc.Format("racer.name", PostNumber, AnimalName);
 
     /// <summary>선반 위 제자리 (BettingRoomManager가 만든 슬롯 앵커).</summary>
     public Transform HomeSlot { get; private set; }
@@ -51,7 +53,6 @@ public class BetFigurine : MonoBehaviour
         RacerId = racerId;
         PostNumber = postNumber;
         Def = def;
-        AnimalName = def != null ? def.displayName : "?";
         HomeSlot = homeSlot;
         PickCollider = pickCollider;
         ShelfScale = transform.localScale.x;

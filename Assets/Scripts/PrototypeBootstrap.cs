@@ -31,13 +31,13 @@ public class PrototypeBootstrap : MonoBehaviour
     /// <summary>오프라인 전용: 기존 로컬 등록 (나 + 봇들).</summary>
     private void RegisterOfflinePlayers()
     {
-        var me = new PlayerState(0, "나");
+        var me = new PlayerState(0, Loc.Get("player.me"));
         matchManager.RegisterPlayer(me);
         itemController.Bind(me);
 
         for (int i = 0; i < bots.Length; i++)
         {
-            var b = new PlayerState(i + 1, $"봇{(char)('A' + i)}", isBot: true);
+            var b = new PlayerState(i + 1, Loc.Format("player.bot", (char)('A' + i)), isBot: true);
             matchManager.RegisterPlayer(b);
             bots[i].Bind(b);
         }

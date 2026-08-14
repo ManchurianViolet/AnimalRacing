@@ -208,11 +208,11 @@ public class PlayerItemController : MonoBehaviour
         if (HeldSlot == PlayerEquipment.SlotRadioSkill && !SkillTuning.IsActive(racer.Definition.skill))
         {
             AimBlocked = true;
-            AimHint = "사용 불가능한 동물입니다";
+            AimHint = Loc.Get("aim.blocked");
         }
         else
         {
-            AimHint = $"{racer.DisplayName}에게 사용";
+            AimHint = Loc.Format("aim.use", racer.DisplayName);
         }
     }
 

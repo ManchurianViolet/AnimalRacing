@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Item_RadioSkill
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: "\uBC1C\uB3D9 \uBB34\uC804\uAE30"
+  nameKey: item.radioskill
   kind: 2
   description: "\uC870\uC900\uD55C \uB3D9\uBB3C\uC758 \uC2A4\uD0AC\uC744 5\uCD08
     \uD6C4 \uAC15\uC81C \uBC1C\uB3D9\uC2DC\uD0A8\uB2E4."

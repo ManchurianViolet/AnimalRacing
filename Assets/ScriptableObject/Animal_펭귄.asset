@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: "Animal_\uD3AD\uADC4"
   m_EditorClassIdentifier: Assembly-CSharp::AnimalDefinition
   displayName: "\uD3AD\uADC4"
+  nameKey: animal.penguin
   description: 
   prefab: {fileID: 701467143089362442, guid: e395a386bc6ce2f4296898e7120f2868, type: 3}
   icon: {fileID: 0}

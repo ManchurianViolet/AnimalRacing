@@ -20,8 +20,7 @@ public class BetBox : MonoBehaviour
 
     /// <summary>들고 있는 채로 조준했을 때 안내문.</summary>
     public string PlaceHint =>
-        rank == 0 ? "1등에 예측하기" :
-        rank == 1 ? "2등 이상에 예측하기" : "3등 이상에 예측하기";
+        Loc.Get(rank == 0 ? "bet.place1" : rank == 1 ? "bet.place2" : "bet.place3");
 
     private Transform Slot => slot != null ? slot : transform;
 

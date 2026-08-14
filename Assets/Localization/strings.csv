@@ -1,0 +1,175 @@
+﻿key,ko,en,ja,비고
+racer.name,{0}번 {1},#{0} {1},{0}番 {1},동물 표기 이름 = 등번호+종명 (전광판·피드·피규어 공용)
+racer.fallback,{0}번,#{0},{0}番,동물을 못 찾았을 때 번호만
+feed.skill.roar,{0}의 포효!! 전원이 움츠러든다!,{0} lets out a mighty roar!! Everyone flinches!,{0}の咆哮！！みんながすくみ上がる！,호랑이
+feed.skill.ignore,...{0}은(는) 관심이 없다.,...{0} couldn't care less.,…{0}は興味がない。,펭귄 면역
+feed.skill.catwalk,"{0}이(가) 사뿐사뿐, 코너를 풀스피드로 파고든다!",{0} tiptoes through the corner at full speed!,{0}が軽やかにコーナーをフルスピードで攻める！,고양이
+feed.skill.dash,{0}이(가) 냅다 달린다!!,{0} bolts off like crazy!!,{0}が全力疾走！！,치킨
+feed.skill.rudolph,{0}이(가) 하늘로 날아올랐다! 루돌프다!,{0} soars into the sky! It's Rudolph!,{0}が空へ舞い上がった！ルドルフだ！,사슴
+feed.exec.warning,살벌한 무전이 울렸다... 꼴찌는 각오해라!,A chilling radio call rings out... last place had better watch out!,物騒な無線が鳴った…ビリは覚悟しろ！,처형 무전기 예고
+feed.exec.hit,무전 한 방! {0}이(가) 레이스에서 끌려 나갔다!,One radio call! {0} is dragged out of the race!,無線一発！{0}がレースから連れ出された！,처형 집행
+feed.item.target,<b>[{0}]</b> {1}에게 <color=#FFB020>{2}</color>!,<b>[{0}]</b> <color=#FFB020>{2}</color> on {1}!,<b>[{0}]</b> {1}に<color=#FFB020>{2}</color>！,아이템 사용 (0=플레이어 1=동물 2=아이템)
+feed.item.notarget,<b>[{0}]</b> <color=#FFB020>{1}</color>!,<b>[{0}]</b> <color=#FFB020>{1}</color>!,<b>[{0}]</b> <color=#FFB020>{1}</color>！,처형 무전기 (대상 미정)
+feed.finish,{0} <b>{1}위</b> 결승선 통과,{0} crosses the line in <b>P{1}</b>,{0}が<b>{1}位</b>でゴール,완주
+feed.eliminated,{0} <color=#FF6B6B><b>탈락!</b></color>,{0} <color=#FF6B6B><b>Eliminated!</b></color>,{0}<color=#FF6B6B><b>脱落！</b></color>,처형 탈락
+settings.mode.fullscreen,전체화면,Fullscreen,フルスクリーン,화면 모드
+settings.mode.windowed,창모드,Windowed,ウィンドウ,화면 모드
+skill.name.finalsprint,최후의 질주,Final Sprint,ラストスパート,말
+skill.name.rudolph,루돌프,Rudolph,ルドルフ,사슴
+skill.name.roar,포효,Roar,咆哮,호랑이
+skill.name.catwalk,사뿐한 발놀림,Cat Walk,軽やかな足取り,고양이
+skill.name.loyalty,근성,Grit,根性,개
+skill.name.dash,냅다 달리기,Mad Dash,全力疾走,치킨
+skill.name.apathy,무관심,Apathy,無関心,펭귄
+skill.desc.finalsprint,[패시브] 레이스 막판(85%~)에 속도 +20%,[Passive] +20% speed in the final stretch (85%+),【パッシブ】レース終盤(85%～)に速度+20%,
+skill.desc.rudolph,"[액티브] 경기 중 1회, 10초 거리의 전방 지점까지 하늘을 날아 5초 만에 도달한다","[Active] Once per race, fly to a point 10s ahead in just 5s",【アクティブ】レース中1回、10秒先の地点まで空を飛び5秒で到達,
+skill.desc.roar,"[액티브] 경기 중 1회, 포효로 자신을 제외한 전원을 5초간 50% 감속","[Active] Once per race, roar to slow everyone else by 50% for 5s",【アクティブ】レース中1回、咆哮で自分以外の全員を5秒間50%減速,
+skill.desc.catwalk,"[액티브] 경기 중 1회, 8초간 코너 감속을 무시하고 풀스피드로 코너링","[Active] Once per race, ignore corner slowdown and take corners at full speed for 8s",【アクティブ】レース中1回、8秒間コーナー減速を無視してフルスピードでコーナリング,
+skill.desc.loyalty,[패시브] 꼴등인 동안 속도 +30% — 악착같이 따라붙는다,[Passive] +30% speed while in last place — never gives up,【パッシブ】最下位の間は速度+30% — 必死に食らいつく,
+skill.desc.dash,"[액티브] 경기 중 1회, 8초간 속도 +50% 폭주","[Active] Once per race, +50% speed rampage for 8s",【アクティブ】レース中1回、8秒間速度+50%で暴走,
+skill.desc.apathy,[패시브] 모든 스킬·아이템 효과를 무시한다,[Passive] Immune to all skill and item effects,【パッシブ】全てのスキル・アイテム効果を無視する,
+skill.none,스킬 없음,No skill,スキルなし,
+bet.place1,1등에 예측하기,Predict 1st place,1位に予想する,상자 조준 안내
+bet.place2,2등 이상에 예측하기,Predict 2nd or better,2位以上に予想する,
+bet.place3,3등 이상에 예측하기,Predict 3rd or better,3位以上に予想する,
+bet.inspect,여기에 올려 살펴보기,Place here to inspect,ここに置いて観察する,전시대
+bet.slot1,1등,1st,1位,HUD 예측 요약 (폴백 텍스트)
+bet.slot2,2등↑,2nd↑,2位↑,
+bet.slot3,3등↑,3rd↑,3位↑,
+room.guidance,자기 방에 들어가 베팅하세요!,Enter your room and place your bet!,自分の部屋に入ってベットしよう！,베팅 중 방 밖 안내
+room.confirm,E - 예측 확정,E - Confirm prediction,E - 予想を確定,
+room.needboxes,상자 3개에 피규어를 넣으세요,Place figurines in all 3 boxes,3つの箱にフィギュアを置いてください,
+monitor.title,출전 동물 정보,Racer Info,出走動物の情報,전시대 스크린
+monitor.hint,"피규어를 아래 유리 상자에
+올려놓으세요","Place a figurine in the
+glass case below","フィギュアを下のガラスケースに
+置いてください",줄바꿈 포함
+monitor.name,{0}번  {1},#{0}  {1},{0}番  {1},스크린 제목 (공백 2칸)
+monitor.stats,"최저 속도  <b>{0}</b>
+최고 속도  <b>{1}</b>
+가속  <b>{2}</b>","Min speed  <b>{0}</b>
+Max speed  <b>{1}</b>
+Acceleration  <b>{2}</b>","最低速度  <b>{0}</b>
+最高速度  <b>{1}</b>
+加速  <b>{2}</b>",줄바꿈 포함
+item.bat,빠따,Bat,バット,HUD 슬롯 1
+item.radioskill,발동 무전기,Skill Radio,発動無線機,HUD 슬롯 4
+item.radioexec,처형 무전기,Execution Radio,処刑無線機,HUD 슬롯 5
+phase.lobby,대기 중,Waiting,待機中,HUD 페이즈
+phase.betting,베팅 중,Betting,ベッティング中,
+phase.loadout,준비 중,Get ready,準備中,
+phase.countdown,출발 준비,On your marks,スタート準備,
+phase.racing,경기 중,Racing,レース中,
+phase.settlement,결과 표시 중,Results,結果表示中,
+hud.lobbyplayers,참가자 {0}/{1} — 방장의 시작 대기 중,Players {0}/{1} — waiting for host,参加者 {0}/{1} — ホストの開始待ち,
+hud.hand,손,Hand,手,베팅 방 손 칸
+hud.betnone,예측 미제출,No prediction yet,予想未提出,
+aim.blocked,사용 불가능한 동물입니다,Can't use on this animal,この動物には使えません,발동 무전기 × 패시브
+aim.use,{0}에게 사용,Use on {0},{0}に使用,조준 힌트
+board.betting,베팅 접수 중,Bets open,ベット受付中,월드 전광판 (소형)
+board.loadout,아이템 준비,Item prep,アイテム準備,
+board.settlement,정산 중,Settling,精算中,
+board.eliminated,탈락,OUT,脱落,전광판 순위표
+settle.round,ROUND {0} — 결과,ROUND {0} — Results,ROUND {0} — 結果,정산판 제목
+settle.final,최종 결과,Final Results,最終結果,
+settle.line,{0}위   {1}   {2} P,#{0}   {1}   {2} P,{0}位   {1}   {2} P,최종 순위 한 줄
+settle.winner,   우승!,   Winner!,   優勝！,1위 꼬리표 (앞 공백 유지)
+lever.prompt,E - 게임 시작,E - Start game,E - ゲーム開始,시작 레버
+lever.confirm,"{0}/{1}명입니다.
+그래도 시작하시겠습니까?","Only {0}/{1} players.
+Start anyway?","{0}/{1}人です。
+それでも開始しますか？",줄바꿈 포함
+title.player,플레이어{0},Player{0},プレイヤー{0},랜덤 닉네임
+title.wrongpw,비밀번호가 틀렸습니다,Wrong password,パスワードが違います,
+room.locked,잠금,Lock,ロック,방 목록 잠금 열
+player.me,나,Me,自分,오프라인 내 이름
+player.bot,봇{0},Bot {0},ボット{0},봇 이름 ({0}=A/B/C)
+net.connecting,서버 접속 중...,Connecting...,サーバー接続中…,타이틀 상태문구
+net.connectingto,서버 접속 중... ({0}),Connecting... ({0}),サーバー接続中…（{0}）,
+net.changing,서버 변경 중...,Changing server...,サーバー変更中…,
+net.notready,아직 서버 접속 중입니다 — 잠시 후 다시 시도하세요,Still connecting — try again in a moment,まだ接続中です — 少し後にもう一度お試しください,
+net.roomname,{0}의 방 #{1},{0}'s room #{1},{0}の部屋 #{1},방 이름
+net.creating,방 생성 중...,Creating room...,ルーム作成中…,
+net.joining,입장 중...,Joining...,入室中…,
+net.connected,접속 완료 (서버: {0}),Connected (server: {0}),接続完了（サーバー: {0}）,
+net.lobby,로비 입장 — 방 목록 수신 중,In lobby — fetching room list,ロビー入場 — ルーム一覧取得中,
+net.loading,입장 완료 — 게임 로드 중...,Joined — loading game...,入室完了 — ゲーム読み込み中…,
+net.createfail,방 생성 실패: {0},Room creation failed: {0},ルーム作成失敗: {0},
+net.full,방이 가득 찼습니다,Room is full,ルームが満員です,
+net.roomgone,방이 사라졌습니다,Room no longer exists,ルームが存在しません,
+net.joinfail,입장 실패: {0},Failed to join: {0},入室失敗: {0},
+net.disconnected,접속 끊김: {0},Disconnected: {0},接続切断: {0},
+net.reconnecting,연결이 끊겼습니다 — 재접속 중...,Connection lost — reconnecting...,接続が切れました — 再接続中…,
+net.reconnectfail,재접속 실패,Reconnect failed,再接続失敗,
+net.rejoinfail,방 복귀 실패 (매치가 끝났거나 자리가 만료됨),Couldn't rejoin (match ended or seat expired),復帰失敗（マッチ終了または席の期限切れ）,
+net.hostleft,방장이 나가서 매치가 중단되었습니다 — 대기실로 복귀,Host left — match aborted. Back to the lobby,ホストが退出したためマッチ中断 — ロビーに戻ります,
+server.auto,서버: 자동 ({0}),Server: Auto ({0}),サーバー: 自動（{0}）,좌하단 서버바
+server.fixed,서버: {0},Server: {0},サーバー: {0},
+server.connecting,서버: 접속 중...,Server: connecting...,サーバー: 接続中…,
+server.connectingto,서버: {0} 접속 중...,Server: connecting to {0}...,サーバー: {0} に接続中…,
+region.auto,자동,Auto,自動,
+region.autofull,자동 (권장),Auto (recommended),自動（推奨）,서버 선택 팝업
+region.kr,한국,Korea,韓国,
+region.jp,일본,Japan,日本,
+region.asia,아시아,Asia,アジア,
+region.in,인도,India,インド,
+region.us,미국,USA,アメリカ,
+region.usw,미국 서부,US West,アメリカ西部,
+region.ussc,미국 중남부,US South Central,アメリカ中南部,
+region.eu,유럽,Europe,ヨーロッパ,
+region.uae,중동,Middle East,中東,
+region.sa,남미,South America,南米,
+region.za,남아공,South Africa,南アフリカ,
+region.au,호주,Australia,オーストラリア,
+region.cae,캐나다,Canada,カナダ,
+region.tr,튀르키예,Türkiye,トルコ,
+region.hk,홍콩,Hong Kong,香港,
+custom.title,커스터마이징,Customize,カスタマイズ,커마 패널
+custom.nolib,부위 라이브러리가 연결되지 않았습니다,Part library not connected,パーツライブラリが未接続です,
+custom.random,랜덤,Random,ランダム,
+custom.cancel,취소,Cancel,キャンセル,
+custom.confirm,확정,Confirm,確定,
+custom.eschint,Esc = 취소,Esc = Cancel,Esc = キャンセル,
+custom.none,없음,None,なし,부위 안 씀
+animal.horse,말,Horse,ウマ,SO nameKey
+animal.deer,사슴,Deer,シカ,
+animal.tiger,호랑이,Tiger,トラ,
+animal.cat,고양이,Cat,ネコ,
+animal.dog,개,Dog,イヌ,
+animal.chicken,치킨,Chicken,チキン,
+animal.penguin,펭귄,Penguin,ペンギン,
+item.boost,부스트,Boost,ブースト,SO nameKey (표기만 — SO itemName은 유지)
+item.slow,감속,Slow,スロー,
+settings.title,설정,Settings,設定,설정 패널 (씬 라벨)
+settings.volume,전체 볼륨,Master Volume,全体音量,
+settings.bgm,배경음,Music,BGM,
+settings.sfx,효과음,SFX,効果音,
+settings.sens,마우스 감도,Mouse Sensitivity,マウス感度,
+settings.fov,시야각,FOV,視野角,
+settings.res,해상도,Resolution,解像度,
+settings.mode,화면 모드,Display Mode,画面モード,
+settings.lang,언어,Language,言語,
+settings.close,닫기,Close,閉じる,
+pause.resume,돌아가기,Resume,ゲームに戻る,ESC 메뉴
+pause.quit,게임 종료,Quit Game,ゲーム終了,ESC 메뉴 + 타이틀 공용
+confirm.yes,네,Yes,はい,시작 확인창
+confirm.no,아니오,No,いいえ,
+zone.first,1등,1st,1位,베팅방 상자 라벨 (월드 TMP)
+zone.second,2등 이상,2nd or better,2位以上,
+zone.third,3등 이상,3rd or better,3位以上,
+title.createroom,방 만들기,Create Room,ルーム作成,타이틀 메인 버튼
+title.joinroom,방 참가,Join Room,ルーム参加,
+create.title,방 생성,Create a Room,ルーム作成,방 생성 팝업 제목
+create.players,인원 수,Players,人数,
+create.rounds,라운드,Rounds,ラウンド,
+create.password,비밀번호,Password,パスワード,
+create.playersph,인원 수 입력..,Enter player count..,人数を入力..,입력칸 플레이스홀더
+create.roundsph,라운드 입력..,Enter rounds..,ラウンド数を入力..,
+create.passwordph,비밀번호 입력..,Enter password..,パスワードを入力..,
+create.make,만들기,Create,作成,
+join.empty,열린 방이 없습니다.,No open rooms.,開いているルームがありません。,
+join.name,방 이름,Room,ルーム名,방 목록 헤더
+join.players,인원,Players,人数,방 목록 헤더
+pw.enter,입장하기,Enter,入室する,비밀번호 팝업
+server.change,변경,Change,変更,서버바 버튼
+server.select,서버 선택,Select Server,サーバー選択,서버 팝업 제목

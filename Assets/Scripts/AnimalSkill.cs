@@ -55,28 +55,28 @@ public static class SkillTuning
         s == AnimalSkill.Roar || s == AnimalSkill.Rudolph
         || s == AnimalSkill.CatWalk || s == AnimalSkill.Dash;
 
-    /// <summary>안내판/타임라인용 표기.</summary>
+    /// <summary>안내판/타임라인용 표기. [로컬라이제이션] 문구는 strings.csv의 skill.name.* / skill.desc.*</summary>
     public static string DisplayName(AnimalSkill s) => s switch
     {
-        AnimalSkill.FinalSprint => "최후의 질주",
-        AnimalSkill.Rudolph     => "루돌프",
-        AnimalSkill.Roar        => "포효",
-        AnimalSkill.CatWalk     => "사뿐한 발놀림",
-        AnimalSkill.Loyalty     => "근성",
-        AnimalSkill.Dash        => "냅다 달리기",
-        AnimalSkill.Apathy      => "무관심",
+        AnimalSkill.FinalSprint => Loc.Get("skill.name.finalsprint"),
+        AnimalSkill.Rudolph     => Loc.Get("skill.name.rudolph"),
+        AnimalSkill.Roar        => Loc.Get("skill.name.roar"),
+        AnimalSkill.CatWalk     => Loc.Get("skill.name.catwalk"),
+        AnimalSkill.Loyalty     => Loc.Get("skill.name.loyalty"),
+        AnimalSkill.Dash        => Loc.Get("skill.name.dash"),
+        AnimalSkill.Apathy      => Loc.Get("skill.name.apathy"),
         _ => "-"
     };
 
     public static string Description(AnimalSkill s) => s switch
     {
-        AnimalSkill.FinalSprint => "[패시브] 레이스 막판(85%~)에 속도 +20%",
-        AnimalSkill.Rudolph     => "[액티브] 경기 중 1회, 10초 거리의 전방 지점까지 하늘을 날아 5초 만에 도달한다",
-        AnimalSkill.Roar        => "[액티브] 경기 중 1회, 포효로 자신을 제외한 전원을 5초간 50% 감속",
-        AnimalSkill.CatWalk     => "[액티브] 경기 중 1회, 8초간 코너 감속을 무시하고 풀스피드로 코너링",
-        AnimalSkill.Loyalty     => "[패시브] 꼴등인 동안 속도 +30% — 악착같이 따라붙는다",
-        AnimalSkill.Dash        => "[액티브] 경기 중 1회, 8초간 속도 +50% 폭주",
-        AnimalSkill.Apathy      => "[패시브] 모든 스킬·아이템 효과를 무시한다",
-        _ => "스킬 없음"
+        AnimalSkill.FinalSprint => Loc.Get("skill.desc.finalsprint"),
+        AnimalSkill.Rudolph     => Loc.Get("skill.desc.rudolph"),
+        AnimalSkill.Roar        => Loc.Get("skill.desc.roar"),
+        AnimalSkill.CatWalk     => Loc.Get("skill.desc.catwalk"),
+        AnimalSkill.Loyalty     => Loc.Get("skill.desc.loyalty"),
+        AnimalSkill.Dash        => Loc.Get("skill.desc.dash"),
+        AnimalSkill.Apathy      => Loc.Get("skill.desc.apathy"),
+        _ => Loc.Get("skill.none")
     };
 }

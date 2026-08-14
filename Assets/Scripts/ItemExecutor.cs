@@ -11,13 +11,13 @@ public class ItemExecutor : MonoBehaviour
     public bool TryUseItem(PlayerState player, ItemDefinition item, int targetRacerId)
     {
         if (GameManager.Instance.CurrentPhase != GamePhase.Racing)
-            return Reject(player, "레이스 중이 아님");
+            return Reject(player, RejectReason.NotRacing);
 
         if (!player.IsCooldownReady)
-            return Reject(player, $"쿨다운 {player.CooldownRemaining:F1}초");
+            return Reject(player, RejectReason.Cooldown);
 
         if (!player.HasItem(item))
-            return Reject(player, "미보유 아이템");
+            return Reject(player, RejectReason.NotOwned);
 
         switch (item.kind)
         {
@@ -26,7 +26,7 @@ public class ItemExecutor : MonoBehaviour
             {
                 var target = raceManager.GetRacer(targetRacerId);
                 if (target == null || target.HasFinished)
-                    return Reject(player, "유효하지 않은 타겟");
+                    return Reject(player, RejectReason.InvalidTarget);
 
                 var type = item.kind == ItemKind.Boost ? StatusEffectType.Boost : StatusEffectType.Slow;
                 target.AddEffect(new StatusEffect(type, item.duration, item.magnitude));
@@ -37,10 +37,10 @@ public class ItemExecutor : MonoBehaviour
             {
                 var target = raceManager.GetRacer(targetRacerId);
                 if (target == null || target.HasFinished)
-                    return Reject(player, "유효하지 않은 타겟");
+                    return Reject(player, RejectReason.InvalidTarget);
                 // 패시브(말/개/펭귄)는 무전기 무반응 — 클라 조준 단계에서도 차단되지만 호스트가 최종 검증
                 if (!SkillTuning.IsActive(target.Definition.skill))
-                    return Reject(player, "사용 불가능한 동물");
+                    return Reject(player, RejectReason.PassiveAnimal);
                 StartCoroutine(RadioSkillDelayed(target));
                 break;
             }
@@ -48,7 +48,7 @@ public class ItemExecutor : MonoBehaviour
             case ItemKind.Execute:
                 // 대상은 발동 순간(5초 후)의 꼴등 — 지금은 예고만
                 StartCoroutine(RadioExecDelayed());
-                GameEvents.RaiseSkillProc("살벌한 무전이 울렸다... 꼴찌는 각오해라!");
+                GameEvents.RaiseSkillEvent(SkillFeedEvent.ExecuteWarning);
                 break;
         }
 
@@ -75,7 +75,7 @@ public class ItemExecutor : MonoBehaviour
         raceManager.ExecuteLastPlace();
     }
 
-    private bool Reject(PlayerState player, string reason)
+    private bool Reject(PlayerState player, RejectReason reason)
     {
         GameEvents.RaiseItemRejected(player.PlayerId, reason);
         return false;

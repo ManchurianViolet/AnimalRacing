@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Item_2
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: SLow
+  nameKey: item.slow
   kind: 1
   description: 
   icon: {fileID: 0}

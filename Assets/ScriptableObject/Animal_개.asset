@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: "Animal_\uAC1C"
   m_EditorClassIdentifier: Assembly-CSharp::AnimalDefinition
   displayName: "\uAC1C"
+  nameKey: animal.dog
   description: 
   prefab: {fileID: 8032463612451626621, guid: 4f16338fb85dfc44ba1d67181f23238e, type: 3}
   icon: {fileID: 0}

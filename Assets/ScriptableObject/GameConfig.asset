@@ -40,7 +40,7 @@ MonoBehaviour:
   roomDoorSlideSeconds: 0.6
   figurineScale: 0.33
   defaultRounds: 3
-  bettingSeconds: 60
+  bettingSeconds: 64.28
   loadoutSeconds: 10
   countdownSeconds: 3
   resultSeconds: 15

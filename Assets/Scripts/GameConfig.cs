@@ -66,8 +66,13 @@ public class GameConfig : ScriptableObject
 
     [Header("매치")]
     public int defaultRounds = 3;
-    public float bettingSeconds = 60f;
-    public float loadoutSeconds = 2f;
+    // ⚠ 베팅 BGM은 Betting·Loadout 두 페이즈에 걸쳐 재생된다 (SoundManager.TrackForPhase).
+    //    두 값의 합 = 베팅 곡 길이여야 곡이 끝나는 순간 카운트다운(무음)이 시작된다.
+    //    곡을 바꾸면 여기도 같이 맞출 것. 현재 곡 "Jackpot!" = 74.28초.
+    [Tooltip("베팅 시간. loadoutSeconds와의 합이 베팅 BGM 길이와 같아야 곡 끝 = 카운트다운 시작")]
+    public float bettingSeconds = 64.28f;
+    [Tooltip("준비 시간. bettingSeconds 주석 참조 — 둘의 합이 베팅 BGM 길이")]
+    public float loadoutSeconds = 10f;
     public float countdownSeconds = 3f;
     public float resultSeconds = 8f;
 

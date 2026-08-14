@@ -66,8 +66,13 @@ public class GameConfig : ScriptableObject
 
     [Header("매치")]
     public int defaultRounds = 3;
-    public float bettingSeconds = 60f;
-    public float loadoutSeconds = 2f;
+    // ⚠ 베팅 BGM은 Betting·Loadout 두 페이즈에 걸쳐 재생된다 (SoundManager.TrackForPhase).
+    //    두 값의 합 = 베팅 곡 길이여야 곡이 끝나는 순간 카운트다운(무음)이 시작된다.
+    //    곡을 바꾸면 여기도 같이 맞출 것. 현재 곡 "Jackpot!" = 74.28초.
+    [Tooltip("베팅 시간. loadoutSeconds와의 합이 베팅 BGM 길이와 같아야 곡 끝 = 카운트다운 시작")]
+    public float bettingSeconds = 64.28f;
+    [Tooltip("준비 시간. bettingSeconds 주석 참조 — 둘의 합이 베팅 BGM 길이")]
+    public float loadoutSeconds = 10f;
     public float countdownSeconds = 3f;
     public float resultSeconds = 8f;
 
@@ -150,6 +155,20 @@ public class GameConfig : ScriptableObject
     public Color rudolphTrailColorA = new Color(1f, 0.30f, 0.22f);
     [Tooltip("트레일 색 B (끝 쪽 — 금색)")]
     public Color rudolphTrailColorB = new Color(1f, 0.85f, 0.35f);
+
+    [Header("연출 — 무지개 자취 (치킨 냅다 달리기)")]
+    [Tooltip("자취가 공중에 남아 있는 시간 (초) — 길수록 꼬리가 길다")]
+    public float dashTrailTime = 0.9f;
+    [Tooltip("띠의 폭 (m) — 몸 크기에 비례해 자동 보정된다. 무지개 7색이 이 폭을 가로질러 깔린다")]
+    public float dashTrailWidth = 0.75f;
+    [Tooltip("꼬리 끝 폭 배율 — 1보다 크면 뒤로 갈수록 퍼진다")]
+    public float dashTrailEndScale = 1.25f;
+    [Tooltip("띠 개수 — 보통 1(넓은 띠 하나). 늘리면 좌우로 겹쳐 깔린다")]
+    public int dashTrailCount = 1;
+    [Tooltip("띠가 여러 개일 때 좌우 간격 (몸 폭 대비 비율)")]
+    public float dashTrailSpread = 0.34f;
+    [Tooltip("색 밝기 배율 — 1보다 크면 뷰티파이 블룸을 받아 반짝인다")]
+    public float dashTrailBrightness = 1.2f;
 
     [Header("연출 — 포효 (호랑이)")]
     [Tooltip("포효 순간 머리 확대 배율")]

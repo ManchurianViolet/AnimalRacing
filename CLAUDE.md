@@ -1,4 +1,4 @@
-「짜고 치는 레이스」(가제, 영문 후보 Dirty Derby — §8) — Claude Code 인수인계 문서 (v13)
+「짜고 치는 레이스」(가제, 영문 후보 Dirty Derby — §8) — Claude Code 인수인계 문서 (v16)
 > 이 문서는 이전 Claude 세션이 다음 세션에게 넘기는 완전 인수인계서다.
 > 독자(Claude Code)는 프로젝트 파일에 직접 접근할 수 있다 — 이 문서는 코드의 지도이자 맥락이다.
 > 코드와 문서가 어긋나면 **코드가 진실**이다 (실제로 문서-코드 불일치 사고 이력 있음).
@@ -8,7 +8,10 @@
 > **v6 세션(이번)에서 게임의 결이 크게 바뀜: ① 아이템 4슬롯(빠따/주사기2/무전기) + 든 것 시스템 ② 빠따 PvP 피격(부채꼴 판정→한 방 쓰러짐→아무 키 기상) ③ 채점 개편(1등/2등이상/3등이상, 90/50/30) ④ 커마 폴백 버그 픽스 ⑤ 타이틀 아이들 연기 ⑥ 뷰티파이 두 씬 적용. — §6 참조.**
 > **v6의 최대 미해결이던 "기상 때 1인칭 카메라 몸뚫림"은 v7 세션에서 두 안(몸 렌더러 숨기기 / 카메라 얼굴 앞 유지)을 구현·검증까지 마쳤으나 유저가 둘 다 기각 — "뚫리더라도 일어날 때 몸이 보이는 게 더 사실적" 결정으로 원본 유지, 수용된 한계 확정 (§7). 재제안 금지.**
 > v7 세션: ① 1인칭 껍데기 픽스(PlayerHeadAim 내 머리 회전 제거) ② 쓰러짐 카메라 리얼 연출(머리 본 추종 + 얼굴 앞 눈 앵커) ③ 기상 애니 교체(Anims3, 1.8초) ④ 인스펙터 피격 재생 버튼 ⑤ 커마 패널 UI 폴리싱 ⑥ 타이틀씬 대공사(터레인+원형 트랙+동물 퍼레이드+부스트 쇼+경주 시설물+픽셀 UI 통일+앵커). 빠따 duel MPPM은 유저 실기 통과.
-> **v13 세션(이번) — 스팀 출시 준비 + UX 대공사: ① 글로벌 서버**(Photon Fixed "kr" 해제 → Best Region 자동, 대시보드 화이트리스트 kr;us;eu — 유저가 직접 설정, 타이틀 좌하단 서버바+변경 팝업, `PhotonRegions` 단일 출처. 자동→kr(핑2ms)/us 전환/복귀 실측) ② **스팀 연동**(Facepunch.Steamworks 2.5.2 → `SteamHub`: 닉네임 자동 + **SteamID=Photon UserId** — §10 재접속 신원 문제 구조적 해결. 폴백=수동 닉네임, MPPM 가상 플레이어는 스팀 스킵+`mppm-N` UserId. ⚠ App ID 480 임시 — 출시 전 교체) ③ **타이틀 개편**(닉네임 입력칸 삭제, 설정 버튼 신설 → **설정 패널**: 볼륨/감도/시야각 50~90/해상도/화면모드/언어(잠금) — `SettingsStore` 단일 출처, 감도·FOV는 FPC 라이브 적용) ④ **방참가 대개편**(900×720 + 열 고정 테이블(방이름/인원/라운드/잠금 헤더) + ScrollRect 스크롤 — 열 정렬 -12px 사고 2건(TMP 마진 잔재+pivot 순서) 실측 0.0px 교정) ⑤ **게임씬 ESC 메뉴**(왼쪽 40% 다크+돌아가기/설정/게임종료, timeScale 무수정, 피격 통과+쓰러지면 자동 닫힘, ESC→빠따 부활 버그 픽스) ⑥ **손맛**(휠 슬롯 순환 1↔5 랩·빈 슬롯 포함, 주사기 찌르기(당김→스냅), 무전기 엄지 62°+램프 에미션 14) ⑦ 기각: 무전기 입가 모션+전파 링(구현·검증 후 유저 "안 와닿는다" — 롤백 완료) — §6, §7 참조.**
+> **v16 세션(이번) — 소리가 실제로 나기 시작 + 첫 스킬 이펙트: ① 유저가 SFX 소싱 개시**(AI 생성툴 기각 → 직접 검색. 15개 클립이 `AudioLibrary`에 배선됨 — 파일명을 전부 **SfxId 이름으로 정리**해 어느 칸의 소리인지 파일만 봐도 알게 함) ② **플레이어 발소리 신설**(`PlayerFootsteps` — **지면 재질 3종** 자동 판정(터레인=흙 / Road=아스팔트 / Pit=콘크리트), 보폭 기반, **내 것 2D·남의 것 3D 18m** → "뒤에서 누가 온다"가 게임플레이 정보가 됨. 위치 변화만 보므로 원격 아바타도 같은 코드 = **통신 0**) ③ **스킬 지속음**(`SoundManager.PlaySfxLoop` 신설 — 스킬 시간 동안 루프 + 0.5초 페이드 인/아웃 + **동물을 따라다니는 3D**. 지속시간은 `SkillTuning`이 단일 출처라 밸런스 바뀌면 소리도 자동 추종) ④ **치킨 무지개 자취**(`ChickenDashFx` — 냅다 달리기 8초간 몸 뒤로 **지면과 나란히 평평한 무지개 띠**. 무지개는 `colorGradient`가 아니라 **텍스처 V축**으로 구움) ⑤ 기획: 스킬음은 추상 효과음 대신 **동물 울음소리**로 확정(유저 제안 — 누가 터뜨렸는지 소리만으로 식별. 단 사슴은 예외로 썰매종 유지) ⑥ ⚠ **신규 법칙: `URP Particles/Unlit`을 TrailRenderer에 쓰면 띠가 새까맣게 나온다**(§11 — 이번 세션 최대 삽질, `Sprites/Default`가 정답). — §6, §11 참조.**
+> **v15 세션 — 타이틀 캐릭터 춤: 유저가 넣어둔 믹사모 춤 4종(Anims4)을 타이틀 전시 캐릭터에 배선. `TitleIdleAnimator`가 아이들 전용에서 **2모드**(메인화면=춤 순환 / 커마 중=기존 아이들)로 재작성되고, `CustomizationPanel`이 Open/Close에서 모드를 뒤집는다(참조는 Awake 자동 탐색 — **씬 배선 0**). fbx 4개는 Generic으로 들어와 있어 **휴머노이드+루프+클립명**으로 재임포트. 전 사이클 실기 검증 통과(춤→커마 아이들→확정→춤 복귀, 제자리 유지 실측). — §6 참조.**
+> **v14 세션 — 사운드 전면 배선: ① BGM 방향 확정**(유저 결정: **파티게임이라 친구들 음성 대화 위에 브금이 깔리면 서로 묻힘** → 타이틀 곡만 채우고 인게임은 무음, 나중에 넣어도 "평화로운 것"만. 인프라는 5트랙 그대로 두고 클립만 비움 = 자동 무음 페이드) ② **SFX 호출 배선 완료**(§15-5 — 신규 `SfxRelay`(전 클라 중계 이벤트 → 소리, 통신 0) + `UiClickSfx`(EventSystem 레이캐스트로 UI 클릭·호버 자동 감지 — 런타임 생성 버튼까지 커버). 둘 다 **SoundManager가 자동 부착**이라 씬 배선 0) ③ 개별 배선 10곳(빠따 스윙·타격·부서짐·쓰러짐·기상 / 슬롯 전환 / 문 / 피규어 / 확정 / LCD 타이핑 / 패널 3종) ④ `AudioLibrary.asset` **27+5칸 미리 채움**(3D 거리·피치 랜덤 폭까지 세팅 — 유저는 클립만 드래그) ⑤ `SfxId.SkillCatWalk` 추가. ⚠ **실제 소리는 미검증** — 클립이 하나도 없어 컴파일·타입까지만 확인. — §15, §6 참조.**
+> **v13 세션 — 스팀 출시 준비 + UX 대공사: ① 글로벌 서버**(Photon Fixed "kr" 해제 → Best Region 자동, 대시보드 화이트리스트 kr;us;eu — 유저가 직접 설정, 타이틀 좌하단 서버바+변경 팝업, `PhotonRegions` 단일 출처. 자동→kr(핑2ms)/us 전환/복귀 실측) ② **스팀 연동**(Facepunch.Steamworks 2.5.2 → `SteamHub`: 닉네임 자동 + **SteamID=Photon UserId** — §10 재접속 신원 문제 구조적 해결. 폴백=수동 닉네임, MPPM 가상 플레이어는 스팀 스킵+`mppm-N` UserId. ⚠ App ID 480 임시 — 출시 전 교체) ③ **타이틀 개편**(닉네임 입력칸 삭제, 설정 버튼 신설 → **설정 패널**: 볼륨/감도/시야각 50~90/해상도/화면모드/언어(잠금) — `SettingsStore` 단일 출처, 감도·FOV는 FPC 라이브 적용) ④ **방참가 대개편**(900×720 + 열 고정 테이블(방이름/인원/라운드/잠금 헤더) + ScrollRect 스크롤 — 열 정렬 -12px 사고 2건(TMP 마진 잔재+pivot 순서) 실측 0.0px 교정) ⑤ **게임씬 ESC 메뉴**(왼쪽 40% 다크+돌아가기/설정/게임종료, timeScale 무수정, 피격 통과+쓰러지면 자동 닫힘, ESC→빠따 부활 버그 픽스) ⑥ **손맛**(휠 슬롯 순환 1↔5 랩·빈 슬롯 포함, 주사기 찌르기(당김→스냅), 무전기 엄지 62°+램프 에미션 14) ⑦ 기각: 무전기 입가 모션+전파 링(구현·검증 후 유저 "안 와닿는다" — 롤백 완료) — §6, §7 참조.**
 > **v12 세션 — 손맛/비주얼 폴리싱: ① 피규어 손 정렬 종결(눈 기준 → IK 손 본 기준 — 하늘/땅 볼 때 손과 갈라지던 것 픽스) + 받침 손 연출(손 우하단·손바닥 위·손가락 완전 폄) ② **빠따 내구도**(명중 10대 소진, HUD 세로 게이지 초록→주황50%→빨강20%, 라운드마다 회복 — §3-9) ③ **타이틀 UI 리스킨**(픽셀 → 다크 라운드+앰버 호버, PixelBorder 제거) ④ **Pretendard 폰트 전면 교체**(무전기 LCD·로고만 제외) ⑤ 타이틀 자연물 365개 산포(나무70/바위35/잔디260 — TitleNatureGen) ⑥ 커마 열기 카메라 클로즈업 연출(CameraGlide) — §6 참조. ⚠ 받침대(색 원판) 쥘 때 표시는 시도 후 유저 기각 — 숨김 확정, 재제안 금지.**
 > **v11 세션 — 소품이 진짜가 됨 + glTF 파이프라인: ① `GltfBaker` 신규(glb/gltf → 유니티 네이티브 메시·머티리얼·프리팹으로 굽기, 런타임 로더 무설치. 노멀맵 자동 임포트 포함) ② 무전기·빠따를 Sketchfab 실물 모델로 교체(⚠ 둘 다 CC-BY — 크레딧 의무 §14) ③ **무전기 LCD 디스플레이**(LAB디지털 TMP 폰트, 발동=이름 한 글자씩 타이핑 / 처형=실시간 꼴등 표시) + 램프 3회 깜빡 → 자동 수납 ④ 아이템 재고 규칙(`SlotNone` 신설 — 다 쓴 슬롯은 들면 빈손, 소진 시 자동 수납) ⑤ 무전기 손 모양(손가락 펴고 엄지만 접어 감싸 쥠) ⑥ 조명 A안(ambient 0.4→0.75로 맵 전체 복구 + 실내등 낮춰 방 어두움 유지) ⑦ 버그픽스 2건(`IsLocalAvatar` 굳음 / **클라에서 `Racer.Progress`가 0에 멈춰 순위가 틀리던 것**) — §3-13, §6 참조.**
 > **v10 세션 — 베팅이 UI에서 공간으로: ① 1인칭 아이템 팔 IK(주사기·무전기를 시야 안에 들어올림) ② 빠따를 ithappy 실제 모델로 교체 ③ 트랙 웨이포인트 175개 자동 교정(도로 밖 19개 → 0) ④ 로고 프롬프트 작업(Dirty Derby 워드마크, 유저가 이미지 생성) ⑤ **2D 베팅 패널 전면 폐기 → 피트스탑 개인실 4개**(피규어를 유리 상자에 넣어 예측, 문 개폐, 남의 방 진입 차단, 전시대+스크린, 실내 조명 연출) ⑥ 1인칭 시점 안정화(서 있을 때 아이들 고갯짓이 화면을 안 흔듦, 남의 화면은 정상) — §3-12, §6 참조. ⚠ 씬 저장은 유저가 직접(Ctrl+S) — 세션 중 저장 안 함이 기본.**
@@ -53,7 +56,7 @@ Resources 규칙: Photon 이름 스폰 대상만 (NetPlayer, 동물 7종). UI �
 호랑이	액티브 1회	포효	자신 제외 전원 5초 ×0.5 감속. 펭귄 면역(피드 "관심이 없다"). 머리 확대 연출(RoarFx)
 사슴	액티브 1회	루돌프	**10초 앞 트랙 지점까지 직선(현) 비행을 5초에** = 순이득 ~5초치(코너에서 쓸수록 더 큼). 비행 중 모든 효과 면역. 등변사다리꼴 궤적(순항 3m)+애니 4배속+꼬리 트레일
 고양이	액티브 1회	사뿐한 발놀림	8초간 **코너 감속 완전 무시** — 남들 브레이크 밟을 때 혼자 풀스피드 코너링
-치킨	액티브 1회	냅다 달리기	8초 ×1.5 폭주. **슬럼프 없음**(v9 확정 — "확실한 스킬" 원칙)
+치킨	액티브 1회	냅다 달리기	8초 ×1.5 폭주. **슬럼프 없음**(v9 확정 — "확실한 스킬" 원칙). **무지개 자취**(v16 — ChickenDashFx)
 말	패시브	최후의 질주	전체 진행 85%+ (2랩째 막판) ×1.20
 개	패시브	근성	꼴등인 동안 ×1.30 — **처형 무전기 카운터**(5초 예고 안에 꼴등 탈출 시도)
 펭귄	패시브	무관심	모든 스킬·아이템 효과 완전 면역 (이로운 것 포함) — Racer.AddEffect 관문 차단. 포효도 안 통함. 단 코너 감속은 트랙 물리라 적용됨
@@ -213,6 +216,7 @@ PlayerItemController.cs (v6 개편, v8 5슬롯, v10 방 양보): 5슬롯 입력 
 PlayerEquipment.cs (v6 신규): "손에 든 것" 상태·연출·판정 전담 (NetPlayer 부착). 슬롯 변경/휘두르기는 RPC 전 클라 로컬 재생(AnimatorView 무수정). 상체 레이어 가중치 제어(ArmedUpper/HoldRight), 소품 코드 생성+본 부착, 스윙 임팩트 부채꼴 판정(`FindVictimsInArc` — GameConfig 참조), 쓰러짐용 Suppress/Restore(v10: 베팅 방 진입/이탈에도 재사용 — 방 안에선 맨손). v8: 슬롯 상수 SlotRadioSkill=4/SlotRadioExec=5, 무전기 소품 2종 코드 생성(BuildRadio). **v10: 빠따 퇴장은 즉시**(집어넣기 애니를 기다리면 그 사이 새 소품과 손에서 겹쳐 보였음 — `batHideDelay` 제거), 등장만 `batShowDelay` 유지. **v10: `batModel`**(ithappy baseball_bat_001) 참조로 실제 모델 사용 — 모델도 로컬 +Y로 뻗어 기존 `batLocalEuler`가 그대로 유효, 그립 정렬은 메시 최하단 실측(`LocalBottomY`), MeshCollider 런타임 제거. 비우면 옛 코드 생성 빠따로 폴백. `RightHandBone` 공개(피규어도 같은 손에 쥔다). ⚠ 같은 공격 재진입은 CrossFade 대신 Play 재시작(연타 얼어붙음 방지 — §11).
 PlayerHeadAim.cs (v6 신규): 시선 상하각(pitch)을 아바타 머리 본에 반영. 내 것=FPC 직결, 남의 것=IPunObservable 스트림 수신 후 부드럽게 추종. ⚠ **PhotonView Observed 목록에 등록됨** — 동기화 구성 변경이라 스탠드얼론 빌드 테스트 시 양쪽 재빌드 필수 (MPPM은 무관).
 PlayerKnockdown.cs (v6 신규): 쓰러짐/기상 상태머신 (Standing→Falling→Down→GettingUp). RpcKnockdown/RpcGetUp 전 클라 로컬 재생, 입력·상호작용 잠금, 카메라 하늘 보기→기상 중 원래 시점 복귀, 기상 후 무적. 클립 길이는 컨트롤러에서 이름("Stunned"/"Getting Up")으로 실측. getUpSpeed(2)는 컨트롤러 GetUp 상태 speed와 일치해야 함.
+PlayerFootsteps.cs (v16 신규, NetPlayer 루트): 발소리 + **지면 재질 판정**. [멀티] **통신 0** — 입력을 안 보고 **위치 변화만** 보므로 내 것/남의 것을 같은 코드로 처리한다(원격 위치는 TransformView가 이미 미러). 그래서 남이 뒤에서 다가오는 발소리가 3D로 들려 **빠따 견제의 정보**가 된다. 보폭 누적 방식(걷기 2.0m / 달리기 2.8m)이라 애니 이벤트가 필요 없고 속도가 변해도 자동으로 맞는다. 수평 이동만 세므로 엘리베이터 하강·낙하로는 안 울리고, 쓰러짐(`IsDown`) 중엔 침묵. **발밑 레이캐스트가 접지 판정을 겸한다**(공중이면 지면을 못 맞아 자동으로 조용 — `isGrounded` 깜빡임 회피 §11). 재질 판정은 씬의 지면이 전부 Default 레이어·Untagged라 **콜라이더 종류 + 부모 체인 이름**으로 가른다: `TerrainCollider`=흙 / 이름에 `Road`=아스팔트 / `Pit`·`Garage` 등=콘크리트(폴백도 콘크리트). 키워드는 인스펙터 배열이라 새 지면이 생기면 단어만 추가하면 된다. 내 것 2D·남의 것 3D(18m).
 Betting Room — v10 신규 (§3-12)
 BettingRoom.cs: 방 하나. 문 슬라이드(`Door-closed` 메시를 위로), 출입 차단 배리어(항시 켜짐 — 주인 CC만 IgnoreCollision), 재실 판정(`ContainsPoint`/`IsAnyoneInside`), 상자 3개로 `BuildTicket()`, 실내등 문 연동(닫힘 0.55 ↔ 열림 2.2). ⚠ 재실 판정을 콜라이더 겹침(OverlapBox)으로 하면 안 된다 — 방 안 콜라이더가 30개 넘어 버퍼가 넘치고 CC가 잘린다(실사고 2회). 씬의 CC를 직접 검사할 것.
 BettingRoomManager.cs: 총괄(씬 1개). 방↔플레이어 배정(매치 중=로스터 순번, 로비=액터 정렬 순번 → 방장은 항상 방 1이라 레버도 방 1에만), 문 상태머신, 배리어 배선, **피규어 생성(내 방 전용·로컬)**, HUD 안내문(`Guidance`). 문 초대(열림) 조건에 "주인 아바타가 씬에 실존"을 넣어야 스폰 전 한 순간 열렸다 닫히는 깜빡임이 없다.
@@ -236,9 +240,10 @@ ScoreboardBoard.cs (v3 신규): 거대 전광판 두뇌 — 러닝타임 시계(
 MinimapBoard.cs (v4 신규): 미니맵 전광판 두뇌 (전광판1·2에 부착). 좌측 = 트랙 실루엣 미니맵: TrackPath 중심선을 0.4m 간격 샘플→반폭 원 스탬핑으로 640px 텍스처를 런타임 1회 굽기(트랙 정적) + 출발선 표시. 동물마다 "가운데 빈 원"(도넛) 마커가 실시간 이동 — 도넛 스프라이트도 코드 생성(64px, rOut 29/rIn 8/검정 테두리 3.5 — 테두리를 검정으로 구워서 흰/검 레인도 어떤 배경에서든 보임. v4 중 유저 요청으로 rIn 15→8 구멍 축소). 우측 = 간단 순위표(배지+이름만, 행 슬라이드). 진행도는 ScoreboardBoard와 동일한 로컬 위치 기반(v8: GetDistanceNear 랩 누적) — 클라 동작, 네트워크 무관. v8: 탈락자 맨 아래 정렬 + 행 뿌옇게 + 마커 흐린 회색. 라인업 변동 자동 재구성. **v10: 출전 수가 컨테이너를 넘치면 행을 통째로 비례 축소**(`localScale`) — 9마리×140 = 1260px > 컨테이너 1120px라 마지막 행이 판 밖으로 나갔었다. 행 배경만 줄이면 배지/이름이 원래 크기로 남아 따로 놀아서 스케일로 함께 줄인다. **v10: 베팅 방 모니터 4개도 이 컴포넌트를 복제해 쓴다**(전광판1 통째 복제 — 내부 참조 자동 리매핑). 튜닝 인스펙터: textureSize/trackColor/startLineColor/markerSize(48)/rowHeight(상한)/rowMoveSpeed. ⚠ 전광판2는 몸체가 180° 돌아 있어 미니맵 방향도 반대로 보임(보는 방향 기준) — 유저가 통일 원하면 한쪽 뒤집기 옵션 필요.
 CloudField.cs (v4 신규): 구름 컨베이어 (씬 Clouds에 부착, 자식 25개). 표류 축 driftAxis(기본 월드 Z), 방향 부호는 방 이름 수제 해시(31곱 누적)의 홀짝 — 방 파질 때 확정·전 클라 동일·통신 불필요, 오프라인은 판마다 랜덤. 영역(초기 배치에서 역산)을 margin(60m) 넘게 벗어나면 반대편 가장자리에서 횡위치/높이/크기/회전/속도 재추첨 후 재등장 = 보기엔 절차 생성, 실제론 재활용(스폰/GC 0). 구름별 속도 편차 ±35%로 시차감. 순수 장식 로컬 처리. ⚠ Clouds는 움직이므로 Batching Static 금지.
 TimelineFeed.cs(우측 사건 피드) / StartLever.cs(방장 시작 버튼 — v9: 벽 개폐 폐기, **v10: 베팅방1 안으로 이전**. LocalPlayerBinder가 씬의 모든 레버를 배선하므로 방마다 복제해도 됨) / PixelBorder.cs([유저 자작] — v10에서 유저가 "굳이 안 써도 된다"고 허용, 베팅 패널에서만 떼어냄. 타이틀 UI는 여전히 이 픽셀 테마).
-TitleIdleAnimator.cs (v6 신규): 타이틀 캐릭터 대기 연기 — Idle_Relaxed ↔ Idle_Look_Around를 6~12초 랜덤 교차 (전용 TitleIdle.controller, 코드 CrossFade). 점프 연출은 시도 후 유저가 뺌. 두 아이들 클립은 루프 플래그를 켰음(원본은 루프 꺼져 있어 얼어붙었음). 발 끌림은 에셋 본성(발이 안 들리는 애니)으로 수용됨.
+TitleIdleAnimator.cs (v6 신규, **v15 2모드 재작성**): 타이틀 캐릭터 연기. **메인 화면 = 춤 4종 랜덤 순환**(danceStates, danceHold 9~15초) ↔ **커마 중 = 아이들 2종**(idleStates=Idle_Relaxed/Idle_Look_Around, idleHold 6~12초). 전용 TitleIdle.controller의 상태명=클립명, 전환은 코드 CrossFade(트랜지션 배선 불필요). `SetDancing(bool)`이 유일한 공개 API — CustomizationPanel이 Open/Close에서 호출한다. 모드가 바뀌면 코루틴을 재시작해 **기다리지 않고 즉시 갈아탄다**. 최초 1회만 `Play`(컨트롤러 기본 상태 Idle_Relaxed가 한 프레임 보이는 것 방지), 이후는 전부 CrossFade. 같은 연기 연속 방지(lastIndex). 점프 연출은 시도 후 유저가 뺌. 두 아이들 클립은 루프 플래그를 켰음(원본은 루프 꺼져 있어 얼어붙었음). 발 끌림은 에셋 본성(발이 안 들리는 애니)으로 수용됨.
 CustomizationPanel.cs (v5 신규): 타이틀 커마 UI. 슬롯 개수가 라이브러리에 따라 변하므로 **UI를 코드로 자체 조립**(MinimapBoard와 같은 방식). 슬롯별 ◀ 이름 ▶ 행 + 랜덤/취소/확정. 확정=PlayerPrefs 저장+방송, 취소=열기 전 스냅샷 복원, Esc=취소. hideWhileOpen 배열(메인 메뉴·닉네임·상태문구)을 커마 중 숨긴다. 열려 있는 동안 매 프레임 라벨을 갱신하되 값이 같으면 TMP를 건드리지 않는다.
 Racing/연출 — 신규
+ChickenDashFx.cs (v16 신규): [치킨] 냅다 달리기 8초 동안 몸 뒤로 **지면과 나란히 평평한 무지개 띠**. 발동 감지는 RoarFx와 같은 스킬 피드 문자열 구독이라 **통신 0**. 설계 요점 3가지 — ① **무지개는 `colorGradient`가 아니라 텍스처**: 그라데이션은 길이(시간) 방향으로만 변해서 색이 흐르는 모양이 된다. 이미지처럼 색이 폭을 가로질러 나란히 놓이려면 4×64 텍스처의 **V축**에 7색을 구워 입혀야 한다(`textureMode = Stretch`). ② **평평함 유지**: `alignment = TransformZ` + `KeepFlat()`이 매 프레임 띠의 Z축(면의 법선)을 **월드 위쪽**으로 고정 — `View`로 두면 보는 각도에 따라 띠가 돌아가고, 부모(동물) 회전을 그냥 따르면 경사에서 같이 기운다. ③ ⚠ **셰이더는 `Sprites/Default`** — URP Particles/Unlit을 쓰면 새까맣게 나온다(§11). 배출 지점·굵기는 스킨드메시 바운즈 실측이라 치킨 1.5배 스케일에 자동 대응. 튜닝은 GameConfig "연출 — 무지개 자취" 섹션(폭/시간/끝배율/개수/밝기).
 RudolphFlightFx.cs (v9 신규): [사슴] 비행 중 **달리기 애니 4배속**(공중에서 다리 파닥) + **꼬리 트레일**(꼬리 본 `spine`에 TrailRenderer — 빨강→금색 그라데이션). 판정은 "지면 위 높이" 기반이라 TransformView가 미러하는 높이만 보면 되어 **클라도 통신 0**. LateUpdate라 호스트 DriveAnimator/탈락 정지와 안 싸움. ⚠ 본 직접 회전(풍차 다리)은 v9에서 구현했다가 **유저가 "기괴하다"고 기각** — 애니 배속으로 교체됨, 재제안 금지.
 RoarFx.cs (v9 신규): [호랑이] 포효 시 머리 본 1.7배 확대 + 0.18m 전방 돌출(0.2초 확대→유지→0.4초 복귀). 발동 감지는 **이미 전 클라로 중계되는 스킬 피드 문자열**("OO의 포효"로 시작) 구독 — 네트워크 추가 0. ⚠ 머리 본 이름이 리그마다 다름(6종은 `scull`, **호랑이만 없고 `jaw`의 부모 spine.012**) → 이름→jaw의 부모→최심부 spine 3단 탐색. ⚠ 위치 오프셋에 `+=` 금지(§11).
 ElevatorRide.cs (v9 신규): §3-11 참조. 실행 순서 `-100`(접지 깜빡임 방지), 탑승자 스냅/운반, 정지 후 0.3초 유예.
@@ -277,7 +282,39 @@ NetPlayer 프리팹(Resources): FPC+카메라+PlayerInteractor+PhotonView+Transf
 동물 프리팹 7종(Resources): 모델+Animator+Rigidbody(FreezeRotation)+Racer+RacerMotor+PhotonView+TransformView+AnimatorView+NetworkRacerSetup+RacerNumberPlate(루트)+번호판. v4: 등 1판 → 양 옆구리 2세트(PlateCubeL/R + PlateNumL/R, 형제 구조)로 교체 — 부모는 v3 그대로 등뼈 본(개 spine.005/고양이 spine.006/말 spine.006/치킨 spine.003/펭귄 spine.005/호랑이 spine.010/사슴 spine.004)이라 달릴 때 출렁임 유지. 옆구리 x오프셋은 스킨드메시 정점 실측(뿔/날개로 바운즈 과대인 사슴·펭귄 대응), TMP는 LookRotation(±x, up)으로 좌우 각각 바깥면·숫자 직립 보장. v4: 치킨·고양이 루트 스케일 1.5배(유저 요청 — 몸통 콜라이더는 스폰 시 자동 산출이라 무추가작업, 대신 §11 콜라이더 로컬 단위 법칙 참조).
 Run In Background 설정됨. 동기화 컴포넌트 변경 시 재빌드 철칙 (v3·v4 변경분은 전부 동기화 무변경 — 단 프리팹 비주얼 변경(번호판/크기)은 클라 로컬 스폰이라 멀티 테스트 시 빌드 갱신 필요).
 ---
-6. 최근 완료 (v13 세션 하이라이트)
+6. 최근 완료 (v16 세션 하이라이트)
+**SFX 소싱 시작 + 파일명 정리**: 유저가 AI 생성툴을 써보다 "이상해서" 접고 **검색으로 직접 소싱**하는 쪽으로 방향을 틀었다(키워드 목록을 세션 중 두 번 제공 — 생성용 프롬프트 27줄 / 검색용 짧은 키워드+대안). 받은 파일 이름이 `shidenbeatsmusic-punch-kick-hit-attack-10-different-sound-effects-95143_[cut_1sec]` 같은 꼴이라 **`AudioLibrary`에 배선된 것만 골라 SfxId 이름으로 리네임**(15개: UiClick/CountdownBeep/RaceStart/BatSwing_1~3/Execution/BatHit_1~2/BatBreak/Knockdown/GetUp/SyringeShot/RadioUse/RadioTyping). 클립이 여러 개인 항목은 `_1`,`_2` 접미사. `AssetDatabase.RenameAsset`을 썼으므로 **GUID·meta·SO 참조 전부 유지**.
+· ⚠ **하마터면 오진할 뻔한 것**: 처음 `.asset` 파일을 직접 읽었을 때 클립이 전부 비어 보였다. 유저가 인스펙터에서 드래그한 변경이 **아직 디스크에 저장 전(에디터 메모리에만 존재)**이었던 것. **SO의 현재 상태를 알려면 파일을 읽지 말고 MCP로 유니티 메모리에서 읽어야 한다.**
+**플레이어 발소리 (§4 `PlayerFootsteps`)**: 유저가 "발소리 이런 건 없어도 되나" 물어봄 → Claude가 **플레이어 발소리는 값어치 크고**(빠따 PvP에서 뒤에서 다가오는 소리 = 게임플레이 정보) **동물 발굽은 우선순위 낮다**(9마리×4분이면 풀 16개를 혼자 먹고 중요한 소리를 묻음)고 정리 → 유저가 플레이어 발소리만 채택. 지면 재질 3종은 유저가 요청한 것. 7지점 실측으로 판정 전부 확인.
+**스킬 지속음 (`SoundManager.PlaySfxLoop`)**: 유저 발주 "스킬 발동하는 동안 효과음이 끝날 때까지 계속, 시작·끝 0.5초 페이드". ⚠ "시작하기 0.5초 전"은 **구조적으로 불가능**(스킬 발동은 예고가 없다)이라 페이드인으로 해석해 구현하고 그 사실을 알렸다. 요점 = **소리가 동물을 따라다닌다**(8초면 치킨이 100m 넘게 달리므로 위치를 고정하면 소리만 뒤에 남는다) + **원샷 풀과 분리**(8초씩 자리를 잡고 있어 같은 풀이면 다른 소리에 뺏겨 끊긴다) + Racing 페이즈를 벗어나면 전부 정지(비행 중 처형당해도 소리가 안 남음).
+**치킨 무지개 자취 (§4 `ChickenDashFx`)**: 유저 발주 후 **3차 개정**. ① 원통 3줄(colorGradient 무지개) → ② 유저가 롤 스킨 이미지 제시 "이렇게 평평하게" → **텍스처 V축 무지개 + 넓은 띠 1개**로 재작성 → ③ "보는 방향으로 방향이 바뀐다" → `alignment`를 `View`에서 `TransformZ`로 바꾸고 `KeepFlat()`으로 **월드 기준 수평 고정**(동물이 경사에서 기울어도 띠는 수평 — 법선 y=1.0000 실측).
+**⚠ 이번 세션 최대 삽질 — 이펙트가 통째로 안 보임**: 텍스처를 입힌 뒤 유저가 "아무 이펙트도 안 나온다" 제보. 플레이 진입 → 치킨 직접 스폰 → 캡처했더니 **도로 위에 검은 선**이 찍혀 있었다(띠가 그려지긴 하는데 새까맣게). 셰이더 3종을 나란히 놓고 비교 캡처해 원인 확정: **`URP Particles/Unlit`은 파티클 전용 vertex stream을 기대해서 TrailRenderer에 물리면 검게 나온다.** `Sprites/Default`로 교체해 해결(§11 신규 법칙). 원통 3줄일 때 보였던 이유는 그땐 텍스처 없이 정점색만 썼기 때문 — **텍스처를 입히는 순간 드러나는 함정**이다.
+· ⚠ **`RudolphFlightFx`(사슴 꼬리 트레일)도 같은 셰이더를 쓴다** — 텍스처가 없어 완전히 검진 않겠지만 빨강→금색 그라데이션이 의도대로 안 나올 가능성이 높다. **미확인, 다음 세션 확인 대상**(§7).
+**기획 결정 — 스킬음은 동물 울음소리**: 유저 제안 "고양이나 닭 같은 건 스킬 소리보다 그냥 울음소리가 알아보기 쉬울 것 같다" → 채택. 근거 = 9마리 중 **누가 터뜨렸는지 소리만으로 식별**되고(추상 whoosh는 화면을 봐야 앎), 호랑이 포효가 이미 그 방식이라 결이 통일되며, 소싱도 훨씬 쉽다. **단 사슴은 예외** — 사슴 울음소리는 대중이 뭔지 몰라서 루돌프=썰매종이 훨씬 직관적.
+**검증**: 발소리 7지점 판정 / 무지개 띠 생성·수평 고정·셰이더 비교 3종 캡처 / 스킬 지속시간 연동 / 리네임 15개. 검증용 `radioSkillCount` 4 → **1로 원복 확인**(bettingSeconds 60·racerCount 9·radioExecCount 1도 함께 확인). 테스트 오브젝트 정리 + **카메라 전수조사로 유령 `__captureCam` 없음 확인**(§11 사고 이력).
+---
+6-05. 이전 세션 완료 (v15 하이라이트)
+**타이틀 캐릭터 춤 (유저 발주)**: "external asset/Anims4에 춤 애니 4개 넣어놨다. 타이틀 주인공 idle을 춤으로 바꾸되, **커마할 때는 다시 idle이었다가 커마 끝나고 메인화면 돌아오면 다시 춤**."
+· **fbx 재임포트가 먼저였다** — 믹사모 fbx 4개가 **Generic + avatarSetup=NoAvatar**로 들어와 있었고 클립 이름이 전부 `mixamo.com`이라 컨트롤러 상태로 쓸 수가 없었다. `animationType=Human` + `avatarSetup=CreateFromThisModel` + `loopTime/loopPose` + 클립명(`Dance_Chicken`/`Dance_Locking`/`Dance_Snake`/`Dance_Ymca`)으로 `SaveAndReimport`. 아바타 4개 전부 valid, `isHumanMotion=True` 확인. 길이 = 치킨 4.77 / 로킹 17.00 / 스네이크 15.27 / YMCA 4.50초.
+· **`TitleIdleAnimator` 2모드 재작성** — 기존 필드명(`idleHold`/`blendTime`/`debugLog`)은 **일부러 그대로 뒀다**(이름을 바꾸면 씬에 직렬화된 값이 날아간다). 춤 관련은 전부 신규 필드라 코드 기본값이 그대로 적용된다.
+· **`CustomizationPanel` 연결** — `Open()` → `SetDancing(false)`, `Close()` → `SetDancing(true)`. **Confirm/Cancel/Esc가 전부 `Close()`를 경유**하므로 한 곳만 잡으면 셋 다 커버된다. 참조는 `[SerializeField] + Awake 자동 탐색` 폴백이라 **씬을 안 건드렸다**(§11 "복제엔 자동 탐색 폴백" 관례와 같은 이유 — 배선 누락 NRE 예방).
+· **루트모션**: 타이틀 캐릭터 Animator는 `applyRootMotion=False`라 루프 이동 성분이 그냥 버려진다 = 제자리 춤. §11 "루프 클립은 굽기 금지" 법칙 그대로라 **굽기 없이 그대로 통과**. 실측으로 확인(아래).
+**검증 (플레이 진입→계측→캡처→종료)**: 타이틀 진입 즉시 `Dance_Locking` 재생 → 곡 순환(`Dance_Chicken`) → 커마 Open 시 `Idle_Look_Around` 전환 → **확정 버튼 실제 클릭**(onClick.Invoke) → `Dance_Chicken` 복귀. 캐릭터 위치 `(2.670, 0, 0)` 내내 고정 = 이탈 0, 힙의 루트 로컬 이동폭 전 곡 **±0.3m 이내**(제자리 확정). 화면 잘림 = 네 곡 모두 렌더러 바운즈 최하단 뷰포트 y **0.006**(발끝, 잘림 없음 — 원래 프레이밍이 발이 화면 바닥에 거의 붙어 있는 구도). 에러/경고 0.
+· ⚠ 첫 캡처에서 "캐릭터가 카메라 앞으로 튀어나와 잘린 것처럼" 보였는데 **자세가 낮았을 뿐**(로킹은 힙이 0.33m까지 내려감, 아이들은 0.79 고정)이었다. 위치를 실측하기 전에 그림만 보고 루트모션 버그로 단정할 뻔했다.
+· **씬은 안 건드렸다** — 저장할 것 없음. 갱신된 에셋은 fbx meta 4개 + TitleIdle.controller(둘 다 이미 저장됨).
+---
+6-04. 이전 세션 완료 (v14 하이라이트)
+**BGM 방향 확정 (기획 결정 — 유저)**: v13에서 Suno 프롬프트 5곡을 뽑아뒀지만, 유저가 **타이틀 곡만 구하고 멈췄다**. 이유가 중요하다 — "**파티게임이라 친구들끼리 말을 많이 하는데 뒤에 브금이 깔리면 좀 그럴 것 같다**". 그래서 인게임은 **무음이 기본**이고, 나중에 넣더라도 "평화로운 것"만. 인프라는 손대지 않았다(5트랙 항목 그대로, 클립만 비움) — `SwitchBgm`이 빈 클립을 무음 페이드로 처리하므로 **타이틀 → 게임 씬 진입 시 1.2초 페이드아웃 후 조용**해진다. 나중에 마음이 바뀌면 Lobby 칸에 클립 하나 꽂는 것으로 끝. §15-2의 나머지 4곡 프롬프트는 그대로 보존(폐기 아님, 보류).
+**SFX 호출 배선 (§15-5)**: 유저 발주 "SFX 호출 배선 따줘". 신규 2개 + 개별 10곳.
+· **`SfxRelay.cs` (신규)** — 아이템 사용·완주/탈락·스킬 발동·페이즈를 한곳에서 구독해 소리를 낸다. **몰아둔 이유가 핵심**: 이 사건들을 일으키는 코드(`ItemExecutor`, `Racer.SimTick`, `RaceManager`)는 **전부 호스트 전용**이라 그 자리에 소리를 넣으면 **게스트 화면이 조용하다**. 반면 `GameEvents`는 게이트웨이가 전 클라로 중계하므로 구독해서 각자 로컬 재생하면 **네트워크 추가 통신 0** (부스트 먼지·무전기 LCD와 같은 철학). 반대로 "내 손"에서 나는 소리(스윙·슬롯·피규어)는 각 호출부에 직접 넣었다 — 그쪽은 애초에 로컬/RPC 재생 지점이다.
+· **`UiClickSfx.cs` (신규)** — 버튼마다 `onClick`을 배선하는 대신 **EventSystem 레이캐스트**로 잡는다. 방 목록·커마 패널·설정 행처럼 **런타임에 생기는 버튼이 많아서** 씬에서 하나씩 연결하면 새 버튼이 계속 빠진다(그리고 버튼이 늘 때마다 배선을 잊는다). 호버음은 **다른 버튼으로 넘어간 순간에만**, 커서 잠긴 동안(1인칭 조작 중)은 통째로 스킵.
+· **둘 다 `SoundManager.Awake`가 자동 부착** — `DontDestroyOnLoad` 오브젝트에 얹히므로 두 씬 모두 커버되고 **씬 배선이 0**이다(씬을 또 dirty로 만들지 않아도 됨).
+· **소리 위치 규칙**: 남에게도 들려야 하는 건 전 클라 재생 지점(RPC/중계 이벤트)에 넣고 3D, 내 화면 전용은 2D. 예 — 타격음은 **때린 쪽 로컬 판정이 아니라 피해자의 `RpcKnockdown`**에 넣었다(때린 쪽에 넣으면 정작 맞은 사람 화면이 조용하다). 아이템 발사음은 쏜 본인만 2D, 명중음은 동물 자리에서 3D.
+· ⚠ **스킬음은 문자열 매칭이라 문구를 고치면 조용히 깨진다** — 중계되는 게 피드 문자열뿐이라 `"포효"/"루돌프"/"냅다 달린다"/"사뿐사뿐"` 키워드로 가른다(RoarFx와 같은 방식). `Racer`/`RacerMotor`/`RaceManager`의 피드 문구를 바꾸면 `SfxRelay` 키워드도 같이 바꿀 것(코드에도 ⚠ 주석 있음).
+**`AudioLibrary.asset` 미리 채움**: 배열이 **둘 다 비어 있어서**(SFX 0칸/BGM 0칸) 그대로면 유저가 항목을 손으로 만들고 enum을 골라야 했다 → **SFX 27칸 + BGM 5칸을 MCP로 생성**하고 3D 최대 거리(포효 80m / 주사기 명중 40m / 플레이어·문 25m / 나머지 2D)와 피치 랜덤 폭(타격류만 0.95~1.05, UI·카운트다운은 1.0 고정)까지 세팅. 이제 **클립만 드래그하면 끝**. `Assets/Audio/BGM`·`SFX` 폴더도 생성.
+**검증 범위 (정직하게)**: 컴파일 성공 + 새 타입/enum 로드 + 씬 `SoundManager` 존재까지 MCP로 확인. **실제 소리는 못 들어봤다** — 클립이 하나도 없어 전부 "조용히 스킵" 경로만 탄 셈. 3D 거리감·타이밍(특히 쓰러짐 `thudDelay` 0.45초)은 클립을 넣고 들어봐야 조정 가능.
+---
+6-03. 이전 세션 완료 (v13 하이라이트)
 **글로벌 서버 (스팀 출시 준비 1탄)**: 유저 발주 "kr 고정 풀고 서버 선택 줘야 하나" → 논의로 확정: **자동(Best Region) 기본 + 수동 선택은 대륙 간 친구 파티용**(Photon 방 목록은 지역별 분리라 필수). 유저가 겪던 "kr/jp/asia가 자꾸 바뀜" = 동네 이웃 지역 핑 동점 뒤집힘 + 유저풀 파편화 → **Photon 대시보드 리전 허가 리스트 kr;us;eu**(유저가 직접 설정)로 해결 — 지역 추가는 패치 없이 대시보드 클릭(asia/sa는 유저 늘면 켜기로). 클라: PhotonServerSettings FixedRegion 해제, `NetworkLauncher.Connect/ChangeRegion`(끊고 재접속), `PhotonRegions`(코드/한글이름 단일 출처 — 지역 추가 시 여기 한 줄), 타이틀 좌하단 **서버바**(다크 라운드, "서버: 자동 (한국)")+변경 팝업. 실측: 자동=kr 핑2ms·화이트리스트 3개 확인·us 전환·자동 복귀 풀사이클.
 **스팀 연동 (2탄)**: Facepunch.Steamworks 2.5.2 (`Assets/Plugins/Facepunch.Steamworks/` — 릴리스의 Unity 폴더 그대로, .meta 포함이라 플랫폼 설정 자동. MIT — 크레딧 의무 없음). `SteamHub`(static): 부팅 시 Init → 닉네임(실측 "제비꽃 하나")+SteamID 제공, 실패 시 IsAvailable=false. `NetworkLauncher`가 **SteamID를 Photon UserId(AuthValues)로** — 창 껐다 켜도 같은 사람 = §10 "재접속 복귀 UserId" 문제 구조적 해결. `MppmTestClient`는 `mppm-N` UserId 고정(전 창 같은 스팀 계정이라 SteamID 겹침 방지, §11). ⚠ **App ID 480(Spacewar) 임시 — 출시 전 SteamHub.AppId + 루트 steam_appid.txt 교체**.
 **타이틀 개편**: 닉네임 입력칸 삭제(스팀 자동, 폴백=저장값/랜덤 코드 처리), 버튼 5개 재배치(방만들기/방참가/커마/**설정**/종료). **설정 패널**(다크 카드 600): 볼륨·감도 슬라이더 / **시야각 50~90°**(FPC 라이브 적용 — 인게임 ESC에서 바꿔도 즉시) / 해상도·화면모드 ◀▶(에디터 체감 불가 — 빌드 확인) / 언어 잠금("한국어 (추후 지원)" — **로컬라이제이션은 문자열 추출 대작업이라 별도 세션**, §7). `SettingsStore`(static, PlayerPrefs+전역 적용) / `SettingsPanel`(UI 흐름, hideWhileOpen 패턴). 검증: 값→AudioListener/프리퍼런스 실측, 원복 확인.
@@ -375,7 +412,15 @@ MPPM 멀티 실기 테스트 (§10): 빌드 없이 2인 테스트 성공. 옷 �
 게임 제목 논의: 영문 Dirty Derby 추천(§8), 스플래시아트 AI 생성 프롬프트 세트 전달됨.
 ---
 7. ★ 다음 작업 큐 (우선순위순)
-★ **v13 0순위: 씬 저장 확인 2건** — ① GameScene: ESC 메뉴(PauseMenu+SettingsPanel 복제)가 미저장일 수 있음 ② TitleScene: **유령 카메라(`__captureCam`) 삭제분이 미저장**(세션 말미 픽스 — 저장 안 하면 다음 실행에 유령 카메라 부활). 프리팹(NetPlayer/RoomItem)·PhotonServerSettings·스크립트는 저장 완료.
+★ **v16 0순위: 사슴 꼬리 트레일 셰이더 확인** — `RudolphFlightFx`가 `URP Particles/Unlit`을 쓰고 있다(치킨에서 **띠가 새까맣게 나오던 그 셰이더**, §11). 텍스처가 없어 완전히 검진 않겠지만 빨강→금색 그라데이션이 의도대로 안 나올 가능성이 높다. **사슴 비행을 한 번 보고** 꼬리가 칙칙하거나 검으면 `Sprites/Default`로 한 줄 교체하면 된다(치킨과 같은 처방).
+★ **v16 SFX 소싱 계속 (유저)** — 30칸 중 **15개 채움**. 남은 것: UiHover / PanelOpen / PanelClose / RacerFinish / SyringeHitBoost / SyringeHitSlow / SlotSwitch / **스킬 4종**(→ **울음소리로**: `cat meow` / `chicken squawk` / 호랑이 포효 / 사슴만 `sleigh bells`) / DoorSlide / FigurinePick / FigurinePlace / BetConfirm / **발소리 3종**(`footstep grass`·`asphalt`·`concrete` — ⚠ **각 3~4개 변형 필수**, 가장 자주 나는 소리라 하나면 즉시 티난다). 아스팔트/콘크리트는 실제로 비슷해서 같은 클립을 두 칸에 써도 무방.
+★ **v16 유저 육안/청취 확인**: 발소리 보폭(걷기 2.0m — 성기면 1.6~1.8) · 남의 발소리 거리 18m가 적절한지 · 스킬음 페이드 0.5초(`SfxRelay` 인스펙터) · **포효 5초 루프가 어색한지**(포효는 한 번 지르는 동작인데 효과만 5초라 결이 다름 — 어색하면 포효만 원샷으로 되돌리기 or "포효 + 낮게 깔리는 으르렁" 클립으로) · 무지개 띠 두께(`dashTrailWidth` 0.75 → 더 두껍게는 1.0~1.2)·길이(`dashTrailTime` 0.9)·밝기(1.2, 낮추면 색이 선명).
+★ **v16 미검증**: 발소리·스킬 루프·무지개의 **멀티 화면**(전부 로컬 연출이라 이론상 동일하지만 미확인). 특히 남의 발소리가 실제로 들리는지는 MPPM 2인이 필요.
+★ **v15 유저 육안 확인 (타이틀 춤)**: 곡 유지 시간(`danceHold` 9~15초 — 로킹/스네이크는 클립이 15~17초라 중간에 다음 곡으로 넘어간다. 한 곡을 끝까지 보여주려면 늘릴 것) · 네 곡 중 안 어울리는 게 있으면 `danceStates` 배열에서 빼면 됨(컨트롤러 상태는 남겨둬도 무해) · 춤↔아이들 전환 블렌드(`blendTime` 0.25 — 커마 열 때 툭 끊기면 늘리기) · 로킹처럼 **낮게 웅크리는 자세**가 화면 하단에 붙어 답답한지(잘리진 않음 — 거슬리면 카메라를 살짝 올리는 게 답인데 **타이틀 카메라는 v12에서 유저가 직접 잡은 값**이라 손대지 않았음) · 발 끌림(에셋 본성, 아이들과 동일).
+★ **v15 미적용 (필요하면 발주)**: 춤은 **타이틀 전시 캐릭터 전용**이다 — 인게임 대기실 아바타는 그대로. 로비에서도 춤추게 하려면 감정표현(emote) 성격이라 입력·네트워크 동기화 설계가 따로 필요(현 구조는 로컬 연출뿐).
+★ **v14 0순위: 사운드 실플레이 검증** — 배선은 끝났고 클립만 없다. ① 유저가 **타이틀 곡을 `AudioLibrary.asset` 배경음 Element 0(Title)에 꽂고** 타이틀 진입 → 재생·볼륨 슬라이더·게임 씬 진입 시 페이드아웃 확인 (⚠ BGM 임포트 설정 = **Load Type: Streaming / Vorbis / Preload 끄기**) ② SFX 클립을 채우는 대로 **소리 나는지 + 타이밍 감** 확인 — 특히 쓰러짐 `thudDelay`(0.45초, PlayerKnockdown 인스펙터), 3D 거리(포효 80m·주사기 명중 40m가 관전 거리에서 적절한지), 카운트다운 비프 간격(1초 고정). ③ UI 클릭·호버음이 **과한지** (호버는 버튼 넘어갈 때만 나지만 메뉴가 촘촘하면 시끄러울 수 있음 — 거슬리면 `UiClickSfx`에서 호버 한 줄 제거).
+★ **v14 미검증**: 멀티에서 3D 소리 위치·남의 스윙/타격이 들리는지(전 클라 RPC 재생이라 이론상 동작), 무전기 LCD 타이핑음이 원격에서 안 나는 것(의도 — `IsMine` 가드).
+★ **v13 0순위(이월, v14에서 확인 안 함): 씬 저장 확인 2건** — ① GameScene: ESC 메뉴(PauseMenu+SettingsPanel 복제)가 미저장일 수 있음 ② TitleScene: **유령 카메라(`__captureCam`) 삭제분이 미저장**(세션 말미 픽스 — 저장 안 하면 다음 실행에 유령 카메라 부활). 프리팹(NetPlayer/RoomItem)·PhotonServerSettings·스크립트는 저장 완료.
 ★ **v13 출시 전 필수**: ① SteamHub.AppId 480 + 루트 steam_appid.txt → **진짜 스팀 App ID로 교체**(스팀워크스 등록 $100 후) ② **언어 로컬라이제이션 별도 세션**(전 코드/씬 하드코딩 한국어 수백 개 키 추출이 본체 — 콘텐츠 불어나기 전이 쌈. 설정 패널 언어 칸은 잠금 상태로 대기 중).
 ★ **v13 멀티 실기 미검증**: 서버 수동 선택을 다른 지역 2인으로(방 목록 분리 체감), 스팀 신원 2인(닉네임/UserId — MPPM은 스팀 스킵이라 스탠드얼론 필요), ESC 메뉴 중 남이 보는 내 모습(그냥 서 있음 — 의도), 휠 순환·주사기 찌르기의 원격 화면(이론상 동일).
 ★ **v13 유저 육안/빌드 확인**: 해상도·화면모드 전환(에디터 불가 — **빌드에서**), 인게임 FOV 슬라이더 체감, ESC 패널 어둡기(0.8)/버튼 배치, 실제 ESC 키 손맛, 설정 패널 감성(카드 크기·행 간격), 휠 방향(아래=다음 — 뒤집기 한 줄), 찌르기 감성(`thrustPullDistance` 0.22/`thrustSeconds` 0.28), 엄지 62°·램프 14 체감, 서버바/팝업 디자인.
@@ -516,6 +561,10 @@ v4 자동 검증 완료분 (재확인 불요): 미니맵 텍스처 굽기·마�
 v4 미검증: 옆구리 번호판이 달리기 애니에서 몸을 뚫는지(정지 자세로만 캡처 — 육안 확인 필요), 미니맵 마커의 멀티 클라 화면(로컬 계산이라 이론상 동일)
 ---
 11. 지식 아카이브 (버그/설계 패턴 사전)
+★ **`URP Particles/Unlit`을 TrailRenderer에 쓰면 띠가 새까맣게 나온다** (v16, 이번 세션 최대 삽질): 그 셰이더는 파티클 시스템이 넘겨주는 vertex stream을 기대하는데 TrailRenderer는 그걸 안 준다. **`Sprites/Default`가 정답** — 텍스처 × 정점색을 알파 블렌딩으로 곱해줘서 리본에 딱 맞고 renderQueue도 3000(투명)으로 자동 설정된다. ⚠ **텍스처를 입히기 전엔 증상이 안 나타난다**(정점색만 쓰면 그럭저럭 보임) — 그래서 "잘 되던 게 텍스처 추가하니 사라졌다"로 나타난다. 진단은 **셰이더 후보를 나란히 놓고 한 장에 캡처**하는 게 제일 빠르다(추측하지 말 것). ⚠ **`RudolphFlightFx`도 같은 셰이더를 쓰고 있다 — 미확인 (§7).**
+★ **TrailRenderer의 색을 "폭 방향"으로 깔려면 `colorGradient`가 아니라 텍스처다** (v16): `colorGradient`는 **길이(시간) 방향**으로만 변한다 — 무지개를 넣으면 색이 꼬리를 따라 흐르는 모양이 된다. 색이 띠의 **폭을 가로질러** 나란히 놓이길 원하면 텍스처의 **V축**에 구워서 `textureMode = Stretch`로 입혀야 한다. 그리고 두 개를 같이 쓸 땐 gradient에 색을 주면 텍스처와 곱해져 탁해지므로 **gradient는 밝기·알파만** 담당하게 할 것.
+★ **`LineAlignment.View`는 보는 각도에 따라 띠가 돌아간다** (v16): 카메라를 향해 항상 납작하게 보이는 건 장점 같지만, "바닥에 깔린 자취"처럼 **월드 기준 방향이 있어야 하는 연출엔 부적합**하다. `TransformZ`(= 옛 이름 `Local`, **같은 값 1이라 `ToString()`이 "Local"로 찍히는 건 정상**)로 두고 매 프레임 그 오브젝트의 Z축(면의 법선)을 원하는 방향으로 고정하면 된다. 부모(동물)를 그냥 따르게 하면 경사·기울임에서 같이 기우니 **월드 회전을 직접 쓰는 쪽**이 안전하다.
+★ **SO의 "현재 상태"를 알려면 `.asset` 파일을 읽지 말고 유니티 메모리에서 읽어라** (v16, 하마터면 오진): 유저가 인스펙터에서 드래그한 변경은 **에디터 메모리에만 있고 디스크에는 아직 없다**(Ctrl+S 또는 `AssetDatabase.SaveAssets` 전까지). 파일을 직접 읽으면 "클립이 하나도 없다"로 보여서 유저가 이미 채워둔 것을 못 본 채 작업하게 된다. 처방 = **MCP `RunCommand`로 SO를 로드해 필드를 읽을 것**. 반대로 내가 SO를 고쳤으면 `SaveAssets`까지 해야 유저 쪽 파일에 반영된다.
 ★ **MCP 캡처 도구의 유령 카메라(`__captureCam`)가 씬에 저장될 수 있다** (v13, 실사고): Unity_Camera_Capture류가 에디터 모드에서 만든 `__captureCam`이 씬에 남은 채 유저가 Ctrl+S → 저장에 딸려 들어간다. Main Camera와 depth가 같으면 **런타임 메인화면을 유령 카메라가 그려버림**(타이틀 화면이 엉뚱한 앵글로 보인 원인). 처방 = 씬 저장 전 카메라 전수조사(`FindObjectsByType<Camera>`) 습관, 이름에 `captureCam`/`캡처캠` 잔재 확인. 캡처용 임시 카메라는 가급적 플레이 모드에서만 만들 것(종료 시 자동 소멸).
 ★ **RectTransform은 pivot을 먼저 확정하고 오프셋/위치를 넣어라** (v13, 실사고): 오프셋(offsetMin/Max)을 넣은 뒤 pivot을 바꾸면 anchoredPosition이 보존되면서 렉트가 통째로 밀린다 — 방참가 Viewport가 12px 왼쪽으로 밀려 열 4개가 전부 어긋났다. 눈대중 말고 헤더↔값 좌표 실측(GetWorldCorners)으로 잡았다.
 ★ **IK 클램프가 항상 작동 중인 손에는 연출 오프셋을 클램프 뒤에 넣어라** (v13, 실사고): handOffset(z 1.2)은 의도적으로 팔 한계 너머라 클램프가 상시 작동한다 — 찌르기 당김을 클램프 앞에 넣으면 "한계 밖에서 한계 밖으로" 이동일 뿐이라 잘린 결과가 그대로다(0.22m 당겼는데 실측 1.5cm). 클램프 뒤로 옮기니 0.216m.
@@ -624,6 +673,14 @@ GameConfig.debugProgressLog: [투영점프]/NaN 감시.
 TrackPath 빌드 검진 로그+기즈모.
 ---
 13. 세션별 생긴 에셋/파일 (경로 지도)
+[v16 신규 — 코드 2] `Assets/Scripts/PlayerFootsteps.cs`(발소리 + 지면 재질 판정) · `Assets/Scripts/ChickenDashFx.cs`(치킨 무지개 자취)
+[v16 수정 — 코드 5] `AudioLibrary.cs`(SfxId **7x 그룹 신설** — FootstepDirt 70/FootstepAsphalt 71/FootstepConcrete 72. 뒷번호 추가라 기존 배선 무손상) · `SoundManager.cs`(**루프 SFX 신설** — `PlaySfxLoop`/`StopAllLoops` + 전용 풀 4개 + 페이드 엔벨로프 + 대상 추적. 페이즈·씬 전환 시 자동 정지) · `SfxRelay.cs`(스킬음 원샷 → 지속 루프, `SkillTuning` 지속시간 연동, `skillFadeIn`/`skillFadeOut` 노출) · `GameConfig.cs`("연출 — 무지개 자취" 섹션 6필드) · `RaceManager.cs`(치킨에 ChickenDashFx 자동 부착 — EnsureDustFx 안)
+[v16 에셋] `AudioLibrary.asset`(발소리 3칸 추가 = **총 30칸**, 3D 18m·피치 0.92~1.08 세팅 / 유저가 채운 클립 15개 배선됨) · `NetPlayer.prefab`(**PlayerFootsteps 부착**) · `GameConfig.asset`(무지개 자취 값 + `radioSkillCount` 임시 4 → **1 원복 확인**) · `Assets/Audio/SFX/` **15개 파일 리네임**(SfxId 이름으로 — `AssetDatabase.RenameAsset`이라 GUID·참조 유지). **씬은 v16에서 안 건드렸다.**
+[v15 수정 — 코드 2] `Assets/Scripts/TitleIdleAnimator.cs`(2모드 재작성 — 춤 순환/아이들, `SetDancing` 공개) · `Assets/Scripts/CustomizationPanel.cs`(`titleActor` 필드 + Awake 자동 탐색, Open/Close에서 모드 전환 2줄)
+[v15 에셋] `Assets/ExternalAssets/Anims4/` fbx 4개 — **유저가 넣은 믹사모 춤**(Chicken Dance / Locking Hip Hop Dance / Snake Hip Hop Dance / Ymca Dance). Generic → **휴머노이드**로 재임포트 + 클립명 `Dance_Chicken`·`Dance_Locking`·`Dance_Snake`·`Dance_Ymca` + 루프 켬 · `Assets/Art/Animations/TitleIdle.controller`(춤 상태 4개 추가, 기존 아이들 2개 유지). **씬·프리팹 무수정**. ⚠ 라이선스 = 믹사모(표기 의무 없음, §14).
+[v14 신규 — 코드 2] `Assets/Scripts/SfxRelay.cs`(전 클라 중계 이벤트 → 효과음, 통신 0) · `Assets/Scripts/UiClickSfx.cs`(EventSystem 레이캐스트 기반 UI 클릭·호버음). **둘 다 씬 배선 없음 — `SoundManager.Awake`가 자동 부착**.
+[v14 수정 — 코드 12] AudioLibrary.cs(`SkillCatWalk = 53` 추가 — 그룹 뒷번호, 재배치 아님) · SoundManager.cs(위 2종 자동 부착) · PlayerEquipment.cs(스윙 3D·부서짐 2D + `ApplyBatWear` 0 가드) · PlayerKnockdown.cs(타격·바닥 쿵·기상 3D + `thudDelay` 필드 신설) · PlayerItemController.cs(슬롯 전환 — 손이 실제로 바뀐 프레임만) · BettingRoom.cs(셔터 슬라이드 3D + `doorMoving` 상태) · FigurineBetting.cs(집기/놓기 3지점) · RoomConfirmButton.cs(확정 — 호스트 접수 성공 시에만) · RadioScreen.cs(LCD 타이핑음, 글자당 1회) · SettingsPanel.cs · PauseMenu.cs · CustomizationPanel.cs(패널 열기/닫기)
+[v14 에셋] `AudioLibrary.asset` — **SFX 27칸 + BGM 5칸 생성**(클립은 전부 비어 있음 = 조용히 스킵. 3D 거리·피치 랜덤 폭 세팅 완료, `AssetDatabase.SaveAssets`로 저장됨) · 폴더 `Assets/Audio/BGM`, `Assets/Audio/SFX` 생성. **씬·프리팹은 v14에서 건드리지 않음**.
 [v13 신규 — 코드 6] `Assets/Scripts/Network/PhotonRegions.cs`(지역 코드/한글명 단일 출처) · `Network/SteamHub.cs`(스팀 초기화+신원, App ID 480 임시) · `RegionSelector.cs`(서버바 UI) · `SettingsStore.cs`(옵션 값 단일 출처) · `SettingsPanel.cs`(설정 UI — 타이틀+게임씬 복제 공용) · `PauseMenu.cs`(ESC 메뉴)
 [v13 신규 — 외부/기타] `Assets/Plugins/Facepunch.Steamworks/`(2.5.2, MIT — 릴리스 Unity 폴더 그대로, Win64/Posix DLL+redistributable) · 루트 `steam_appid.txt`(480 — 출시 전 교체) · 루트 debug_방참가_스크롤_상단/하단.png(참고 캡처)
 [v13 수정 — 코드 10] NetworkLauncher.cs(지역 자동/수동 접속·ChangeRegion·SteamID→AuthValues) · TitleMenu.cs(닉네임 입력칸 제거 — 스팀 자동+폴백) · MppmTestClient.cs(mppm-N UserId 고정) · FirstPersonController.cs(감도 배율+FOV 라이브 적용) · PlayerInteractor.cs(커서 가드) · PlayerItemController.cs(휠 순환 wheelSlot 커서) · PlayerAimPose.cs(주사기 찌르기 — 클램프 뒤·엄지 62° X축) · RadioScreen.cs(램프 에미션 14) · FigurineBetting.cs(PauseMenu 동결 한 줄) · RoomListItem.cs(열 구조 재작성)
@@ -692,16 +749,19 @@ TrackPath 빌드 검진 로그+기즈모.
 
 표기 의무 없음(참고): ithappy Creative_Characters_FREE / Weapons_FREE, Kevin Iglesias Human Melee 2.0 FREE(Fab Standard), Beautify, Mixamo 애니메이션, LAB디지털 폰트(유저 확보 — ⚠ 폰트 라이선스는 유저가 재확인 필요), **Facepunch.Steamworks(MIT — v13)**, Pretendard(OFL).
 ---
-15. ★ 사운드 (v14 세션 구축 — 인프라 완료, 에셋 소싱 중)
+15. ★ 사운드 (v14 — 인프라 + 호출 배선 전부 완료, **남은 건 에셋 소싱뿐**)
 15-1. 인프라 (구축 완료, 씬 배선까지 끝 — 클립만 꽂으면 소리 남)
 `AudioLibrary.cs` — `SfxId`/`BgmTrack` enum + 소리 데이터 SO. 클립 변형 배열(재생마다 랜덤)·볼륨·피치 랜덤 폭·3D 최대 거리를 전부 SO에서 튜닝 (GameConfig 철학). ⚠ **enum 번호는 SO에 int로 저장되므로 재배치 금지** (AnimalSkill과 같은 규칙) — 새 소리는 그룹 뒷번호에 추가(그룹당 10칸 여유: UI 1x / 레이스 2x / 빠따 3x / 아이템 4x / 스킬 5x / 베팅방 6x).
 `SoundManager.cs` — 씬 넘어 유지되는 싱글턴(`DontDestroyOnLoad`, 중복 인스턴스는 자기 파괴). **SFX** = AudioSource 풀 16개 원샷, 호출부는 `SoundManager.PlaySfx(SfxId.BatHit)` (2D) 또는 `PlaySfx(id, worldPos)` (3D 거리 감쇠) 한 줄. `PlayClipAtPoint`는 볼륨 배율을 못 태우고 GC가 나와서 안 쓴다. **BGM** = 2채널 크로스페이드(1.2초, `Time.unscaledDeltaTime`이라 ESC 메뉴 중에도 진행) + **페이즈 방송 구독 자동 전환** — 페이즈는 이미 전 클라 중계라 **네트워크 추가 통신 0**(부스트 먼지·무전기 LCD와 같은 철학).
+· **루프 SFX (v16 신설)**: `SoundManager.PlaySfxLoop(id, 지속시간, 따라갈 Transform, 페이드인, 페이드아웃)` — 스킬 지속음처럼 "일정 시간 계속 울리는" 소리용. **원샷 풀과 분리된 전용 풀 4개**(원샷과 같은 풀을 쓰면 8초짜리가 자리를 잡고 있다가 다른 소리에 뺏겨 끊긴다). Transform을 주면 **매 프레임 따라다니며 3D 재생** — 달리는 동물의 소리가 뒤에 남지 않는다. 페이드 합이 지속시간을 넘으면 비례 축소. `StopAllLoops()`는 페이즈가 Racing을 벗어나거나 씬이 바뀔 때 자동 호출(중간에 끊긴 스킬의 소리가 안 남는다).
 · BGM 페이즈 매핑(`TrackForPhase` 한 곳만 고치면 됨): 타이틀→Title / Lobby→Lobby / Betting·Loadout→Betting / **Countdown→None(무음 페이드 — 긴장감)** / Racing→Racing / Settlement→Settlement.
 · 씬 로드 시에도 판단(빌드 0=타이틀, 그 외=Lobby) — 매치 중 합류·재접속자는 곧 도착하는 페이즈 방송이 교정.
 · 클립이 비어 있는 항목은 재생 요청이 와도 **조용히 스킵** — 에셋을 채우는 대로 소리가 나기 시작한다(배선을 미리 다 깔아도 안전).
 **볼륨 3단 분리**: 마스터 = `AudioListener.volume`(기존 `SettingsStore.Volume` 그대로) × BGM/SFX 배율(`SettingsStore.BgmVolume` 기본 0.8 / `SfxVolume` 기본 1.0). BGM은 대입 즉시 재생 중인 곡에 반영(`SoundManager.NotifyBgmVolumeChanged`), SFX는 재생 시점에 읽으므로 통지 불필요. **AudioMixer는 안 씀** — 코드로 생성이 안 되고 지금 요구(슬라이더 3개)엔 과하다. 덕킹(레이스 중 BGM 낮추기) 같은 게 필요해지면 그때 얹을 것.
 씬 배선(양쪽 씬 동일, 실측 검증 완료): 설정 카드 600→**740** 확장 + 8행 리플로우(간격 70), **배경음(y175)·효과음(y105) 행 추가**, "볼륨"→"전체 볼륨" 개명, `SoundManager` 오브젝트(GameScene=`시스템` 밑 / TitleScene=`Managerrs` 밑) + `AudioLibrary.asset` 배선.
-15-2. ★ Suno BGM 프롬프트 (유저 확정 — 타이틀 A안 채택, 나머지 4곡은 그 결에 맞춤)
+**자동 부착 (v14)**: `SoundManager.Awake`가 `SfxRelay`·`UiClickSfx`를 자기 오브젝트에 얹는다 — `DontDestroyOnLoad` 덕에 두 씬 모두 커버되고 **씬을 또 건드릴 필요가 없다**. 새 사운드 컴포넌트가 생기면 같은 자리에 한 줄 추가하는 게 규약.
+15-2. ★ Suno BGM 프롬프트 (⚠ **타이틀만 채택 — 나머지 4곡은 v14에서 보류**, 폐기 아님)
+**⚠ v14 기획 결정**: 유저가 타이틀 곡만 구하고 멈췄다 — "**파티게임이라 친구들끼리 말을 많이 하는데 뒤에 브금이 깔리면 좀 그럴 것 같다**". 인게임은 **무음이 기본**, 나중에 넣더라도 "평화로운 것"만. 아래 ②~⑤ 프롬프트는 그때 쓸 수 있게 그대로 둔다. **다시 제안할 땐 이 이유(음성 대화와의 충돌)부터 짚을 것.**
 **공통 규칙**: ⚠ **"연주곡"(Instrumental) 체크 필수** — 안 하면 AI 보컬이 노래를 부른다. 프롬프트 끝 `instrumental` 태그는 보험. ⚠ **Suno 유료 플랜이어야 상업 이용 가능**(유저 = 플러스 회원, 확인됨). 곡당 3~4번 돌려 고르고, 마음에 드는 게 나오면 Cover/Remaster로 파생시키면 결 유지가 쉽다. 길이 2~3분(정산만 1분대 OK).
 **공통 DNA (전 곡 유지 — 이게 "같은 밴드가 연주하는 느낌"의 정체)**: `muted trumpet / upright bass / brushed drums / speakeasy`.
 ① **Title** (확정 채택 — 게임 톤의 기준점):
@@ -715,15 +775,44 @@ TrackPath 빌드 검진 로그+기즈모.
 ⑤ **Settlement** (짧은 페이즈 — **앞 30초가 좋은 곡**으로 고르면 됨):
 `triumphant speakeasy big band, celebratory brass fanfare, muted trumpet flourish, upright bass, snappy horn hits, showbiz results reveal, 124 bpm, playful and grand finale, vintage casino jackpot, instrumental`
 **기각된 타이틀 후보 2종(이력 — 재제안 전에 이 축을 이미 봤음을 상기할 것)**: B안 화려한 쇼 오프닝(`grand big band swing overture, showtime fanfare, ... racetrack grandstand excitement`) / C안 코믹 카툰(`comedic cartoon ragtime, circus-like carnival march, honky-tonk piano, tuba oompah bass, slide whistle`). 세 축의 차이 = A "수상한 도박장에 오신 걸 환영합니다" / B "대망의 레이스가 시작됩니다!" / C "여기 미친 놈들밖에 없습니다".
-15-3. 유저 작업 순서 (BGM 꽂기)
-① `Assets/Audio/BGM/`에 파일 넣기(title/lobby/betting/racing/settlement) → ② `Assets/ScriptableObject/AudioLibrary.asset` 인스펙터 → **배경음** 배열 Size 5 → 트랙별 클립 꽂기 → ③ 곡끼리 음량 차이 나면 각 항목 volume으로 조절. **씬 배선은 이미 끝나서 꽂자마자 소리 남.**
+15-3. 유저 작업 순서 (클립 꽂기 — v14에서 항목을 미리 다 만들어둠)
+**BGM**: ① `Assets/Audio/BGM/`에 파일 넣기 → ② `Assets/ScriptableObject/AudioLibrary.asset` 인스펙터 → **배경음** 배열의 **Element 0 (Track = Title)** 의 `Clip`에 드래그 → ③ 음량은 항목 `volume`(기본 0.8)으로. **배열 5칸이 이미 만들어져 있으므로 Size를 건드릴 필요 없다.** 나머지 4칸은 비워두면 자동 무음(= 현재 기획 방향).
+· ⚠ **BGM 임포트 설정**: 파일이 길어서 **Load Type = Streaming / Compression = Vorbis / Preload Audio Data 끄기**로 둬야 메모리를 안 잡아먹는다.
+**SFX**: `Assets/Audio/SFX/`에 넣고 **효과음** 배열의 해당 항목 `Clips`에 드래그. **27칸이 이미 enum·3D 거리·피치 폭까지 세팅된 채로 있다.** `Clips`에 **2~3개를 넣으면 재생마다 랜덤**이라 빠따 타격음처럼 자주 나는 소리가 훨씬 덜 지겹다.
 15-4. 남은 일
-· **SFX 호출 배선** (다음 작업) — ★★★부터: 빠따 스윙/명중/부서짐·쓰러짐, 카운트다운·출발·완주·처형, 스킬 3종. 그다음 ★★ 아이템(주사기/무전기/슬롯 전환)·베팅방(문/피규어/확정), ★ UI·관중 앰비언스. **클립이 없어도 배선은 미리 가능**(빈 항목은 조용히 스킵).
-· **SFX 에셋 소싱** (유저) — 추천: Kenney(CC0, 표기 의무 없음), Sonniss GDC 무료팩, 에셋스토어 무료팩. ⚠ freesound.org는 파일마다 라이선스가 달라 하나씩 확인 필요 — **CC0 우선**이 제일 속 편함. CC-BY를 쓰면 **§14 표에 한 줄 추가**할 것.
-· 미정: 레이스 막판 곡 고조, 덕킹(중요 사건 때 BGM 낮추기), 관중 앰비언스 루프.
+· **SFX 에셋 소싱** (유저 — 이제 이것만 남았다) — 추천: Kenney(CC0, 표기 의무 없음), Sonniss GDC 무료팩, 에셋스토어 무료팩. ⚠ freesound.org는 파일마다 라이선스가 달라 하나씩 확인 필요 — **CC0 우선**이 제일 속 편함. CC-BY를 쓰면 **§14 표에 한 줄 추가**할 것.
+· 우선순위: ★★★ 빠따(스윙/타격/부서짐)·쓰러짐/기상·카운트다운/출발·처형 → ★★ 주사기 발사/명중·무전기·슬롯 전환·문·피규어·확정 → ★ UI 클릭/호버·완주.
+· 미정: 레이스 막판 곡 고조, 덕킹(중요 사건 때 BGM 낮추기), 관중 앰비언스 루프, **부서짐 이펙트**(소리는 배선됐지만 비주얼은 여전히 없음 — v12 백로그).
+15-5. ★ SFX 호출 배선 지도 (v14 — 어디서 무슨 소리가 나는가)
+**설계 규칙 2줄**: ① 남에게도 들려야 하면 **전 클라 재생 지점**(RPC 또는 중계 이벤트)에 넣고 **3D**, 내 화면 전용은 **2D**. ② 호스트 전용 코드에는 소리를 넣지 않는다 — 게스트가 조용해진다.
+| 소리 | 넣은 자리 | 방식 |
+|---|---|---|
+| BatSwing | `PlayerEquipment.RpcSwing` | 3D · 전 클라 |
+| BatHit | `PlayerKnockdown.RpcKnockdown` (때린 쪽 판정이 아니라 **피해자 RPC**) | 3D · 전 클라 |
+| Knockdown | `PlayerKnockdown.FallToDown`의 `thudDelay`(0.45초) 지점 | 3D · 전 클라 |
+| GetUp | `PlayerKnockdown.RpcGetUp` | 3D · 전 클라 |
+| BatBreak | `PlayerEquipment.ApplyBatWear`가 0이 되는 순간 | 2D · 내 것만(내구도가 로컬 상태) |
+| SlotSwitch | `PlayerItemController.SelectSlot` — **손이 실제로 바뀐 프레임만** | 2D |
+| SyringeShot / RadioUse | `SfxRelay.HandleItemUsed` 중 `pid == 내 ID` | 2D · 성공한 사용만 |
+| SyringeHitBoost / Slow | 같은 곳, 대상 동물 위치 | 3D(40m) |
+| RadioTyping | `RadioScreen.TypeOut` 글자당 1회 | 2D · `IsMine` 가드 안 |
+| CountdownBeep / RaceStart | `SfxRelay.HandlePhaseChanged` (비프는 1초 간격 코루틴) | 2D |
+| RacerFinish | `SfxRelay.HandleRacerFinished`, **상위 3등만**(`finishSfxTopRanks`) | 2D |
+| Execution | 같은 곳, `eliminated=true` | 2D · 판 전체의 사건 |
+| SkillRoar/Rudolph/Dash/CatWalk | `SfxRelay.HandleSkillProc` — **피드 문자열 키워드 매칭** | **3D 루프**(v16) · 스킬 지속시간 동안 · 동물을 따라다님 |
+| FootstepDirt/Asphalt/Concrete | `PlayerFootsteps` (v16) — 보폭 누적 | 내 것 2D / **남의 것 3D 18m** |
+| DoorSlide | `BettingRoom.Update` 셔터가 움직이기 시작하는 프레임 | 3D(25m) |
+| FigurinePick / Place | `FigurineBetting.PickUp` / 놓기 3지점 | 2D · 내 방 로컬 |
+| BetConfirm | `RoomConfirmButton` 콜백 **`ok == true`일 때만** | 2D |
+| PanelOpen / Close | SettingsPanel · PauseMenu · CustomizationPanel | 2D |
+| UiClick / UiHover | `UiClickSfx` — EventSystem 레이캐스트 (배선 없음) | 2D |
+⚠ **스킬음 4종은 문자열 매칭이라 피드 문구를 바꾸면 에러 없이 조용해진다** — `Racer`/`RacerMotor`/`RaceManager`의 문구를 고치면 `SfxRelay`의 키워드(`"포효"/"루돌프"/"냅다 달린다"/"사뿐사뿐"`)도 같이 고칠 것. 이게 v14 배선에서 유일하게 깨지기 쉬운 지점이다.
 ---
 — 끝. 코드가 진실, 이 문서는 지도다.
-**v13 다음 첫 안건**: ① **씬 저장 확인 — GameScene(ESC 메뉴) + TitleScene(유령 카메라 `__captureCam` 삭제분, §11)** → ② v13 멀티 실기(서버 선택·스팀 신원 — 스탠드얼론 필요, ESC/휠/찌르기 원격 화면) + v11 이월 멀티(클라 순위 `UpdateMirrorProgress`·무전기 수납 원격) → ③ 빌드 확인(해상도/화면모드/FOV — 에디터 불가) → ④ 유저 육안(§7 v13 목록) → ⑤ **출시 전: 스팀 App ID 교체 + 언어 로컬라이제이션 세션**(§7) → ⑥ 리롤 간격 결정(§8) → ⑦ 밸런스 재조정 → ⑧ 감속 아이템 연출 → ⑨ 킥 잔여 → ⑩ 성능 최적화 → ⑪ §14 크레딧.
+**v16 다음 첫 안건**: ① **사슴 꼬리 트레일 셰이더 확인**(§7 0순위 — 치킨과 같은 함정일 가능성) → ② **SFX 소싱 계속**(남은 15칸, 스킬은 울음소리 / 발소리는 변형 3~4개) → ③ v16 유저 청취 확인(발소리 보폭·포효 루프 어색함·무지개 두께) → ④ **씬 저장 확인 (v13부터 이월, v14·v15·v16에서 확인 안 함)** — GameScene(ESC 메뉴)·TitleScene(유령 카메라 `__captureCam` 삭제분, §11). **v16은 씬을 안 건드렸다** → ⑤ 멀티 실기(v13 서버/스팀 + v11 클라 순위 + v14 소리 + v16 발소리) → ⑥ 빌드 확인(해상도/화면모드/FOV) → ⑦ **출시 전: 스팀 App ID 교체 + 언어 로컬라이제이션 세션**(§7) → ⑧ 리롤 간격 결정(§8) → ⑨ 밸런스 재조정 → ⑩ 감속 아이템 연출 → ⑪ 킥 잔여 → ⑫ 성능 최적화 → ⑬ §14 크레딧.
+(v15 안건 순서, 이력용): ① **타이틀 춤 육안 확인**(§7 v15 목록 — 곡 유지 시간·곡 취향·전환 블렌드. 씬 저장 불필요, 인스펙터 값만) → ② **사운드 실플레이**(v14 이월 0순위 — 타이틀 곡을 AudioLibrary 배경음 Element 0에 꽂기, §15-3 임포트 Streaming 주의) → ③ **씬 저장 확인 (v13 이월, v14·v15에서 확인 안 함)** — GameScene(ESC 메뉴)·TitleScene(유령 카메라 `__captureCam` 삭제분, §11) → ④ 멀티 실기(v13 서버/스팀 + v11 클라 순위 `UpdateMirrorProgress` + v14 소리의 원격 확인) → ⑤ 빌드 확인(해상도/화면모드/FOV) → ⑥ **출시 전: 스팀 App ID 교체 + 언어 로컬라이제이션 세션**(§7) → ⑦ 리롤 간격 결정(§8) → ⑧ 밸런스 재조정 → ⑨ 감속 아이템 연출 → ⑩ 킥 잔여 → ⑪ 성능 최적화 → ⑫ §14 크레딧.
+(v14 안건 순서, 이력용): ① **사운드 실플레이** — 타이틀 곡을 AudioLibrary 배경음 Element 0에 꽂고 확인(§15-3, 임포트 Streaming 주의), SFX는 클립을 채우는 대로 타이밍·거리감 조정(§7 v14 0순위) → ② **씬 저장 확인 (v13 이월, v14에서 확인 안 함)** — GameScene(ESC 메뉴)·TitleScene(유령 카메라 `__captureCam` 삭제분, §11) → ③ 멀티 실기(v13 서버/스팀 + v11 클라 순위 `UpdateMirrorProgress` + **v14 소리의 원격 확인**) → ④ 빌드 확인(해상도/화면모드/FOV) → ⑤ **출시 전: 스팀 App ID 교체 + 언어 로컬라이제이션 세션**(§7) → ⑥ 리롤 간격 결정(§8) → ⑦ 밸런스 재조정 → ⑧ 감속 아이템 연출 → ⑨ 킥 잔여 → ⑩ 성능 최적화 → ⑪ §14 크레딧.
+(v13 안건 순서, 이력용): ① **씬 저장 확인 — GameScene(ESC 메뉴) + TitleScene(유령 카메라 `__captureCam` 삭제분, §11)** → ② v13 멀티 실기(서버 선택·스팀 신원 — 스탠드얼론 필요, ESC/휠/찌르기 원격 화면) + v11 이월 멀티(클라 순위 `UpdateMirrorProgress`·무전기 수납 원격) → ③ 빌드 확인(해상도/화면모드/FOV — 에디터 불가) → ④ 유저 육안(§7 v13 목록) → ⑤ **출시 전: 스팀 App ID 교체 + 언어 로컬라이제이션 세션**(§7) → ⑥ 리롤 간격 결정(§8) → ⑦ 밸런스 재조정 → ⑧ 감속 아이템 연출 → ⑨ 킥 잔여 → ⑩ 성능 최적화 → ⑪ §14 크레딧.
 (v12 안건 순서, 이력용): ① **씬 저장 확인** (TitleScene 마지막 작업(커마 카메라/hideWhileOpen)이 dirty로 남았을 수 있음) → ② **유저가 예고한 "중요한 것"** — v12 말미에 "이제 중요한 거 남았다"며 새 대화를 팠다. 내용 미상, 유저 발주를 먼저 들을 것 → ③ v11 이월: 무전기·아이템 멀티 실기(MPPM — 특히 클라 순위 표시 `UpdateMirrorProgress`) + 빠따 내구도 멀티(부서짐 수납이 남의 화면에 보이는지) → ④ 베팅 방 멀티 실기 → ⑤ 유저 육안(§7 v12·v11 목록) → ⑥ **리롤 간격 결정**(§8) → ⑦ 밸런스 재조정 → ⑧ 감속 아이템 연출 → ⑨ 킥 잔여 → ⑩ 성능 최적화 → ⑪ 출시 전 §14 크레딧.
 (v11 안건 순서, 이력용): ① **씬 저장** (v11 조명 A안이 dirty로 남아 있을 수 있음 — `ambientIntensity` 0.75인지 확인) → ② **무전기·아이템 멀티 실기(MPPM 2인)** — 특히 **클라 순위 표시**(`UpdateMirrorProgress`가 실제로 맞는지 = 처형 무전기 화면이 게스트에서도 정답인지), 무전기 수납이 남의 화면에서도 되는지 → ③ 베팅 방 멀티 실기(v10 이월: 방 배정·남의 방 차단·문 4상태·피규어 비공개) → ④ 유저 육안(§7 v11 목록) → ⑤ **리롤 간격 결정**(§8, 밸런싱의 대전제) → ⑥ 밸런스 재조정(corner_sim_v9.py, 밴드 23~28) → ⑦ 감속 아이템 연출 → ⑧ 킥 잔여(익명 저격) → ⑨ 성능 최적화 → ⑩ **출시 전: §14 크레딧 반영**.
 (v10 안건 순서, 이력용): ① **씬 저장 확인** (v10 작업 전부 미저장 상태로 넘어왔을 수 있음 — 베팅방1~4·셔터·실내등·HUD·웨이포인트가 씬에 있는지 먼저 확인, 없으면 §3-12 좌표로 재조립) → ② 베팅 방 멀티 실기(MPPM 2인: 방 배정 겹침·남의 방 진입 차단·문 상태 4종·피규어 비공개·확정 버튼 게이트웨이 경로) → ③ 유저 육안 확인(§7 v10 목록: 시점 안정화 데드존 0.12·전시대 감성·실내 밝기 0.55/2.2·손 슬롯 아이콘) → ④ 베팅 방 아트(유저 — 회색 골조) → ⑤ **리롤 간격 결정**(§8, 밸런싱의 대전제) → ⑥ 밸런스 재조정(corner_sim_v9.py, 밴드 23~28) → ⑦ 감속 아이템 연출 → ⑧ 킥 잔여(익명 저격) → ⑨ 성능 최적화.

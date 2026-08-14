@@ -72,7 +72,13 @@ public class PlayerItemController : MonoBehaviour
         // 다 쓴 슬롯은 들 수 없다 — 누르면 빈손이 된다.
         // (선택 시점에만 막으면 "쓰고 → 다른 슬롯 → 돌아오기"로 빈 소품이 되살아난다)
         if (!HasStockFor(slot)) slot = PlayerEquipment.SlotNone;
-        PlayerEquipment.Local?.Select(slot);
+
+        var eq = PlayerEquipment.Local;
+        int before = eq != null ? eq.HeldSlot : slot;
+        eq?.Select(slot);
+
+        // 손이 실제로 바뀐 프레임에만 (같은 슬롯 연타·빈 슬롯 재방문은 침묵). 내 조작이라 2D
+        if (eq != null && eq.HeldSlot != before) SoundManager.PlaySfx(SfxId.SlotSwitch);
     }
 
     /// <summary>그 슬롯을 들 재고가 남았는가. 빠따는 내구도, 소모품은 개수, 맨손은 항상 참.</summary>

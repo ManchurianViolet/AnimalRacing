@@ -19,6 +19,9 @@ public class CustomizationPanel : MonoBehaviour
     [Tooltip("커마 중에는 숨길 것들 (메인 메뉴 버튼/닉네임 등)")]
     [SerializeField] private GameObject[] hideWhileOpen;
 
+    [Tooltip("타이틀 캐릭터 연기 — 커마 중엔 춤을 멈추고 아이들로 (비면 씬에서 자동 탐색)")]
+    [SerializeField] private TitleIdleAnimator titleActor;
+
     [Header("카메라 연출 — 여는 동안 캐릭터 클로즈업")]
     [Tooltip("커마 동안 카메라가 이동할 위치 (월드)")]
     [SerializeField] private Vector3 camOpenPos = new Vector3(2.06f, 0.73f, -3.3f);
@@ -56,6 +59,7 @@ public class CustomizationPanel : MonoBehaviour
 
     private void Awake()
     {
+        if (titleActor == null) titleActor = FindFirstObjectByType<TitleIdleAnimator>(FindObjectsInactive.Include);
         Build();
         gameObject.SetActive(false);
     }
@@ -64,7 +68,9 @@ public class CustomizationPanel : MonoBehaviour
     {
         Build();
         gameObject.SetActive(true);
+        SoundManager.PlaySfx(SfxId.PanelOpen);
         SetMenuVisible(false);
+        if (titleActor != null) titleActor.SetDancing(false);   // 옷 갈아입는 동안엔 얌전히
         snapshot = target != null ? target.Encode() : "";
         RefreshAll();
         CameraGlide.To(camOpenPos, Quaternion.Euler(camOpenEuler), camMoveSeconds);
@@ -74,6 +80,8 @@ public class CustomizationPanel : MonoBehaviour
     {
         SetMenuVisible(true);
         gameObject.SetActive(false);
+        SoundManager.PlaySfx(SfxId.PanelClose);
+        if (titleActor != null) titleActor.SetDancing(true);   // 메인 화면 복귀 = 다시 춤
         // 복귀 이동은 카메라에 얹힌 헬퍼가 재생 — 패널이 방금 꺼졌어도 살아 있다
         CameraGlide.Home(camMoveSeconds);
     }

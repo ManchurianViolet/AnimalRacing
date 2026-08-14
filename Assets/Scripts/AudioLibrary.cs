@@ -40,12 +40,18 @@ public enum SfxId
     SkillRoar = 50,
     SkillRudolph = 51,
     SkillDash = 52,
+    SkillCatWalk = 53,
 
     // ---- 베팅 방 (6x) ----
     DoorSlide = 60,
     FigurinePick = 61,
     FigurinePlace = 62,
     BetConfirm = 63,
+
+    // ---- 플레이어 이동 (7x) — 지면 재질별 발소리 ----
+    FootstepDirt = 70,       // 잔디·흙 (터레인)
+    FootstepAsphalt = 71,    // 도로 (트랙)
+    FootstepConcrete = 72,   // 피트스탑·차고 실내 등 그 외
 }
 
 /// <summary>[사운드] 배경음 트랙 — 페이즈에 따라 SoundManager가 자동 전환.</summary>

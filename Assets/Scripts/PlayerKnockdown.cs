@@ -29,6 +29,9 @@ public class PlayerKnockdown : MonoBehaviourPun
     [Tooltip("쓰러지는 동안 카메라가 머리 본 회전을 따라가는 속도 — 높을수록 애니와 밀착(격렬), 낮을수록 부드러움")]
     [SerializeField] private float fallCamFollowSpeed = 8f;
 
+    [Tooltip("맞은 뒤 몸이 바닥에 닿는 시점 (초) — 여기서 '쿵' 소리를 낸다. 애니를 보며 맞추면 됨")]
+    [SerializeField] private float thudDelay = 0.45f;
+
     private State state = State.Standing;
     private float invulnUntil;
     private float fallLength = 2.1f, getUpLength = 7.6f;   // Awake에서 클립 실측으로 갱신
@@ -93,6 +96,10 @@ public class PlayerKnockdown : MonoBehaviourPun
         if (!CanBeHit) return;   // 이미 누웠거나 무적이면 무시 (동시 타격 방어)
         state = State.Falling;
 
+        // 타격음 — 이 RPC는 전 클라 재생이라 때린 쪽·맞은 쪽·구경꾼 모두 같은 자리에서 듣는다 (3D).
+        // (때린 쪽 로컬 판정에 넣으면 정작 맞은 사람 화면이 조용하다)
+        SoundManager.PlaySfx(SfxId.BatHit, transform.position);
+
         if (animator != null)
             animator.CrossFadeInFixedTime("Knockdown", 0.1f, 0);   // 전신 (기본 레이어)
         if (equipment != null) equipment.SuppressForKnockdown();
@@ -109,7 +116,12 @@ public class PlayerKnockdown : MonoBehaviourPun
 
     private IEnumerator FallToDown()
     {
-        yield return new WaitForSeconds(fallLength);   // 쓰러지는 애니 끝난 뒤부터 기상 키 허용
+        // 몸이 바닥에 닿는 "쿵" — 타격음(즉시)과 겹치지 않게 한 박자 뒤 (3D)
+        float thud = Mathf.Clamp(thudDelay, 0f, fallLength);
+        yield return new WaitForSeconds(thud);
+        SoundManager.PlaySfx(SfxId.Knockdown, transform.position);
+
+        yield return new WaitForSeconds(fallLength - thud);   // 쓰러지는 애니 끝난 뒤부터 기상 키 허용
         if (state == State.Falling) state = State.Down;
     }
 
@@ -118,6 +130,8 @@ public class PlayerKnockdown : MonoBehaviourPun
     {
         if (state != State.Down) return;
         state = State.GettingUp;
+
+        SoundManager.PlaySfx(SfxId.GetUp, transform.position);   // 전 클라 재생 (3D)
 
         if (animator != null)
             animator.CrossFadeInFixedTime("GetUp", 0.15f, 0);

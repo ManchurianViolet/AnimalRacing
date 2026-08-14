@@ -46,6 +46,7 @@ public class BettingRoom : MonoBehaviour
     private float doorBaseY;          // 닫힘 위치 (Awake에서 실측)
     private float doorT;              // 0=닫힘, 1=열림
     private bool doorOpenTarget;
+    private bool doorMoving;          // 슬라이드 소리를 시작 프레임에 한 번만 내기 위한 상태
     private float slideSeconds = 0.6f;
 
     /// <summary>런타임 셋업용 (씬 조립 스크립트가 호출).</summary>
@@ -76,7 +77,15 @@ public class BettingRoom : MonoBehaviour
     {
         if (doorClosed == null) return;
         float target = doorOpenTarget ? 1f : 0f;
-        if (Mathf.Approximately(doorT, target)) return;
+        if (Mathf.Approximately(doorT, target)) { doorMoving = false; return; }
+
+        // 셔터가 움직이기 시작하는 프레임에 한 번 (열림·닫힘 공용). 문 자리에서 3D라
+        // 남의 방이 열리는 소리도 가까이 있으면 들린다 — "누가 베팅을 끝냈다"는 신호
+        if (!doorMoving)
+        {
+            doorMoving = true;
+            SoundManager.PlaySfx(SfxId.DoorSlide, doorClosed.position);
+        }
 
         doorT = Mathf.MoveTowards(doorT, target, Time.deltaTime / slideSeconds);
         var lp = doorClosed.localPosition;

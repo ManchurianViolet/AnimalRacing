@@ -12,6 +12,232 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3948c7e8a437a346b6cfe0e74c45ea4, type: 3}
   m_Name: AudioLibrary
   m_EditorClassIdentifier: Assembly-CSharp::AudioLibrary
-  sfx: []
-  bgm: []
+  sfx:
+  - id: 10
+    clips:
+    - {fileID: 8300000, guid: 191c9df59dc2c074f9b808f1bddd817d, type: 3}
+    volume: 0.866
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 11
+    clips: []
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 12
+    clips: []
+    volume: 0.646
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 13
+    clips: []
+    volume: 0.661
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 20
+    clips:
+    - {fileID: 8300000, guid: f67e8956d5185ac4cbb7dd02eb1d75ec, type: 3}
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 21
+    clips:
+    - {fileID: 8300000, guid: aba30734b30a8b54ba907e1f2a2c44ca, type: 3}
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 22
+    clips: []
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 23
+    clips:
+    - {fileID: 8300000, guid: eaf1835d998e58046b85d96b23bbedb6, type: 3}
+    volume: 0.803
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 30
+    clips:
+    - {fileID: 8300000, guid: 3aa19c0950847dd45baddfe7aca18891, type: 3}
+    - {fileID: 8300000, guid: e2a32ac3b3d1e2844866143826cff76d, type: 3}
+    - {fileID: 8300000, guid: cbf9fd968c9173349b784626acb242ea, type: 3}
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 25
+  - id: 31
+    clips:
+    - {fileID: 8300000, guid: d1e647457161ebf4985b5c72106be624, type: 3}
+    - {fileID: 8300000, guid: 9d0e934cbab305b43a838f1166a52da4, type: 3}
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 25
+  - id: 32
+    clips:
+    - {fileID: 8300000, guid: e5d3ee42a56c2294a9dda3f5b5f4980c, type: 3}
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 30
+  - id: 33
+    clips:
+    - {fileID: 8300000, guid: b39d434332ea0f44c94aacff16e7291a, type: 3}
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 25
+  - id: 34
+    clips:
+    - {fileID: 8300000, guid: 954a4c9d84cf76242a923556b035e8ce, type: 3}
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 25
+  - id: 40
+    clips:
+    - {fileID: 8300000, guid: c4bf8aaf2cfdaaf459df4376541e5e26, type: 3}
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 30
+  - id: 41
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 40
+  - id: 42
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 40
+  - id: 43
+    clips:
+    - {fileID: 8300000, guid: 6e598d89ac13c5a499b764f7ae3e842a, type: 3}
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 44
+    clips:
+    - {fileID: 8300000, guid: 06df44572abce2a4d909d9595dbc7cfa, type: 3}
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 45
+    clips:
+    - {fileID: 8300000, guid: cdb4e21f0bc46844dbd848f95561774f, type: 3}
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 50
+    clips:
+    - {fileID: 8300000, guid: 6d8ac80f575af40409dfcb26c9170545, type: 3}
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 80
+  - id: 51
+    clips:
+    - {fileID: 8300000, guid: b4e7e088fb150d546a6c7c042f788894, type: 3}
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 50
+  - id: 52
+    clips:
+    - {fileID: 8300000, guid: 3b7287f1c2a83134cb8ce0dd687147ea, type: 3}
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 50
+  - id: 53
+    clips:
+    - {fileID: 8300000, guid: 3fdce38ddf270a845821ae2ad4850f6c, type: 3}
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 50
+  - id: 60
+    clips:
+    - {fileID: 8300000, guid: d9ef17b3a85f7a344b7a9702238bffbb, type: 3}
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 25
+  - id: 61
+    clips:
+    - {fileID: 8300000, guid: 28a0b3ec73629c54ebc47e321616ed94, type: 3}
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 30
+  - id: 62
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+    maxDistance: 30
+  - id: 63
+    clips:
+    - {fileID: 8300000, guid: 12bac8f5711ac414c95d341f958b9438, type: 3}
+    volume: 1
+    pitchMin: 1
+    pitchMax: 1
+    maxDistance: 30
+  - id: 70
+    clips:
+    - {fileID: 8300000, guid: 11a529f26d693d443904db229875da12, type: 3}
+    - {fileID: 8300000, guid: da752c9aeb888864d81bdaa523059dd2, type: 3}
+    volume: 0.7
+    pitchMin: 0.92
+    pitchMax: 1.08
+    maxDistance: 18
+  - id: 71
+    clips:
+    - {fileID: 8300000, guid: ad453bfb1c52b22439ec702eca763840, type: 3}
+    - {fileID: 8300000, guid: afe115e7ebb85a84aa36597f40a91d86, type: 3}
+    - {fileID: 8300000, guid: b2b48897ae328fa438e765c17bc47976, type: 3}
+    volume: 0.7
+    pitchMin: 0.92
+    pitchMax: 1.08
+    maxDistance: 18
+  - id: 72
+    clips:
+    - {fileID: 8300000, guid: ad453bfb1c52b22439ec702eca763840, type: 3}
+    - {fileID: 8300000, guid: afe115e7ebb85a84aa36597f40a91d86, type: 3}
+    - {fileID: 8300000, guid: b2b48897ae328fa438e765c17bc47976, type: 3}
+    volume: 0.7
+    pitchMin: 0.92
+    pitchMax: 1.08
+    maxDistance: 18
+  bgm:
+  - track: 1
+    clip: {fileID: 8300000, guid: 479684ad8924e9246a7961c6fc6d9fc6, type: 3}
+    volume: 0.8
+  - track: 2
+    clip: {fileID: 8300000, guid: 0296ea80190e2f34b9ba6c1550f69d60, type: 3}
+    volume: 0.8
+  - track: 3
+    clip: {fileID: 8300000, guid: 6b68e1a0b37cbe142b3b6cf51ed01659, type: 3}
+    volume: 0.8
+  - track: 4
+    clip: {fileID: 8300000, guid: e0b8382bd05c78346b4c8b034749a096, type: 3}
+    volume: 0.8
+  - track: 5
+    clip: {fileID: 0}
+    volume: 0.8
   bgmCrossfadeSeconds: 1.2

@@ -138,7 +138,7 @@ MonoBehaviour:
     m_Value: 0
   brightness:
     m_OverrideState: 1
-    m_Value: 1.119
+    m_Value: 1
   contrast:
     m_OverrideState: 1
     m_Value: 1.04
@@ -169,7 +169,7 @@ MonoBehaviour:
     dimension: 1
   bloomIntensity:
     m_OverrideState: 1
-    m_Value: 0.05
+    m_Value: 0.18
   bloomThreshold:
     m_OverrideState: 0
     m_Value: 0
@@ -209,8 +209,8 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1
   bloomQuickerBlur:
-    m_OverrideState: 1
-    m_Value: 1
+    m_OverrideState: 0
+    m_Value: 0
   bloomCustomize:
     m_OverrideState: 0
     m_Value: 0
@@ -316,8 +316,8 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0
   sunFlaresIntensity:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 0.1
   sunFlaresTint:
     m_OverrideState: 0
     m_Value: {r: 1, g: 1, b: 1, a: 1}
@@ -331,10 +331,10 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1
   sunFlaresDepthOcclusionMode:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 0
   sunFlaresDepthOcclusionThreshold:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0.5
   sunFlaresUseLayerMask:
     m_OverrideState: 0
@@ -349,19 +349,19 @@ MonoBehaviour:
     m_Value: 30
   sunFlaresSunIntensity:
     m_OverrideState: 1
-    m_Value: 0.034
+    m_Value: 0.12
   sunFlaresSunDiskSize:
-    m_OverrideState: 0
-    m_Value: 0.05
+    m_OverrideState: 1
+    m_Value: 0.1
   sunFlaresSunRayDiffractionIntensity:
-    m_OverrideState: 0
-    m_Value: 3.5
+    m_OverrideState: 1
+    m_Value: 0
   sunFlaresSunRayDiffractionThreshold:
     m_OverrideState: 0
     m_Value: 0.13
   sunFlaresCoronaRays1Length:
-    m_OverrideState: 0
-    m_Value: 0.02
+    m_OverrideState: 1
+    m_Value: 0
   sunFlaresCoronaRays1Streaks:
     m_OverrideState: 0
     m_Value: 12
@@ -372,8 +372,8 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0
   sunFlaresCoronaRays2Length:
-    m_OverrideState: 0
-    m_Value: 0.05
+    m_OverrideState: 1
+    m_Value: 0
   sunFlaresCoronaRays2Streaks:
     m_OverrideState: 0
     m_Value: 12
@@ -390,7 +390,7 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1.04
   sunFlaresGhosts1Brightness:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0.037
   sunFlaresGhosts2Size:
     m_OverrideState: 0
@@ -399,7 +399,7 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0.71
   sunFlaresGhosts2Brightness:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0.03
   sunFlaresGhosts3Size:
     m_OverrideState: 0
@@ -426,8 +426,8 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 15.1415
   sunFlaresHaloIntensity:
-    m_OverrideState: 0
-    m_Value: 0.01
+    m_OverrideState: 1
+    m_Value: 0
   lensDirtIntensity:
     m_OverrideState: 1
     m_Value: 1

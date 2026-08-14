@@ -1687,6 +1687,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 39ca3f5f903246e79dac11707013e4e8, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2993348199731731935}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 39ca3f5f903246e79dac11707013e4e8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6029082784799572357}
   m_SourcePrefab: {fileID: 100100000, guid: 39ca3f5f903246e79dac11707013e4e8, type: 3}
 --- !u!4 &32120300570592361 stripped
 Transform:
@@ -2147,6 +2150,7 @@ MonoBehaviour:
   getUpSpeed: 1.5
   cameraTiltSpeed: 2.5
   fallCamFollowSpeed: 8
+  thudDelay: 0.45
 --- !u!114 &2993348199731731935
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2186,6 +2190,30 @@ MonoBehaviour:
   radioThumbCurl: {x: 62, y: 0, z: 0}
   blendSpeed: 7
   reachSafety: 0.99
+--- !u!114 &6029082784799572357
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8758046529069211445}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0498755f78ba5974a9830a77bb8b666b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerFootsteps
+  strideWalk: 2
+  strideRun: 2.8
+  runSpeedThreshold: 4
+  minSpeed: 0.6
+  groundProbeDistance: 1.6
+  asphaltKeywords:
+  - Road
+  concreteKeywords:
+  - Pit
+  - Garage
+  - Floor
+  - "\uBCA0\uD305\uBC29"
 --- !u!4 &8883440529124987854 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1009913675706003882, guid: 39ca3f5f903246e79dac11707013e4e8, type: 3}

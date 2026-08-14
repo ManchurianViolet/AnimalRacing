@@ -22,12 +22,25 @@ public class SoundManager : MonoBehaviour
     [Tooltip("SFX 동시 재생 한도 (풀 크기) — 넘치면 가장 오래된 소리를 재사용")]
     [SerializeField] private int sfxPoolSize = 16;
 
+    [Tooltip("루프 SFX 동시 재생 한도 (스킬 지속음 등) — 원샷 풀과 분리해 뺏기지 않게 한다")]
+    [SerializeField] private int loopPoolSize = 4;
+
     [Tooltip("3D 재생 시 감쇠 시작 거리(m) — 이 안에서는 최대 음량")]
     [SerializeField] private float sfxMinDistance = 2f;
 
     // ---- SFX 풀 ----
     private AudioSource[] sfxPool;
     private int sfxCursor;
+
+    // ---- 루프 SFX (스킬 지속음) ----
+    private class LoopVoice
+    {
+        public AudioSource src;
+        public Coroutine co;
+        public Transform follow;   // 발동한 동물 — 달리는 동안 소리가 따라다녀야 한다
+    }
+    private LoopVoice[] loopPool;
+    private int loopCursor;
 
     // ---- BGM (교차 페이드용 2채널) ----
     private class BgmChannel
@@ -53,6 +66,23 @@ public class SoundManager : MonoBehaviour
     public static void PlaySfx(SfxId id, Vector3 worldPos)
     {
         if (Instance != null) Instance.PlayInternal(id, worldPos);
+    }
+
+    /// <summary>
+    /// 루프 효과음 — 지정한 시간 동안 계속 울린다 (스킬 지속음 등).
+    /// 시작에 fadeIn초 동안 서서히 커지고, 끝나기 fadeOut초 전부터 서서히 잦아든다.
+    /// follow를 주면 그 대상을 따라다니며 3D 재생 — 달리는 동물의 소리가 뒤에 남지 않는다.
+    /// follow가 null이면 2D.
+    /// </summary>
+    public static void PlaySfxLoop(SfxId id, float duration, Transform follow, float fadeIn, float fadeOut)
+    {
+        if (Instance != null) Instance.PlayLoopInternal(id, duration, follow, fadeIn, fadeOut);
+    }
+
+    /// <summary>재생 중인 루프 효과음을 전부 멈춘다 (페이즈 전환·씬 이동 정리용).</summary>
+    public static void StopAllLoops()
+    {
+        if (Instance != null) Instance.StopLoopsInternal();
     }
 
     /// <summary>BGM 수동 전환 (평소엔 페이즈 구독이 자동 처리 — 특수 연출용).</summary>
@@ -81,8 +111,14 @@ public class SoundManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         BuildPool();
+        BuildLoopPool();
         bgmFront = CreateBgmChannel("BGM_A");
         bgmBack = CreateBgmChannel("BGM_B");
+
+        // 사건 중계기·UI 클릭음은 여기 얹혀 산다 — 씬마다 따로 배치할 필요가 없고,
+        // DontDestroyOnLoad 덕에 타이틀↔게임 씬 양쪽에서 그대로 동작한다.
+        if (GetComponent<SfxRelay>() == null) gameObject.AddComponent<SfxRelay>();
+        if (GetComponent<UiClickSfx>() == null) gameObject.AddComponent<UiClickSfx>();
 
         GameEvents.OnPhaseChanged += HandlePhaseChanged;
         SceneManager.sceneLoaded += HandleSceneLoaded;
@@ -104,11 +140,17 @@ public class SoundManager : MonoBehaviour
 
     // ================= BGM =================
 
-    private void HandlePhaseChanged(GamePhase p) => SwitchBgm(TrackForPhase(p));
+    private void HandlePhaseChanged(GamePhase p)
+    {
+        // 레이스가 끝나면 스킬 지속음이 남아 있을 이유가 없다 (완주·탈락으로 중간에 끊긴 스킬 포함)
+        if (p != GamePhase.Racing) StopLoopsInternal();
+        SwitchBgm(TrackForPhase(p));
+    }
 
     private void HandleSceneLoaded(Scene s, LoadSceneMode mode)
     {
         if (mode != LoadSceneMode.Single) return;
+        StopLoopsInternal();   // 씬을 넘어 살아남는 싱글턴이라 직접 정리해야 한다
         // 게임 씬 진입 직후는 로비 취급 — 매치 중 합류/재접속자는 곧 도착하는 페이즈 방송이 교정한다
         SwitchBgm(s.buildIndex == 0 ? BgmTrack.Title : BgmTrack.Lobby);
     }
@@ -238,6 +280,116 @@ public class SoundManager : MonoBehaviour
             src.spatialBlend = 0f;
         }
         src.Play();
+    }
+
+    // ================= 루프 SFX =================
+
+    private void BuildLoopPool()
+    {
+        loopPool = new LoopVoice[Mathf.Max(1, loopPoolSize)];
+        for (int i = 0; i < loopPool.Length; i++)
+        {
+            var go = new GameObject($"SFXLoop_{i:00}");
+            go.transform.SetParent(transform, false);
+            var src = go.AddComponent<AudioSource>();
+            src.playOnAwake = false;
+            src.loop = true;
+            src.rolloffMode = AudioRolloffMode.Linear;
+            src.minDistance = sfxMinDistance;
+            src.volume = 0f;
+            loopPool[i] = new LoopVoice { src = src };
+        }
+    }
+
+    private void PlayLoopInternal(SfxId id, float duration, Transform follow, float fadeIn, float fadeOut)
+    {
+        if (library == null || duration <= 0f) return;
+        var entry = library.FindSfx(id);
+        if (entry == null || entry.clips == null || entry.clips.Length == 0) return;
+
+        var clip = entry.clips[Random.Range(0, entry.clips.Length)];
+        if (clip == null) return;
+
+        var voice = NextLoopVoice();
+        if (voice.co != null) StopCoroutine(voice.co);
+
+        voice.follow = follow;
+        voice.src.clip = clip;
+        voice.src.pitch = Random.Range(entry.pitchMin, entry.pitchMax);
+        voice.src.volume = 0f;
+
+        if (follow != null)
+        {
+            voice.src.transform.position = follow.position;
+            voice.src.spatialBlend = 1f;
+            voice.src.maxDistance = Mathf.Max(sfxMinDistance + 0.1f, entry.maxDistance);
+        }
+        else voice.src.spatialBlend = 0f;
+
+        voice.src.Play();
+        voice.co = StartCoroutine(LoopEnvelopeCo(voice, entry.volume * SettingsStore.SfxVolume,
+                                                 duration, fadeIn, fadeOut));
+    }
+
+    /// <summary>페이드 인 → 유지 → 페이드 아웃. 매 프레임 대상을 따라간다.</summary>
+    private IEnumerator LoopEnvelopeCo(LoopVoice v, float peak, float duration, float fadeIn, float fadeOut)
+    {
+        // 짧은 스킬에서 페이드가 서로 겹치지 않게 상한을 건다 (합이 지속시간을 넘으면 비례 축소)
+        float sum = fadeIn + fadeOut;
+        if (sum > duration && sum > 0f)
+        {
+            float k = duration / sum;
+            fadeIn *= k;
+            fadeOut *= k;
+        }
+
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            if (v.follow != null) v.src.transform.position = v.follow.position;
+
+            float gain;
+            if (fadeIn > 0f && t < fadeIn) gain = t / fadeIn;                             // 서서히 커짐
+            else if (fadeOut > 0f && t > duration - fadeOut) gain = (duration - t) / fadeOut;  // 서서히 잦아듦
+            else gain = 1f;
+
+            v.src.volume = peak * Mathf.Clamp01(gain);
+            yield return null;
+        }
+
+        v.src.Stop();
+        v.src.clip = null;
+        v.follow = null;
+        v.co = null;
+    }
+
+    private LoopVoice NextLoopVoice()
+    {
+        for (int i = 0; i < loopPool.Length; i++)
+        {
+            int idx = (loopCursor + i) % loopPool.Length;
+            if (!loopPool[idx].src.isPlaying)
+            {
+                loopCursor = (idx + 1) % loopPool.Length;
+                return loopPool[idx];
+            }
+        }
+        var stolen = loopPool[loopCursor];
+        loopCursor = (loopCursor + 1) % loopPool.Length;
+        return stolen;
+    }
+
+    private void StopLoopsInternal()
+    {
+        if (loopPool == null) return;
+        foreach (var v in loopPool)
+        {
+            if (v.co != null) { StopCoroutine(v.co); v.co = null; }
+            v.src.Stop();
+            v.src.clip = null;
+            v.follow = null;
+        }
     }
 
     private AudioSource NextSource()

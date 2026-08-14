@@ -166,8 +166,14 @@ public class PlayerEquipment : MonoBehaviourPun
     /// 빠따 내구도 소모 (기본 1). 명중한 스윙에서만 호출 — 헛스윙은 무료.
     /// public인 이유: 테스트/연출(부서짐 이펙트 등)에서 재사용할 수 있게.
     /// </summary>
-    public void ApplyBatWear(int amount = 1) =>
+    public void ApplyBatWear(int amount = 1)
+    {
+        if (BatDurability <= 0) return;
         BatDurability = Mathf.Max(0, BatDurability - amount);
+
+        // 부서지는 순간 한 번만. 내구도는 로컬 상태라 내 화면에서만 들린다 (2D)
+        if (BatDurability == 0 && IsLocalAvatar) SoundManager.PlaySfx(SfxId.BatBreak);
+    }
 
     // ---- 입력 진입점 (로컬 플레이어 전용, PlayerItemController가 호출) ----
 
@@ -253,6 +259,9 @@ public class PlayerEquipment : MonoBehaviourPun
     [PunRPC]
     private void RpcSwing(int idx)
     {
+        // 스윙 소리 — 이 RPC는 전 클라에서 재생되므로 남이 휘두르는 소리도 그 자리에서 들린다 (3D)
+        SoundManager.PlaySfx(SfxId.BatSwing, transform.position);
+
         if (animator == null || attackStates.Length == 0) return;
         // 상체 레이어에서만 휘두른다 — 다리는 기본 이동 그대로 (걸으면서 때려도 다리 안 망가짐)
         string state = attackStates[Mathf.Clamp(idx, 0, attackStates.Length - 1)];

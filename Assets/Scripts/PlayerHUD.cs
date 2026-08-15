@@ -141,14 +141,18 @@ public class PlayerHUD : MonoBehaviour
             if (roomMode)
             {
                 var fig = FigurineBetting.HeldFigurine;
-                bool hasIcon = fig != null && fig.Def != null && fig.Def.icon != null;
+                // 수제 초상화(icon)가 있으면 그것을, 없으면 런타임 썸네일(피규어 모양 자동 렌더)을 쓴다
+                Sprite figSprite = null;
+                if (fig != null && fig.Def != null)
+                    figSprite = fig.Def.icon != null ? fig.Def.icon : FigurineThumbs.Get(fig.Def, fig.PostNumber);
+                bool hasIcon = figSprite != null;
                 if (handIcon != null)
                 {
                     handIcon.enabled = hasIcon;
-                    if (hasIcon) handIcon.sprite = fig.Def.icon;
+                    if (hasIcon) { handIcon.sprite = figSprite; handIcon.preserveAspect = true; }
                 }
                 if (handNameLabel != null)
-                    handNameLabel.text = fig == null ? Loc.Get("hud.hand") : (hasIcon ? "" : fig.HoverName);
+                    handNameLabel.text = fig == null ? Loc.Get("hud.hand") : fig.HoverName;   // 아이콘 위에도 "#6 펭귄" 유지
             }
         }
 

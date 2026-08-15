@@ -41,7 +41,7 @@ public static class SkillTuning
     public const float RoarMult = 0.5f;             // 자신 제외 전원 50% 감속 (펭귄 면역)
 
     // 고양이 — 사뿐한 발놀림
-    public const float CatWalkDuration = 8f;        // 코너 감속 무시 지속
+    public const float CatWalkDuration = 20f;       // 코너 감속 무시 지속 (v18: 8→20초 — 유저 결정)
 
     // 개 — 근성
     public const float LoyaltyMult = 1.30f;         // 꼴등인 동안 (처형 5초 예고를 탈출하는 발버둥)

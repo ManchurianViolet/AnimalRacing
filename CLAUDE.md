@@ -772,6 +772,7 @@ TrackPath 빌드 검진 로그+기즈모.
 |---|---|---|---|
 | **Handheld Transceiver \| LowPoly** by **VyrianStudios** ([Sketchfab](https://sketchfab.com/3d-models/handheld-transceiver-lowpoly-e098706085a44898abbd549693d12a64)) | 무전기 2종(발동/처형) 소품 | **CC-BY-4.0** | This work is based on "Handheld Transceiver \| LowPoly" by VyrianStudios, licensed under CC-BY-4.0 |
 | **Baseball Bat** by **Dodecaplex** ([Sketchfab](https://sketchfab.com/3d-models/baseball-bat-0028b77436394fd7963c013e04e69e70)) | 빠따 소품 | **CC-BY-4.0** | This work is based on "Baseball Bat" by Dodecaplex, licensed under CC-BY-4.0 |
+| **Low Poly Radioactive Needle** by **Itz_EthanNC** ([Sketchfab](https://sketchfab.com/3d-models/low-poly-radioactive-needle-825fad281d764076852e35c6474349a5)) | 주사기 2종(부스트/감속) 소품 | **CC-BY-4.0** | This work is based on "Low Poly Radioactive Needle" by Itz_EthanNC, licensed under CC-BY-4.0 |
 
 표기 의무 없음(참고): ithappy Creative_Characters_FREE / Weapons_FREE, Kevin Iglesias Human Melee 2.0 FREE(Fab Standard), Beautify, Mixamo 애니메이션, LAB디지털 폰트(유저 확보 — ⚠ 폰트 라이선스는 유저가 재확인 필요), **Facepunch.Steamworks(MIT — v13)**, Pretendard(OFL).
 ---

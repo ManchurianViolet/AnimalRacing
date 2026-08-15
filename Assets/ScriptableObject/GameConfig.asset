@@ -39,6 +39,7 @@ MonoBehaviour:
   roomBotDoorLinger: 5
   roomDoorSlideSeconds: 0.6
   figurineScale: 0.33
+  figurineCaseScale: 0.8
   defaultRounds: 3
   bettingSeconds: 64.28
   loadoutSeconds: 10
@@ -84,6 +85,11 @@ MonoBehaviour:
   dashTrailCount: 1
   dashTrailSpread: 0.34
   dashTrailBrightness: 1.2
+  catSparkTurnThreshold: 20
+  catSparkRate: 150
+  catSparkSize: 0.05
+  catSparkSpeed: 3.2
+  catSparkBrightness: 2.2
   roarHeadScale: 1.7
   roarHeadForward: 0.18
   roarFxSeconds: 1.2

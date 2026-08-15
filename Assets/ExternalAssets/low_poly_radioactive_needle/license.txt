@@ -1,0 +1,11 @@
+Model Information:
+* title:	Low Poly Radioactive Needle
+* source:	https://sketchfab.com/3d-models/low-poly-radioactive-needle-825fad281d764076852e35c6474349a5
+* author:	Itz_EthanNC (https://sketchfab.com/Itz_Ethan)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Low Poly Radioactive Needle" (https://sketchfab.com/3d-models/low-poly-radioactive-needle-825fad281d764076852e35c6474349a5) by Itz_EthanNC (https://sketchfab.com/Itz_Ethan) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

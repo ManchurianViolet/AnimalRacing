@@ -24,7 +24,7 @@ skill.name.apathy,무관심,Apathy,無関心,펭귄
 skill.desc.finalsprint,[패시브] 레이스 막판(85%~)에 속도 +20%,[Passive] +20% speed in the final stretch (85%+),【パッシブ】レース終盤(85%～)に速度+20%,
 skill.desc.rudolph,"[액티브] 경기 중 1회, 10초 거리의 전방 지점까지 하늘을 날아 5초 만에 도달한다","[Active] Once per race, fly to a point 10s ahead in just 5s",【アクティブ】レース中1回、10秒先の地点まで空を飛び5秒で到達,
 skill.desc.roar,"[액티브] 경기 중 1회, 포효로 자신을 제외한 전원을 5초간 50% 감속","[Active] Once per race, roar to slow everyone else by 50% for 5s",【アクティブ】レース中1回、咆哮で自分以外の全員を5秒間50%減速,
-skill.desc.catwalk,"[액티브] 경기 중 1회, 8초간 코너 감속을 무시하고 풀스피드로 코너링","[Active] Once per race, ignore corner slowdown and take corners at full speed for 8s",【アクティブ】レース中1回、8秒間コーナー減速を無視してフルスピードでコーナリング,
+skill.desc.catwalk,"[액티브] 경기 중 1회, 20초간 코너 감속을 무시하고 풀스피드로 코너링","[Active] Once per race, ignore corner slowdown and take corners at full speed for 20s",【アクティブ】レース中1回、20秒間コーナー減速を無視してフルスピードでコーナリング,
 skill.desc.loyalty,[패시브] 꼴등인 동안 속도 +30% — 악착같이 따라붙는다,[Passive] +30% speed while in last place — never gives up,【パッシブ】最下位の間は速度+30% — 必死に食らいつく,
 skill.desc.dash,"[액티브] 경기 중 1회, 8초간 속도 +50% 폭주","[Active] Once per race, +50% speed rampage for 8s",【アクティブ】レース中1回、8秒間速度+50%で暴走,
 skill.desc.apathy,[패시브] 모든 스킬·아이템 효과를 무시한다,[Passive] Immune to all skill and item effects,【パッシブ】全てのスキル・アイテム効果を無視する,

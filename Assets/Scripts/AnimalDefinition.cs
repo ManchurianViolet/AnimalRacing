@@ -25,10 +25,22 @@ public class AnimalDefinition : ScriptableObject
     /// <summary>현재 언어 종명 — 표시처는 displayName 대신 전부 이걸 쓴다.</summary>
     public string LocalizedName => string.IsNullOrEmpty(nameKey) ? displayName : Loc.Get(nameKey, displayName);
 
-    /// <summary>무전기 LCD용 — 전 언어 영문 대문자 고정 (LAB디지털 폰트가 가나 미지원 + 계기판 감성).</summary>
-    public string LcdName => (string.IsNullOrEmpty(nameKey)
-        ? displayName
-        : Loc.GetIn(GameLanguage.English, nameKey, displayName)).ToUpperInvariant();
+    /// <summary>
+    /// 무전기 LCD용 — 한국어/영어는 현재 언어, 일본어만 영문 폴백.
+    /// LAB디지털 폰트가 가나를 미지원(§16)이라 일어만 영문 고정이고,
+    /// 한글은 전 지원(v11 실측)이라 그대로 쓴다. 대문자 변환은 한글에 무해.
+    /// </summary>
+    public string LcdName
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(nameKey)) return displayName.ToUpperInvariant();
+            string s = Loc.Language == GameLanguage.Japanese
+                ? Loc.GetIn(GameLanguage.English, nameKey, displayName)
+                : Loc.Get(nameKey, displayName);
+            return s.ToUpperInvariant();
+        }
+    }
 
     [Tooltip("동물 아이콘 (Texture Type: Sprite). 비워두면 UI 기본 이미지 유지")]
     public Sprite icon;

@@ -42,9 +42,13 @@ public class BetBox : MonoBehaviour
         fig.transform.SetParent(Slot, false);
         fig.transform.localPosition = Vector3.zero;
         fig.transform.localRotation = Quaternion.identity;
-        fig.transform.localScale = Vector3.one * fig.ShelfScale;         // 손에서 줄여둔 크기 원복
+        // 유리 진열장 안에서는 추가 축소 — 큰 동물(말·사슴)이 유리를 뚫지 않게 (GameConfig)
+        var cfg = GameManager.Instance != null ? GameManager.Instance.Config : null;
+        float caseScale = cfg != null ? cfg.figurineCaseScale : 0.8f;
+        fig.transform.localScale = Vector3.one * fig.ShelfScale * caseScale;
         fig.SetHeld(false);                                              // 받침대 복원
         if (fig.PickCollider != null) fig.PickCollider.enabled = true;   // 다시 집을 수 있게
+        fig.SetRunning(true);   // 예측 상자 안에서도 달리기 재생 (전시대와 같은 연출 — 유저 결정)
     }
 
     /// <summary>상자에서 피규어를 꺼낸다 (호출자가 손/선반으로 옮김).</summary>
@@ -52,7 +56,7 @@ public class BetBox : MonoBehaviour
     {
         var fig = Current;
         Current = null;
-        if (fig != null) fig.InBox = null;
+        if (fig != null) { fig.InBox = null; fig.SetRunning(false); }
         return fig;
     }
 }

@@ -30,7 +30,10 @@ public class InspectStand : MonoBehaviour
         fig.transform.SetParent(Slot, false);
         fig.transform.localPosition = Vector3.zero;
         fig.transform.localRotation = Quaternion.identity;
-        fig.transform.localScale = Vector3.one * fig.ShelfScale;
+        // 유리 진열장 안에서는 추가 축소 — 예측 상자와 같은 규칙 (GameConfig.figurineCaseScale)
+        var cfg = GameManager.Instance != null ? GameManager.Instance.Config : null;
+        float caseScale = cfg != null ? cfg.figurineCaseScale : 0.8f;
+        fig.transform.localScale = Vector3.one * fig.ShelfScale * caseScale;
         fig.SetHeld(false);                                              // 받침대 복원
         if (fig.PickCollider != null) fig.PickCollider.enabled = true;   // 다시 집을 수 있게
         fig.SetRunning(true);                                            // 전시대 위에서만 달린다

@@ -2101,6 +2101,11 @@ MonoBehaviour:
   batModelScale: 1
   batModelEuler: {x: 0, y: 0, z: 90}
   batKnobBelowHand: 0.05
+  syringeModel: {fileID: 4614737701197350738, guid: 0b4cc59d2235d3f4fb0177a26951873d, type: 3}
+  syringeModelLength: 0.26
+  syringeModelEuler: {x: 0, y: 0, z: 90}
+  syringeButtBelowHand: 0.04
+  syringeTintStrength: 0.45
   radioModel: {fileID: 8933015644356454606, guid: 3799eec21196af64f8f13caeb737e053, type: 3}
   radioModelHeight: 0.2
   radioModelYaw: -49.5

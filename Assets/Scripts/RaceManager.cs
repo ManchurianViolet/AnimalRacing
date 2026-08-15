@@ -357,6 +357,14 @@ public class RaceManager : MonoBehaviour
             if (dashFx == null) dashFx = go.AddComponent<ChickenDashFx>();
             dashFx.Init(racer, config);
         }
+
+        // [고양이] 사뿐한 발놀림 드리프트 스파크 — 회전 속도 기반 로컬 연출, 클라도 통신 0
+        if (racer.Definition != null && racer.Definition.skill == AnimalSkill.CatWalk)
+        {
+            var catFx = go.GetComponent<CatWalkFx>();
+            if (catFx == null) catFx = go.AddComponent<CatWalkFx>();
+            catFx.Init(racer, config);
+        }
     }
 
     /// <summary>

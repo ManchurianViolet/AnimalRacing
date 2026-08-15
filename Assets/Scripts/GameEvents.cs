@@ -56,6 +56,8 @@ public enum SkillFeedEvent : byte
     Rudolph = 4,         // [사슴] 루돌프 비행
     ExecuteWarning = 5,  // 처형 무전 예고 (racerId = -1, 대상은 5초 후 확정)
     ExecuteHit = 6,      // 처형 집행 (racerId = 희생자)
+    ClubRush = 7,        // [인간] 몽둥이 질주 (racerId = 인간)
+    ClubHit = 8,         // [인간] 몽둥이 명중 — 스윙 연출+타격음용, 피드 없음 (racerId = 때린 인간)
 }
 
 /// <summary>아이템 사용 거절 사유 — 개인 RPC로 byte 하나. 표시 문구는 수신 클라가 Loc로 조립.</summary>

@@ -41,6 +41,7 @@ public enum SfxId
     SkillRudolph = 51,
     SkillDash = 52,
     SkillCatWalk = 53,
+    SkillClubRush = 54,   // [인간] 몽둥이 질주 (그룹 뒷번호 — 재배치 금지)
 
     // ---- 베팅 방 (6x) ----
     DoorSlide = 60,
@@ -93,6 +94,9 @@ public class AudioLibrary : ScriptableObject
         public BgmTrack track;
         public AudioClip clip;
         [Range(0f, 1f)] public float volume = 1f;
+        [Tooltip("반복 재생 — 베팅 곡처럼 페이즈 길이와 동기된 곡은 끄면 곡이 끝난 뒤 침묵한다 " +
+                 "(켜두면 카운트다운 전환 직전에 곡이 처음부터 다시 시작하는 사고)")]
+        public bool loop = true;
     }
 
     [Header("효과음")]

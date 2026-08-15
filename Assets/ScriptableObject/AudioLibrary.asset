@@ -228,16 +228,21 @@ MonoBehaviour:
   - track: 1
     clip: {fileID: 8300000, guid: 479684ad8924e9246a7961c6fc6d9fc6, type: 3}
     volume: 0.8
+    loop: 1
   - track: 2
     clip: {fileID: 8300000, guid: 0296ea80190e2f34b9ba6c1550f69d60, type: 3}
     volume: 0.8
+    loop: 1
   - track: 3
     clip: {fileID: 8300000, guid: 6b68e1a0b37cbe142b3b6cf51ed01659, type: 3}
     volume: 0.8
+    loop: 0
   - track: 4
     clip: {fileID: 8300000, guid: e0b8382bd05c78346b4c8b034749a096, type: 3}
     volume: 0.8
+    loop: 1
   - track: 5
     clip: {fileID: 0}
     volume: 0.8
+    loop: 1
   bgmCrossfadeSeconds: 1.2

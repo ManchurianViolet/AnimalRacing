@@ -93,6 +93,12 @@ public class RacerMotor : MonoBehaviour
         if (flightActive) { FlightTick(dt); return; }
         if (racer.ConsumeFlightRequest()) { BeginFlight(); return; }
 
+        // ---- [인간 몽둥이] 스턴: 탈락처럼 옆으로 넘어졌다가, 풀리면 일어나서 재주행 ----
+        // 회전은 TransformView가 미러하므로 호스트만 처리하면 클라 화면도 같은 그림 (탈락과 동일 원리)
+        if (racer.IsStunned) { StunCollapse(dt); return; }
+        if (stunRoll > 1f) { StunRecover(dt); return; }
+        stunStarted = false;
+
         float myProg = racer.Progress;
         float baseCap = racer.CurrentMaxSpeed;
         Vector3 flatVel = rb.linearVelocity; flatVel.y = 0f;
@@ -331,6 +337,37 @@ public class RacerMotor : MonoBehaviour
     }
 
     // ---- 탈락 연출: 급제동 + 옆으로 픽 쓰러짐 (회전은 TransformView로 클라에도 미러) ----
+    // ---- [인간 몽둥이] 스턴 쓰러짐/기상 — EliminatedCollapse의 회복 가능 버전 ----
+    private bool stunStarted;
+    private Quaternion stunBaseRot;
+    private float stunRoll;
+    private float stunDir = 1f;
+
+    private void StunCollapse(float dt)
+    {
+        if (!stunStarted)
+        {
+            stunStarted = true;
+            stunBaseRot = transform.rotation;
+            stunRoll = 0f;
+            stunDir = racer.RacerId % 2 == 0 ? 1f : -1f;   // 좌/우 갈라 단조로움 회피 (탈락과 동일)
+        }
+
+        Vector3 v = rb.linearVelocity;
+        v.x = Mathf.Lerp(v.x, 0f, 10f * dt);
+        v.z = Mathf.Lerp(v.z, 0f, 10f * dt);   // y는 중력에 맡김
+        rb.linearVelocity = v;
+
+        stunRoll = Mathf.MoveTowards(stunRoll, 90f, 320f * dt);   // 1초 스턴 중 ~0.3초에 눕는다
+        transform.rotation = stunBaseRot * Quaternion.Euler(0f, 0f, stunRoll * stunDir);
+    }
+
+    private void StunRecover(float dt)
+    {
+        stunRoll = Mathf.MoveTowards(stunRoll, 0f, 420f * dt);    // 벌떡 일어나 다시 달림
+        transform.rotation = stunBaseRot * Quaternion.Euler(0f, 0f, stunRoll * stunDir);
+    }
+
     private void EliminatedCollapse(float dt)
     {
         if (!elimStarted)

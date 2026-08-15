@@ -186,6 +186,7 @@ public class SoundManager : MonoBehaviour
         if (clip != null)
         {
             bgmFront.src.clip = clip;
+            bgmFront.src.loop = entry == null || entry.loop;   // 베팅 곡 = 루프 끔 (페이즈 동기 곡)
             bgmFront.src.Play();
         }
         else

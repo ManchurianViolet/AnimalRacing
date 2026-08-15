@@ -48,11 +48,15 @@ public class Racer : MonoBehaviour
     private bool activeConsumed;
     private bool flightRequested;       // 사슴: 모터에게 비행 개시 요청 (다음 FixedUpdate)
     private float catWalkRemaining;     // 고양이: 코너 감속 무시 잔여 (초)
+    private float clubRushRemaining;    // 인간: 몽둥이 질주 잔여 (초)
 
     /// <summary>[사슴] 루돌프 비행 중 — 이동은 모터의 스크립트 궤적, 모든 효과 면역.</summary>
     public bool IsFlying { get; private set; }
     /// <summary>[고양이] 사뿐한 발놀림 지속 중 — 모터가 코너 감속을 건너뛴다.</summary>
     public bool CornerIgnoreActive => catWalkRemaining > 0f;
+
+    /// <summary>[인간] 몽둥이 질주 지속 중 — RaceManager가 접촉 스턴을 판정한다.</summary>
+    public bool ClubRushActive => clubRushRemaining > 0f;
 
     public float ProgressRatio => Progress / Mathf.Max(1f, trackLength);
     public bool IsStunned
@@ -180,6 +184,7 @@ public class Racer : MonoBehaviour
         flightRequested = false;
         IsFlying = false;
         catWalkRemaining = 0f;
+        clubRushRemaining = 0f;
         activeTriggerRatio = Random.Range(SkillTuning.ActiveMinRatio, SkillTuning.ActiveMaxRatio);
     }
 
@@ -216,11 +221,22 @@ public class Racer : MonoBehaviour
                         SkillTuning.DashDuration, SkillTuning.DashMult));
                     GameEvents.RaiseSkillEvent(SkillFeedEvent.Dash, RacerId);
                     break;
+
+                case AnimalSkill.ClubRush:
+                    activeConsumed = true;
+                    clubRushRemaining = SkillTuning.ClubRushDuration;
+                    effects.Add(new StatusEffect(StatusEffectType.Boost,
+                        SkillTuning.ClubRushDuration, SkillTuning.ClubRushMult));
+                    GameEvents.RaiseSkillEvent(SkillFeedEvent.ClubRush, RacerId);
+                    break;
             }
         }
 
         // [고양이] 사뿐한 발놀림 잔여 시간
         if (catWalkRemaining > 0f) catWalkRemaining -= dt;
+
+        // [인간] 몽둥이 질주 잔여 시간 — 접촉 스턴 판정은 RaceManager(전역 시야)가 이 플래그로 처리
+        if (clubRushRemaining > 0f) clubRushRemaining -= dt;
 
         // 상태이상 갱신
         for (int i = effects.Count - 1; i >= 0; i--)

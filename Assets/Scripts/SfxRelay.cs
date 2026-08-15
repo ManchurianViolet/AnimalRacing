@@ -94,6 +94,15 @@ public class SfxRelay : MonoBehaviour
     /// </summary>
     private void HandleSkillEvent(SkillFeedEvent evt, int rid)
     {
+        // [인간] 몽둥이 명중 — 지속음이 아니라 원샷 타격음 (PvP 빠따와 같은 소리, 유저 결정)
+        if (evt == SkillFeedEvent.ClubHit)
+        {
+            var hitter = Race != null ? Race.GetRacer(rid) : null;
+            if (hitter != null) SoundManager.PlaySfx(SfxId.BatHit, hitter.transform.position);
+            else SoundManager.PlaySfx(SfxId.BatHit);
+            return;
+        }
+
         SfxId id;
         float duration;   // 스킬이 실제로 지속되는 시간 — SkillTuning이 단일 출처
         switch (evt)
@@ -102,6 +111,7 @@ public class SfxRelay : MonoBehaviour
             case SkillFeedEvent.Rudolph: id = SfxId.SkillRudolph; duration = SkillTuning.RudolphFlightSeconds; break;
             case SkillFeedEvent.Dash:    id = SfxId.SkillDash;    duration = SkillTuning.DashDuration; break;
             case SkillFeedEvent.CatWalk: id = SfxId.SkillCatWalk; duration = SkillTuning.CatWalkDuration; break;
+            case SkillFeedEvent.ClubRush: id = SfxId.SkillClubRush; duration = SkillTuning.ClubRushDuration; break;
             default: return;   // 처형 예고·펭귄 무관심 등 나머지 사건은 소리 없음
         }
 

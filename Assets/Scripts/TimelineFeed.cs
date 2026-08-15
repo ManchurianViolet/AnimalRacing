@@ -63,6 +63,7 @@ public class TimelineFeed : MonoBehaviour
             SkillFeedEvent.Rudolph        => Loc.Format("feed.skill.rudolph", RacerName(rid)),
             SkillFeedEvent.ExecuteWarning => Loc.Get("feed.exec.warning"),
             SkillFeedEvent.ExecuteHit     => Loc.Format("feed.exec.hit", RacerName(rid)),
+            SkillFeedEvent.ClubRush       => Loc.Format("feed.skill.clubrush", RacerName(rid)),
             _ => null
         };
         if (line != null) Push($"<color=#8FD3FF>{line}</color>");

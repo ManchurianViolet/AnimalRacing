@@ -16,6 +16,7 @@ public enum AnimalSkill
     Loyalty = 5,       // 개: 근성 (패시브 — 꼴등인 동안 가속, 처형 카운터)
     Dash = 6,          // 치킨: 냅다 달리기 (액티브 — 폭주)
     Apathy = 7,        // 펭귄: 무관심 (패시브 — 전 효과 면역)
+    ClubRush = 8,      // 인간: 몽둥이 질주 (액티브 — 2배속 질주 + 접촉 스턴)
 }
 
 public static class SkillTuning
@@ -50,10 +51,17 @@ public static class SkillTuning
     public const float DashDuration = 8f;
     public const float DashMult = 1.50f;            // 슬럼프 없음 (v9 확정)
 
+    // 인간 — 몽둥이 질주: 몽둥이를 든 채 2배속 폭주, 스치는 동물은 1초 스턴 (펭귄은 무관심 면역)
+    public const float ClubRushDuration = 10f;
+    public const float ClubRushMult = 2.0f;
+    public const float ClubRushStunSeconds = 1f;
+    public const float ClubRushHitRadius = 1.3f;    // 접촉 판정 반경 — 물리 충돌이 꺼져 있어 근접 판정 (§3-6)
+
     /// <summary>액티브 스킬(무전기 발동 가능) 여부 — 조준 UI/발사 차단/호스트 검증의 공통 기준.</summary>
     public static bool IsActive(AnimalSkill s) =>
         s == AnimalSkill.Roar || s == AnimalSkill.Rudolph
-        || s == AnimalSkill.CatWalk || s == AnimalSkill.Dash;
+        || s == AnimalSkill.CatWalk || s == AnimalSkill.Dash
+        || s == AnimalSkill.ClubRush;
 
     /// <summary>안내판/타임라인용 표기. [로컬라이제이션] 문구는 strings.csv의 skill.name.* / skill.desc.*</summary>
     public static string DisplayName(AnimalSkill s) => s switch
@@ -65,6 +73,7 @@ public static class SkillTuning
         AnimalSkill.Loyalty     => Loc.Get("skill.name.loyalty"),
         AnimalSkill.Dash        => Loc.Get("skill.name.dash"),
         AnimalSkill.Apathy      => Loc.Get("skill.name.apathy"),
+        AnimalSkill.ClubRush    => Loc.Get("skill.name.clubrush"),
         _ => "-"
     };
 
@@ -77,6 +86,7 @@ public static class SkillTuning
         AnimalSkill.Loyalty     => Loc.Get("skill.desc.loyalty"),
         AnimalSkill.Dash        => Loc.Get("skill.desc.dash"),
         AnimalSkill.Apathy      => Loc.Get("skill.desc.apathy"),
+        AnimalSkill.ClubRush    => Loc.Get("skill.desc.clubrush"),
         _ => Loc.Get("skill.none")
     };
 }

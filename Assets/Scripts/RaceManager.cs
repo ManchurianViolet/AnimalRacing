@@ -365,6 +365,14 @@ public class RaceManager : MonoBehaviour
             if (catFx == null) catFx = go.AddComponent<CatWalkFx>();
             catFx.Init(racer, config);
         }
+
+        // [인간] 몽둥이 질주 — 발동하면 오른손에 몽둥이 (피드 구독이라 클라도 통신 0)
+        if (racer.Definition != null && racer.Definition.skill == AnimalSkill.ClubRush)
+        {
+            var clubFx = go.GetComponent<ClubRushFx>();
+            if (clubFx == null) clubFx = go.AddComponent<ClubRushFx>();
+            clubFx.Init(racer, config);
+        }
     }
 
     /// <summary>
@@ -463,6 +471,28 @@ public class RaceManager : MonoBehaviour
                 // 면역자(펭귄/비행 중 사슴)는 관문에서 튕김 — 펭귄만 관전 재미로 피드
                 if (other.Definition.skill == AnimalSkill.Apathy)
                     GameEvents.RaiseSkillEvent(SkillFeedEvent.PenguinIgnore, other.RacerId);
+            }
+        }
+
+        // [인간] 몽둥이 질주 접촉 스턴 — 동물끼리 물리 충돌이 꺼져 있어(§3-6) 근접 판정으로.
+        // 매 틱 반경 안의 동물에 1초 스턴을 리필 — 나란히 달리는 동안은 계속 잡혀 있다가
+        // 인간(2배속)이 지나가면 1초 뒤 풀리는 그림. 펭귄은 AddEffect 관문에서 자동 면역.
+        foreach (var human in racers)
+        {
+            if (human == null || human.HasFinished || !human.ClubRushActive) continue;
+            foreach (var other in racers)
+            {
+                if (other == null || other == human || other.HasFinished) continue;
+                Vector3 d = other.transform.position - human.transform.position;
+                d.y = 0f;
+                if (d.sqrMagnitude > SkillTuning.ClubRushHitRadius * SkillTuning.ClubRushHitRadius) continue;
+
+                bool wasStunned = other.IsStunned;
+                other.AddEffect(new StatusEffect(StatusEffectType.Stun,
+                    SkillTuning.ClubRushStunSeconds, 0f));
+                // "새로 맞은" 순간만 전 클라 중계 — 스윙 애니 + 퍽 소리 (펭귄은 관문에서 튕겨 미발행)
+                if (!wasStunned && other.IsStunned)
+                    GameEvents.RaiseSkillEvent(SkillFeedEvent.ClubHit, human.RacerId);
             }
         }
     }

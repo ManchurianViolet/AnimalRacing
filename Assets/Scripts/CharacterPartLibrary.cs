@@ -32,4 +32,29 @@ public class CharacterPartLibrary : ScriptableObject
     public SlotDef[] slots;
 
     public int SlotCount => slots != null ? slots.Length : 0;
+
+    // ---- 표시 이름 (로컬라이제이션) ----
+    // SO에 nameKey를 넣지 않고 rendererName + 인덱스로 키를 조립한다 — 이 SO는 에셋팩에서 자동 생성되는 물건이라
+    // 재생성될 때마다 손으로 키를 다시 박아야 하는 걸 피하려는 것. 키가 없으면 SO의 한글 displayName으로 폴백한다.
+    // 키 형식: custom.slot.<rendererName 소문자> / custom.part.<rendererName 소문자>.<부위 인덱스>
+
+    private static string SlotKeyBase(SlotDef def) =>
+        string.IsNullOrEmpty(def.rendererName) ? "unknown" : def.rendererName.ToLowerInvariant();
+
+    /// <summary>슬롯 이름 (몸/상의/모자…) — 현재 언어로.</summary>
+    public string SlotLabel(int slot)
+    {
+        if (slots == null || slot < 0 || slot >= slots.Length) return "";
+        var def = slots[slot];
+        return Loc.Get("custom.slot." + SlotKeyBase(def), def.displayName);
+    }
+
+    /// <summary>부위 이름 (정장/헤드폰/운동화…) — 현재 언어로.</summary>
+    public string PartLabel(int slot, int part)
+    {
+        if (slots == null || slot < 0 || slot >= slots.Length) return "";
+        var def = slots[slot];
+        if (def.parts == null || part < 0 || part >= def.parts.Length) return "";
+        return Loc.Get($"custom.part.{SlotKeyBase(def)}.{part}", def.parts[part].displayName);
+    }
 }

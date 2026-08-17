@@ -179,6 +179,13 @@ public class PlayerItemController : MonoBehaviour
     private int wheelSlot = PlayerEquipment.SlotBat;
 
     /// <summary>
+    /// 지금 커서가 올라가 있는 슬롯 번호 (1~5). HUD 하이라이트는 HeldSlot이 아니라 이걸 봐야 한다 —
+    /// 재고가 떨어진 칸을 고르면 손은 빈손(0)이 되므로 HeldSlot 기준이면 테두리가 통째로 사라져
+    /// 휠로 조작하는 사람이 "지금 몇 번인지"를 잃는다 (유저 지적).
+    /// </summary>
+    public int CursorSlot => wheelSlot;
+
+    /// <summary>
     /// 휠 슬롯 순환 (1↔5 양방향 랩). 빈 슬롯도 그대로 방문한다 — 들면 관문이 빈손 처리.
     /// </summary>
     private void CycleSlot(int dir)

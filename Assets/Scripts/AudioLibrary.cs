@@ -108,6 +108,11 @@ public class AudioLibrary : ScriptableObject
     [Tooltip("BGM 곡 전환 교차 페이드 시간(초)")]
     public float bgmCrossfadeSeconds = 1.2f;
 
+    [Tooltip("타이틀 화면에 처음 들어올 때만 쓰는 페이드 인 시간(초). " +
+             "곡 전환용 1.2초는 인트로 연출에 비해 너무 빨라 '툭 시작'으로 들린다 — " +
+             "TitleIntro의 카메라 이동(약 3.25초)과 어울리게 길게 잡는다")]
+    public float bgmTitleFadeSeconds = 3.5f;
+
     public SfxEntry FindSfx(SfxId id)
     {
         if (sfx == null) return null;

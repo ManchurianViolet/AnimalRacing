@@ -16,6 +16,6 @@ MonoBehaviour:
   nameKey: item.boost
   kind: 0
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: a4faf7b1d64154c498f8ae0997ddbab6, type: 3}
   duration: 3
   magnitude: 1.5

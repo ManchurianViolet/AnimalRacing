@@ -92,6 +92,13 @@ public class NetworkSessionGuard : MonoBehaviourPunCallbacks
 
     // ---- 공통 ----
 
+    /// <summary>
+    /// 플레이어가 직접 방을 떠나 타이틀로 (ESC 메뉴의 "메인 메뉴로").
+    /// 이탈 처리(LeaveRoom → 잠깐 뒤 씬 로드)는 호스트 이탈·강제 종료와 같은 경로를 쓴다 —
+    /// 여기서 LoadScene을 직접 부르면 Photon이 방을 정리하기 전에 씬이 갈려 유령 자리가 남는다.
+    /// </summary>
+    public void LeaveToTitle() => GoToTitle(Loc.Get("pause.leaving", "메인 메뉴로 나가는 중..."));
+
     private void GoToTitle(string reason)
     {
         if (leavingToTitle) return;

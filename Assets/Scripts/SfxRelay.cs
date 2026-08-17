@@ -17,12 +17,6 @@ public class SfxRelay : MonoBehaviour
     [Tooltip("완주 소리를 낼 상위 등수 — 9마리가 전부 삑삑거리면 시상대의 무게가 죽는다")]
     [SerializeField] private int finishSfxTopRanks = 3;
 
-    [Header("스킬 지속음")]
-    [Tooltip("스킬음이 최대 음량까지 커지는 시간(초) — 툭 튀어나오지 않게")]
-    [SerializeField] private float skillFadeIn = 0.5f;
-    [Tooltip("스킬이 끝나기 이만큼(초) 전부터 서서히 잦아든다")]
-    [SerializeField] private float skillFadeOut = 0.5f;
-
     // 씬마다 다른 오브젝트라 지연 탐색 (SoundManager는 씬을 넘어 살아남는다).
     // 씬이 바뀌면 옛 참조가 fake null이 되므로 == null 검사만으로 자동 재탐색된다.
     private RaceManager raceManager;
@@ -104,22 +98,21 @@ public class SfxRelay : MonoBehaviour
         }
 
         SfxId id;
-        float duration;   // 스킬이 실제로 지속되는 시간 — SkillTuning이 단일 출처
         switch (evt)
         {
-            case SkillFeedEvent.Roar:    id = SfxId.SkillRoar;    duration = SkillTuning.RoarDuration; break;
-            case SkillFeedEvent.Rudolph: id = SfxId.SkillRudolph; duration = SkillTuning.RudolphFlightSeconds; break;
-            case SkillFeedEvent.Dash:    id = SfxId.SkillDash;    duration = SkillTuning.DashDuration; break;
-            case SkillFeedEvent.CatWalk: id = SfxId.SkillCatWalk; duration = SkillTuning.CatWalkDuration; break;
-            case SkillFeedEvent.ClubRush: id = SfxId.SkillClubRush; duration = SkillTuning.ClubRushDuration; break;
+            case SkillFeedEvent.Roar:    id = SfxId.SkillRoar;    break;
+            case SkillFeedEvent.Rudolph: id = SfxId.SkillRudolph; break;
+            case SkillFeedEvent.Dash:    id = SfxId.SkillDash;    break;
+            case SkillFeedEvent.CatWalk: id = SfxId.SkillCatWalk; break;
+            case SkillFeedEvent.ClubRush: id = SfxId.SkillClubRush; break;
             default: return;   // 처형 예고·펭귄 무관심 등 나머지 사건은 소리 없음
         }
 
-        // 발동한 동물을 따라다니며 3D 루프 — 달리는 중이라 위치를 고정하면 소리만 뒤에 남는다.
-        // id 직결 조회 (옛 이름 앞머리 매칭보다 튼튼). 못 찾으면 2D로 폴백.
+        // 발동 순간 1회만 재생 (유저 결정 — 지속 루프는 스킬이 겹치면 정신없다).
+        // 발동한 동물 자리에서 3D. 못 찾으면 2D로 폴백.
         var racer = Race != null ? Race.GetRacer(rid) : null;
-        SoundManager.PlaySfxLoop(id, duration, racer != null ? racer.transform : null,
-                                 skillFadeIn, skillFadeOut);
+        if (racer != null) SoundManager.PlaySfx(id, racer.transform.position);
+        else SoundManager.PlaySfx(id);
     }
 
     // ================= 페이즈 =================

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f867f80a1edd9f647a9580ab1277cb98, type: 3}
+  m_Name: "Animal_\uC5BC\uB8E9\uB9D0"
+  m_EditorClassIdentifier: Assembly-CSharp::AnimalDefinition
+  displayName: "\uC5BC\uB8E9\uB9D0"
+  nameKey: animal.zebra
+  description: 
+  prefab: {fileID: 8813641202734167140, guid: ba8d1a2a0e35079498153cbf09e36d05, type: 3}
+  icon: {fileID: 0}
+  minSpeed: 62
+  maxSpeed: 84
+  speedRerollInterval: 15
+  acceleration: 50
+  skill: 0

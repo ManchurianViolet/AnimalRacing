@@ -17,6 +17,6 @@ MonoBehaviour:
   kind: 2
   description: "\uC870\uC900\uD55C \uB3D9\uBB3C\uC758 \uC2A4\uD0AC\uC744 5\uCD08
     \uD6C4 \uAC15\uC81C \uBC1C\uB3D9\uC2DC\uD0A8\uB2E4."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: b00b27a6a3340b746af8ea73cefc38f7, type: 3}
   duration: 3
   magnitude: 1.5

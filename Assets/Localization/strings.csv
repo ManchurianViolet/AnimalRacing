@@ -155,6 +155,8 @@ settings.mode,화면 모드,Display Mode,画面モード,
 settings.lang,언어,Language,言語,
 settings.close,닫기,Close,閉じる,
 pause.resume,돌아가기,Resume,ゲームに戻る,ESC 메뉴
+pause.leave,메인 메뉴로,Main Menu,メインメニューへ,ESC 메뉴 — 방 나가고 타이틀로
+pause.leaving,메인 메뉴로 나가는 중...,Returning to main menu...,メインメニューに戻っています...,방 이탈 안내
 pause.quit,게임 종료,Quit Game,ゲーム終了,ESC 메뉴 + 타이틀 공용
 confirm.yes,네,Yes,はい,시작 확인창
 confirm.no,아니오,No,いいえ,
@@ -177,3 +179,53 @@ join.players,인원,Players,人数,방 목록 헤더
 pw.enter,입장하기,Enter,入室する,비밀번호 팝업
 server.change,변경,Change,変更,서버바 버튼
 server.select,서버 선택,Select Server,サーバー選択,서버 팝업 제목
+custom.slot.body,몸,Body,体,커마 슬롯 이름 (SO 폴백: CharacterPartLibrary.displayName)
+custom.slot.faces,표정,Face,表情,
+custom.slot.outerwear,상의,Top,トップス,
+custom.slot.pants,하의,Bottoms,ボトムス,
+custom.slot.accessories,소품,Accessory,小物,
+custom.slot.glasses,안경,Glasses,メガネ,
+custom.slot.gloves,장갑,Gloves,手袋,
+custom.slot.hairstyle,머리,Hair,髪型,
+custom.slot.hat,모자,Hat,帽子,
+custom.slot.shoes,신발,Shoes,靴,
+custom.part.body.0,기본,Default,デフォルト,커마 부위 이름
+custom.part.faces.0,화남,Angry,怒り,
+custom.part.faces.1,웃음,Smile,笑顔,
+custom.part.faces.2,평범,Neutral,普通,
+custom.part.outerwear.0,정장,Suit,スーツ,
+custom.part.outerwear.1,상의 2,Top 2,トップス2,
+custom.part.outerwear.2,상의 3,Top 3,トップス3,
+custom.part.outerwear.3,상의 4,Top 4,トップス4,
+custom.part.outerwear.4,마스코트 인형,Mascot Suit,着ぐるみ,
+custom.part.pants.0,하의 1,Bottoms 1,ボトムス1,
+custom.part.pants.1,하의 2,Bottoms 2,ボトムス2,
+custom.part.pants.2,반바지,Shorts,ハーフパンツ,
+custom.part.accessories.0,광대코,Clown Nose,ピエロの鼻,
+custom.part.accessories.1,헤드폰,Headphones,ヘッドホン,
+custom.part.accessories.2,콧수염 A,Mustache A,口ひげA,
+custom.part.accessories.3,콧수염 B,Mustache B,口ひげB,
+custom.part.accessories.4,쪽쪽이,Pacifier,おしゃぶり,
+custom.part.glasses.0,안경 1,Glasses 1,メガネ1,
+custom.part.glasses.1,안경 2,Glasses 2,メガネ2,
+custom.part.gloves.0,장갑 1,Gloves 1,手袋1,
+custom.part.gloves.1,장갑 2,Gloves 2,手袋2,
+custom.part.hairstyle.0,머리 1,Hair 1,髪型1,
+custom.part.hairstyle.1,머리 2,Hair 2,髪型2,
+custom.part.hairstyle.2,머리 3,Hair 3,髪型3,
+custom.part.hat.0,모자 1,Hat 1,帽子1,
+custom.part.hat.1,모자 2,Hat 2,帽子2,
+custom.part.hat.2,모자 3,Hat 3,帽子3,
+custom.part.hat.3,모자 4,Hat 4,帽子4,
+custom.part.shoes.0,슬리퍼 A,Sandals A,サンダルA,
+custom.part.shoes.1,슬리퍼 B,Sandals B,サンダルB,
+custom.part.shoes.2,운동화,Sneakers,スニーカー,
+custom.part.shoes.3,양말,Socks,靴下,
+create.needplayers,인원 수를 입력하세요 (2~4),Enter the player count (2-4),人数を入力してください（2〜4）,방 만들기 필수 입력 경고
+create.needrounds,라운드 수를 입력하세요 (1~9),Enter the round count (1-9),ラウンド数を入力してください（1〜9）,
+animal.cow,소,Cow,ウシ,신규 레이서 (스킬 없음)
+animal.pigeon,비둘기,Pigeon,ハト,
+animal.camel,낙타,Camel,ラクダ,
+animal.monkey,원숭이,Monkey,サル,
+animal.polarbear,북극곰,Polar Bear,ホッキョクグマ,
+animal.zebra,얼룩말,Zebra,シマウマ,

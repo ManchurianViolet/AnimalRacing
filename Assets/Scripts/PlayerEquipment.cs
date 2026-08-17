@@ -180,10 +180,13 @@ public class PlayerEquipment : MonoBehaviourPun
     /// <summary>
     /// 빠따 내구도 소모 (기본 1). 명중한 스윙에서만 호출 — 헛스윙은 무료.
     /// public인 이유: 테스트/연출(부서짐 이펙트 등)에서 재사용할 수 있게.
+    /// ⚠ 대기실(Lobby)에서는 소모하지 않는다 — 매치 전 장난으로 때리는 것까지 닳으면
+    ///    정작 라운드에서 쓸 게 없다 (유저 결정).
     /// </summary>
     public void ApplyBatWear(int amount = 1)
     {
         if (BatDurability <= 0) return;
+        if (GameManager.Instance != null && GameManager.Instance.CurrentPhase == GamePhase.Lobby) return;
         BatDurability = Mathf.Max(0, BatDurability - amount);
 
         // 부서지는 순간 한 번만. 내구도는 로컬 상태라 내 화면에서만 들린다 (2D)

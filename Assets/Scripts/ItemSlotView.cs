@@ -19,6 +19,10 @@ public class ItemSlotView : MonoBehaviour
     [Tooltip("빠따 슬롯 전용 내구도 게이지 (Image Type=Filled). 잔량 비율만큼 채워지고 " +
              "GameConfig의 warn/danger 비율에서 초록→주황→빨강으로 바뀐다. 다른 슬롯은 비워둠")]
     [SerializeField] private Image durabilityFill;
+    [Tooltip("다 쓴 소모형 슬롯의 투명도")]
+    [SerializeField] private float emptyAlpha = 0.35f;
+    [Tooltip("다 썼지만 커서가 올라가 있는 슬롯의 투명도 — 노란 테두리가 읽힐 만큼은 밝아야 한다")]
+    [SerializeField] private float emptySelectedAlpha = 0.75f;
 
     private PlayerItemController controller;
     private ItemDefinition item;     // 주사기 슬롯만 사용, 빠따/무전기는 null
@@ -68,8 +72,11 @@ public class ItemSlotView : MonoBehaviour
         if (cooldownFill != null)
             cooldownFill.fillAmount = (item != null && controller.Me != null) ? controller.Me.CooldownRatio : 0f;
 
+        // 하이라이트 기준은 "손에 든 것"이 아니라 "커서 위치" — 재고가 떨어진 칸을 고르면
+        // 손은 빈손이 되지만 테두리는 그 칸에 남아 있어야 지금 몇 번인지 알 수 있다
+        bool selected = controller.CursorSlot == slotIndex;
         if (selectedFrame != null)
-            selectedFrame.SetActive(controller.HeldSlot == slotIndex);
+            selectedFrame.SetActive(selected);
 
         // 빠따 내구도 게이지 — 잔량 비율만큼 채우고, 문턱값 아래로 내려가면 색 경고
         if (durabilityFill != null && PlayerEquipment.Local != null)
@@ -83,8 +90,14 @@ public class ItemSlotView : MonoBehaviour
                                      : cfg.batGaugeColorFull;
         }
 
-        // 소모형 슬롯은 다 쓰면 흐리게 (빠따/무전기는 항상 또렷)
+        // 소모형 슬롯은 다 쓰면 흐리게 (빠따/무전기는 항상 또렷).
+        // 단 커서가 올라간 칸은 덜 흐리게 — CanvasGroup은 테두리까지 같이 흐려서
+        // 0.35로 두면 "지금 여기"가 안 읽힌다
         var cg = GetComponent<CanvasGroup>();
-        if (cg != null) cg.alpha = (item != null && controller.CountOf(item) <= 0) ? 0.35f : 1f;
+        if (cg != null)
+        {
+            bool empty = item != null && controller.CountOf(item) <= 0;
+            cg.alpha = !empty ? 1f : (selected ? emptySelectedAlpha : emptyAlpha);
+        }
     }
 }

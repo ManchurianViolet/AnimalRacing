@@ -16,6 +16,6 @@ MonoBehaviour:
   nameKey: item.slow
   kind: 1
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 8e7ba45ae001f7a44b5bb2b8b3802dc7, type: 3}
   duration: 3
   magnitude: 0.75

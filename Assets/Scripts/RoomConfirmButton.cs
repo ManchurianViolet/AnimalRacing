@@ -15,8 +15,8 @@ public class RoomConfirmButton : MonoBehaviour, IInteractable
 
     public string Prompt =>
         room != null && room.BuildTicket() != null
-            ? "E - 예측 확정"
-            : "상자 3개에 피규어를 넣으세요";
+            ? Loc.Get("room.confirm")
+            : Loc.Get("room.needboxes");
 
     private void Awake()
     {

@@ -26,7 +26,7 @@ public class StartLever : MonoBehaviour, IInteractable
     [SerializeField] private Button btnYes;
     [SerializeField] private Button btnNo;
 
-    public string Prompt => "E - 게임 시작";
+    public string Prompt => Loc.Get("lever.prompt");
 
     private void Awake()
     {
@@ -49,7 +49,7 @@ public class StartLever : MonoBehaviour, IInteractable
             var room = PhotonNetwork.CurrentRoom;
             if (room.PlayerCount < room.MaxPlayers && confirmPanel != null)
             {
-                confirmText.text = $"{room.PlayerCount}/{room.MaxPlayers}명입니다.\n그래도 시작하시겠습니까?";
+                confirmText.text = Loc.Format("lever.confirm", room.PlayerCount, room.MaxPlayers);
                 confirmPanel.SetActive(true);
                 if (playerController != null) playerController.SetControlEnabled(false);
                 return;

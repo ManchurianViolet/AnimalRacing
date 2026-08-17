@@ -19,27 +19,52 @@ public class ItemSlotView : MonoBehaviour
     [Tooltip("빠따 슬롯 전용 내구도 게이지 (Image Type=Filled). 잔량 비율만큼 채워지고 " +
              "GameConfig의 warn/danger 비율에서 초록→주황→빨강으로 바뀐다. 다른 슬롯은 비워둠")]
     [SerializeField] private Image durabilityFill;
+    [Tooltip("다 쓴 소모형 슬롯의 투명도")]
+    [SerializeField] private float emptyAlpha = 0.35f;
+    [Tooltip("다 썼지만 커서가 올라가 있는 슬롯의 투명도 — 노란 테두리가 읽힐 만큼은 밝아야 한다")]
+    [SerializeField] private float emptySelectedAlpha = 0.75f;
 
     private PlayerItemController controller;
     private ItemDefinition item;     // 주사기 슬롯만 사용, 빠따/무전기는 null
+    private string nameKey;          // 아이템 없는 슬롯(빠따/무전기)의 이름 키 (strings.csv)
     private int slotIndex;
 
-    /// <summary>slot: PlayerEquipment.Slot* 번호. item은 소모형 슬롯(주사기)만, 나머지는 null.</summary>
-    public void Init(PlayerItemController controller, int slot, ItemDefinition item, string displayName, string hotkey)
+    /// <summary>
+    /// slot: PlayerEquipment.Slot* 번호. item은 소모형 슬롯(주사기)만, 나머지는 null.
+    /// [로컬라이제이션] nameKey는 완성 문자열이 아니라 키("item.bat") — 언어가 바뀌면
+    /// 여기서 다시 조회해 갈아끼운다 (완성 문자열을 받으면 전환 때 옛 언어로 굳는다).
+    /// </summary>
+    public void Init(PlayerItemController controller, int slot, ItemDefinition item, string nameKey, string hotkey)
     {
         this.controller = controller;
         this.item = item;
+        this.nameKey = nameKey;
         slotIndex = slot;
-        if (nameLabel != null) nameLabel.text = item != null ? item.itemName : displayName;
+        RefreshName();
         if (hotkeyLabel != null) hotkeyLabel.text = hotkey;
 
         var btn = GetComponent<Button>();
         if (btn != null) btn.onClick.AddListener(() => controller.SelectSlot(slot));
     }
 
+    /// <summary>
+    /// 슬롯은 HUD가 페이즈/베팅방 상태에 따라 SetActive를 수시로 토글한다 —
+    /// 꺼진 동안 언어가 바뀌면 이벤트 구독으로는 놓치므로, Update에서 값이 다를 때만
+    /// 갈아끼운다 (같으면 TMP를 안 건드림 — 커마 패널 규칙).
+    /// </summary>
+    private void RefreshName()
+    {
+        if (nameLabel == null) return;
+        string want = item != null ? item.LocalizedName
+                    : !string.IsNullOrEmpty(nameKey) ? Loc.Get(nameKey) : null;
+        if (want != null && nameLabel.text != want) nameLabel.text = want;
+    }
+
     private void Update()
     {
         if (controller == null) return;
+
+        RefreshName();   // 언어 전환 대응
 
         if (countLabel != null)
             countLabel.text = item != null ? $"×{controller.CountOf(item)}" : "";
@@ -47,8 +72,11 @@ public class ItemSlotView : MonoBehaviour
         if (cooldownFill != null)
             cooldownFill.fillAmount = (item != null && controller.Me != null) ? controller.Me.CooldownRatio : 0f;
 
+        // 하이라이트 기준은 "손에 든 것"이 아니라 "커서 위치" — 재고가 떨어진 칸을 고르면
+        // 손은 빈손이 되지만 테두리는 그 칸에 남아 있어야 지금 몇 번인지 알 수 있다
+        bool selected = controller.CursorSlot == slotIndex;
         if (selectedFrame != null)
-            selectedFrame.SetActive(controller.HeldSlot == slotIndex);
+            selectedFrame.SetActive(selected);
 
         // 빠따 내구도 게이지 — 잔량 비율만큼 채우고, 문턱값 아래로 내려가면 색 경고
         if (durabilityFill != null && PlayerEquipment.Local != null)
@@ -62,8 +90,14 @@ public class ItemSlotView : MonoBehaviour
                                      : cfg.batGaugeColorFull;
         }
 
-        // 소모형 슬롯은 다 쓰면 흐리게 (빠따/무전기는 항상 또렷)
+        // 소모형 슬롯은 다 쓰면 흐리게 (빠따/무전기는 항상 또렷).
+        // 단 커서가 올라간 칸은 덜 흐리게 — CanvasGroup은 테두리까지 같이 흐려서
+        // 0.35로 두면 "지금 여기"가 안 읽힌다
         var cg = GetComponent<CanvasGroup>();
-        if (cg != null) cg.alpha = (item != null && controller.CountOf(item) <= 0) ? 0.35f : 1f;
+        if (cg != null)
+        {
+            bool empty = item != null && controller.CountOf(item) <= 0;
+            cg.alpha = !empty ? 1f : (selected ? emptySelectedAlpha : emptyAlpha);
+        }
     }
 }

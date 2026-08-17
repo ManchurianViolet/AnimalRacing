@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f867f80a1edd9f647a9580ab1277cb98, type: 3}
+  m_Name: "Animal_\uB099\uD0C0"
+  m_EditorClassIdentifier: Assembly-CSharp::AnimalDefinition
+  displayName: "\uB099\uD0C0"
+  nameKey: animal.camel
+  description: 
+  prefab: {fileID: 7865835772563376901, guid: 696b91751a01abd46bd90f7eec44d52f, type: 3}
+  icon: {fileID: 0}
+  minSpeed: 66
+  maxSpeed: 79
+  speedRerollInterval: 15
+  acceleration: 25
+  skill: 0

@@ -63,6 +63,8 @@ public class GameConfig : ScriptableObject
     public float roomDoorSlideSeconds = 0.6f;
     [Tooltip("피규어 크기 (동물 실물 대비 배율)")]
     public float figurineScale = 0.33f;
+    [Tooltip("예측 상자·전시대(유리 진열장) 안에서의 추가 축소 배율 — 큰 동물이 유리를 뚫지 않게")]
+    public float figurineCaseScale = 0.8f;
 
     [Header("매치")]
     public int defaultRounds = 3;
@@ -169,6 +171,18 @@ public class GameConfig : ScriptableObject
     public float dashTrailSpread = 0.34f;
     [Tooltip("색 밝기 배율 — 1보다 크면 뷰티파이 블룸을 받아 반짝인다")]
     public float dashTrailBrightness = 1.2f;
+
+    [Header("연출 — 드리프트 스파크 (고양이 사뿐한 발놀림)")]
+    [Tooltip("스파크가 터지기 시작하는 회전 속도 (도/초) — 직선에선 조용, 코너에서만 튀게 하는 문턱")]
+    public float catSparkTurnThreshold = 20f;
+    [Tooltip("최대 방출량 (초당 개수) — 회전이 빠를수록 문턱~최대 사이에서 비례 증가")]
+    public float catSparkRate = 150f;
+    [Tooltip("스파크 입자 크기 (m)")]
+    public float catSparkSize = 0.05f;
+    [Tooltip("입자가 튀는 속도 (m/s)")]
+    public float catSparkSpeed = 3.2f;
+    [Tooltip("색 밝기 배율 — 1보다 크면 블룸을 받아 불꽃처럼 빛난다")]
+    public float catSparkBrightness = 2.2f;
 
     [Header("연출 — 포효 (호랑이)")]
     [Tooltip("포효 순간 머리 확대 배율")]

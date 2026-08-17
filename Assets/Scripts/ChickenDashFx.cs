@@ -3,10 +3,9 @@ using UnityEngine;
 /// <summary>
 /// [치킨] 냅다 달리기 중 몸 뒤로 무지개 자취를 남기는 연출.
 ///
-/// 발동 감지는 전 클라로 이미 중계되는 스킬 피드(OnSkillProc) 문자열 — RoarFx와 같은 방식이라
+/// 발동 감지는 전 클라로 이미 중계되는 스킬 사건(OnSkillEvent) — Dash + 내 RacerId면 재생.
 /// 네트워크 추가 통신 0 (부스트 먼지·무전기 LCD와 같은 철학).
-/// ⚠ 피드 문구("OO이 냅다 달린다")를 고치면 여기 키워드도 같이 고쳐야 한다 — 안 그러면
-///   에러 없이 연출만 조용히 사라진다 (SfxRelay의 스킬음과 같은 취약점).
+/// 옛 문자열 키워드 매칭("문구 바꾸면 조용히 깨짐")은 로컬라이제이션 개편으로 해소됨.
 ///
 /// 자취는 TrailRenderer 여러 줄을 몸 뒤 좌우에 펼쳐 만든다. 줄마다 무지개 색 시작점을 어긋나게
 /// 줘서 한 줄짜리보다 훨씬 무지개처럼 보인다.
@@ -75,14 +74,13 @@ public class ChickenDashFx : MonoBehaviour
         BuildTrails();
     }
 
-    private void OnEnable() => GameEvents.OnSkillProc += HandleSkillProc;
-    private void OnDisable() => GameEvents.OnSkillProc -= HandleSkillProc;
+    private void OnEnable() => GameEvents.OnSkillEvent += HandleSkillEvent;
+    private void OnDisable() => GameEvents.OnSkillEvent -= HandleSkillEvent;
 
-    private void HandleSkillProc(string line)
+    private void HandleSkillEvent(SkillFeedEvent evt, int rid)
     {
-        if (racer == null || trails == null || string.IsNullOrEmpty(line)) return;
-        if (!line.StartsWith(racer.DisplayName)) return;
-        if (!line.Contains("냅다 달린다")) return;
+        if (racer == null || trails == null) return;
+        if (evt != SkillFeedEvent.Dash || rid != racer.RacerId) return;
 
         timer = 0f;
         SetEmitting(true);

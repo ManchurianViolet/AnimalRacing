@@ -4,10 +4,10 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// [설정] 타이틀 설정 팝업 — 볼륨/감도 슬라이더 + 해상도/화면 모드 ◀▶ + 언어 자리(잠금).
+/// [설정] 타이틀 설정 팝업 — 볼륨/감도 슬라이더 + 해상도/화면 모드/언어 ◀▶.
 /// 값의 저장·전역 적용은 SettingsStore 담당, 여기는 UI 흐름만 (TitleMenu와 같은 철학).
 /// ⚠ 해상도/화면 모드는 에디터 게임뷰가 고정이라 체감 불가 — 빌드에서 확인할 것.
-/// 언어는 문자열 추출 대작업이라 잠가둠 (전 UI 하드코딩 한국어 — 별도 세션 예정, §7).
+/// 언어 ◀▶ 버튼은 씬 배선 없이 Awake가 조립 (EnsureLanguageRow — 씬 두 벌 재배선 회피).
 /// </summary>
 public class SettingsPanel : MonoBehaviour
 {
@@ -40,6 +40,11 @@ public class SettingsPanel : MonoBehaviour
     [SerializeField] private Button btnModePrev;
     [SerializeField] private Button btnModeNext;
     [SerializeField] private TMP_Text modeValue;
+
+    [Header("언어 — 씬 배선 없이 코드가 조립 (◀▶는 해상도 버튼 복제)")]
+    [SerializeField] private Button btnLangPrev;
+    [SerializeField] private Button btnLangNext;
+    [SerializeField] private TMP_Text langValue;
 
     [Header("공통")]
     [SerializeField] private Button btnClose;
@@ -84,6 +89,48 @@ public class SettingsPanel : MonoBehaviour
         btnModePrev.onClick.AddListener(ToggleMode);
         btnModeNext.onClick.AddListener(ToggleMode);
         btnClose.onClick.AddListener(Close);
+
+        EnsureLanguageRow();
+        btnLangPrev.onClick.AddListener(() => StepLanguage(-1));
+        btnLangNext.onClick.AddListener(() => StepLanguage(+1));
+    }
+
+    /// <summary>
+    /// [로컬라이제이션] 잠겨 있던 언어 행 활성화. 씬 두 벌(타이틀/게임)을 다시 배선하는 대신
+    /// 해상도 ◀▶ 버튼을 복제해 언어 줄(y=-245)에 놓는다 — 스타일 공짜, 씬 dirty 0.
+    /// (런타임 AddListener는 직렬화되지 않아 복제본은 깨끗한 버튼으로 태어난다)
+    /// </summary>
+    private void EnsureLanguageRow()
+    {
+        if (btnLangPrev != null) return;   // 나중에 씬에 직접 배선하면 그쪽 우선
+
+        if (langValue == null)
+        {
+            var t = transform.Find("Card/LangValue");
+            if (t != null) langValue = t.GetComponent<TMP_Text>();
+        }
+        // 잠금 시절의 회색 스타일 잔재 제거 — 다른 값(화면 모드)과 같은 색으로 (씬 두 벌 수정 회피)
+        if (langValue != null && modeValue != null) langValue.color = modeValue.color;
+
+        float y = langValue != null ? ((RectTransform)langValue.transform).anchoredPosition.y : -245f;
+        btnLangPrev = CloneArrow(btnResPrev, "LangPrev", y);
+        btnLangNext = CloneArrow(btnResNext, "LangNext", y);
+    }
+
+    private static Button CloneArrow(Button src, string name, float y)
+    {
+        var go = Instantiate(src.gameObject, src.transform.parent);
+        go.name = name;
+        var rt = (RectTransform)go.transform;
+        rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, y);
+        return go.GetComponent<Button>();
+    }
+
+    private void StepLanguage(int dir)
+    {
+        int n = Loc.LanguageCount;
+        SettingsStore.Language = (GameLanguage)(((int)SettingsStore.Language + dir + n) % n);
+        RefreshLabels();
     }
 
     /// <summary>설정 버튼의 영속 리스너가 호출 (커스터마이징 버튼과 같은 패턴).</summary>
@@ -179,7 +226,8 @@ public class SettingsPanel : MonoBehaviour
         Set(sensValue, $"x{SettingsStore.Sensitivity:F2}");
         Set(fovValue, $"{Mathf.RoundToInt(SettingsStore.Fov)}°");
         if (sizes.Count > 0) Set(resValue, $"{sizes[resIndex].x} × {sizes[resIndex].y}");
-        Set(modeValue, wantFullscreen ? "전체화면" : "창모드");
+        Set(modeValue, Loc.Get(wantFullscreen ? "settings.mode.fullscreen" : "settings.mode.windowed"));
+        Set(langValue, Loc.NativeName(SettingsStore.Language));   // 언어 이름은 항상 그 언어 문자로
     }
 
     private static void Set(TMP_Text label, string text)

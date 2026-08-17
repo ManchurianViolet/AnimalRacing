@@ -41,6 +41,7 @@ public enum SfxId
     SkillRudolph = 51,
     SkillDash = 52,
     SkillCatWalk = 53,
+    SkillClubRush = 54,   // [인간] 몽둥이 질주 (그룹 뒷번호 — 재배치 금지)
 
     // ---- 베팅 방 (6x) ----
     DoorSlide = 60,
@@ -93,6 +94,9 @@ public class AudioLibrary : ScriptableObject
         public BgmTrack track;
         public AudioClip clip;
         [Range(0f, 1f)] public float volume = 1f;
+        [Tooltip("반복 재생 — 베팅 곡처럼 페이즈 길이와 동기된 곡은 끄면 곡이 끝난 뒤 침묵한다 " +
+                 "(켜두면 카운트다운 전환 직전에 곡이 처음부터 다시 시작하는 사고)")]
+        public bool loop = true;
     }
 
     [Header("효과음")]
@@ -103,6 +107,11 @@ public class AudioLibrary : ScriptableObject
 
     [Tooltip("BGM 곡 전환 교차 페이드 시간(초)")]
     public float bgmCrossfadeSeconds = 1.2f;
+
+    [Tooltip("타이틀 화면에 처음 들어올 때만 쓰는 페이드 인 시간(초). " +
+             "곡 전환용 1.2초는 인트로 연출에 비해 너무 빨라 '툭 시작'으로 들린다 — " +
+             "TitleIntro의 카메라 이동(약 3.25초)과 어울리게 길게 잡는다")]
+    public float bgmTitleFadeSeconds = 3.5f;
 
     public SfxEntry FindSfx(SfxId id)
     {

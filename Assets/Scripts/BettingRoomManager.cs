@@ -274,6 +274,10 @@ public class BettingRoomManager : MonoBehaviour
             var slot = new GameObject($"FigSlot_{racer.RacerId}").transform;
             slot.SetParent(shelf, false);
             slot.localPosition = new Vector3((i - (racers.Count - 1) * 0.5f) * shelfSpacing, 0f, 0f);
+            // 피규어가 옆모습(보는 사람 기준 오른쪽)을 보게 — 옆구리 번호판이 보이는 각 (유저 결정).
+            //    ⚠ 회전은 홀더가 아니라 슬롯에 준다: ReturnHome()이 피규어 localRotation을
+            //    identity로 되돌리므로 홀더에 주면 복귀할 때 풀린다.
+            slot.localRotation = Quaternion.Euler(0f, 90f, 0f);
 
             // 홀더 비활성 상태에서 생성 → Awake 전에 게임플레이 컴포넌트 제거 (TitleTrackShow 패턴)
             var holder = new GameObject($"Figurine_{racer.RacerId + 1}");
@@ -336,8 +340,9 @@ public class BettingRoomManager : MonoBehaviour
     /// ⚠ Animator는 남긴다 (전시대에서 달리기를 재생해야 함). BetFigurine이 Init에서 꺼두고,
     ///   전시대에 올릴 때만 켠다. 예전에 여기서 지웠던 이유는 Animator.Update()를 강제 호출해
     ///   정지 포즈를 구우려다 본이 100m 밖으로 날아간 사고였는데, 그 강제 호출 쪽을 없앴다.
+    /// public인 이유: FigurineThumbs(HUD 썸네일)가 같은 스트립 규약을 재사용한다.
     /// </summary>
-    private static void StripGameplay(GameObject go)
+    public static void StripGameplay(GameObject go)
     {
         RemoveAll<RacerMotor>(go);
         RemoveAll<Racer>(go);
@@ -364,6 +369,6 @@ public class BettingRoomManager : MonoBehaviour
                     && LocalRoom != null
                     && !LocalSubmitted
                     && !LocalInsideRoom;
-        Guidance = need ? "자기 방에 들어가 베팅하세요!" : "";
+        Guidance = need ? Loc.Get("room.guidance") : "";
     }
 }

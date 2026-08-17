@@ -64,8 +64,8 @@ public class NetworkLauncher : MonoBehaviourPunCallbacks
     {
         string region = SavedRegion;
         Status(string.IsNullOrEmpty(region)
-            ? "서버 접속 중..."
-            : $"서버 접속 중... ({PhotonRegions.Of(region)})");
+            ? Loc.Get("net.connecting")
+            : Loc.Format("net.connectingto", PhotonRegions.Of(region)));
 
         if (string.IsNullOrEmpty(region)) PhotonNetwork.ConnectUsingSettings();   // Best Region
         else PhotonNetwork.ConnectToRegion(region);
@@ -83,7 +83,7 @@ public class NetworkLauncher : MonoBehaviourPunCallbacks
         {
             // 지역은 접속 단위 속성이라 끊고 다시 붙어야 한다 — OnDisconnected에서 재접속
             switchingRegion = true;
-            Status("서버 변경 중...");
+            Status(Loc.Get("net.changing"));
             PhotonNetwork.Disconnect();
         }
         else
@@ -102,9 +102,10 @@ public class NetworkLauncher : MonoBehaviourPunCallbacks
 
     public void CreateRoom(int maxPlayers, int rounds, string password)
     {
-        if (!Ready) { Status("아직 서버 접속 중입니다 — 잠시 후 다시 시도하세요"); return; }
+        if (!Ready) { Status(Loc.Get("net.notready")); return; }
 
-        string roomName = $"{PhotonNetwork.NickName}의 방 #{Random.Range(100, 1000)}";
+        // 방 이름은 만든 사람 언어로 확정돼 방 목록에 그대로 보인다 (닉네임과 같은 취급)
+        string roomName = Loc.Format("net.roomname", PhotonNetwork.NickName, Random.Range(100, 1000));
         var props = new ExitGames.Client.Photon.Hashtable
         {
             { PropPassword, password ?? "" },
@@ -117,15 +118,15 @@ public class NetworkLauncher : MonoBehaviourPunCallbacks
             CustomRoomPropertiesForLobby = new[] { PropPassword, PropRounds },
             PlayerTtl = 60000   // 이탈자 자리 60초 보존 → 재접속 복귀 가능
         };
-        Status("방 생성 중...");
+        Status(Loc.Get("net.creating"));
         PhotonNetwork.CreateRoom(roomName, options);
     }
 
     public void JoinRoom(string roomName)
     {
-        if (!Ready) { Status("아직 서버 접속 중입니다 — 잠시 후 다시 시도하세요"); return; }
+        if (!Ready) { Status(Loc.Get("net.notready")); return; }
 
-        Status("입장 중...");
+        Status(Loc.Get("net.joining"));
         PhotonNetwork.JoinRoom(roomName);
     }
 
@@ -133,14 +134,14 @@ public class NetworkLauncher : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
-        Status($"접속 완료 (서버: {PhotonRegions.Of(PhotonNetwork.CloudRegion)})");
+        Status(Loc.Format("net.connected", PhotonRegions.Of(PhotonNetwork.CloudRegion)));
         PlayerLook.Publish();   // 저장된 커마 외형을 미리 올려둔다 (입장 시 남들이 바로 읽음)
         PhotonNetwork.JoinLobby();
     }
 
     public override void OnJoinedLobby()
     {
-        Status("로비 입장 — 방 목록 수신 중");
+        Status(Loc.Get("net.lobby"));
         Rooms.Clear();
         OnRoomsChanged?.Invoke();
     }
@@ -158,7 +159,7 @@ public class NetworkLauncher : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
-        Status("입장 완료 — 게임 로드 중...");
+        Status(Loc.Get("net.loading"));
 
         // [진단] 로드 가능 여부까지 출력 — canLoad=False면 빌드 씬 목록/체크박스 문제
         bool canLoad = Application.CanStreamedLevelBeLoaded(gameSceneName);
@@ -170,12 +171,12 @@ public class NetworkLauncher : MonoBehaviourPunCallbacks
     }
 
     public override void OnCreateRoomFailed(short code, string msg) =>
-        Status($"방 생성 실패: {msg}");
+        Status(Loc.Format("net.createfail", msg));
 
     public override void OnJoinRoomFailed(short code, string msg) =>
-        Status(code == ErrorCode.GameFull ? "방이 가득 찼습니다"
-             : code == ErrorCode.GameDoesNotExist ? "방이 사라졌습니다"
-             : $"입장 실패: {msg}");
+        Status(code == ErrorCode.GameFull ? Loc.Get("net.full")
+             : code == ErrorCode.GameDoesNotExist ? Loc.Get("net.roomgone")
+             : Loc.Format("net.joinfail", msg));
 
     public override void OnDisconnected(DisconnectCause cause)
     {
@@ -187,6 +188,6 @@ public class NetworkLauncher : MonoBehaviourPunCallbacks
         }
 
         if (cause != DisconnectCause.DisconnectByClientLogic)
-            Status($"접속 끊김: {cause}");
+            Status(Loc.Format("net.disconnected", cause));
     }
 }

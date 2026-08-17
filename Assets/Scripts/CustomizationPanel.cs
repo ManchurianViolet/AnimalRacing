@@ -52,6 +52,7 @@ public class CustomizationPanel : MonoBehaviour
     private static readonly Color LabelColor = new Color(1f, 1f, 1f, 0.75f);          // 좌측 부위명 (값보다 한 톤 낮게)
 
     private readonly List<TMP_Text> valueTexts = new();
+    private readonly List<TMP_Text> labelTexts = new();   // 좌측 부위명 — 언어 전환 시 같이 갱신
     private string snapshot;          // 취소용 — 열 때의 상태
     private bool built;
 
@@ -151,7 +152,7 @@ public class CustomizationPanel : MonoBehaviour
 
         // ---- 제목 (가운데 + 강조색 밑줄 + 구분선) ----
         MakeText("Title", rt, new Vector2(0f, -20f), new Vector2(w - Margin * 2f, 44f),
-            "커스터마이징", titleSize, TextAlignmentOptions.Center,
+            Loc.Get("custom.title"), titleSize, TextAlignmentOptions.Center,
             new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
         MakeImage("TitleAccent", rt, new Vector2(0f, -64f), new Vector2(72f, 5f), AccentColor,
             new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), false);
@@ -161,7 +162,7 @@ public class CustomizationPanel : MonoBehaviour
         if (slots == null)
         {
             MakeText("Warn", rt, Vector2.zero, new Vector2(w - Margin * 2f, 60f),
-                "부위 라이브러리가 연결되지 않았습니다", labelSize, TextAlignmentOptions.Center,
+                Loc.Get("custom.nolib"), labelSize, TextAlignmentOptions.Center,
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
             return;
         }
@@ -172,7 +173,7 @@ public class CustomizationPanel : MonoBehaviour
         for (int i = 0; i < slots.Length; i++)
         {
             if (slots[i].parts == null || slots[i].parts.Length == 0) continue;   // 무료팩에 없는 부위는 숨김
-            BuildRow(rt, i, slots[i].displayName, y, odd);
+            BuildRow(rt, i, slots[i].rendererName, y, odd);
             y -= rowHeight;
             odd = !odd;
         }
@@ -184,22 +185,23 @@ public class CustomizationPanel : MonoBehaviour
         const float gap = 12f;
         float bw = (w - Margin * 2f - gap * 2f) / 3f;
         MakeButton("Random", rt, new Vector2(Margin, 30f), new Vector2(bw, 54f),
-            "랜덤", () => { target.Randomize(); RefreshAll(); },
+            Loc.Get("custom.random"), () => { target.Randomize(); RefreshAll(); },
             new Vector2(0f, 0f), new Vector2(0f, 0f), buttonColor, textColor);
         MakeButton("Cancel", rt, new Vector2(Margin + bw + gap, 30f), new Vector2(bw, 54f),
-            "취소", Cancel, new Vector2(0f, 0f), new Vector2(0f, 0f), buttonColor, textColor);
+            Loc.Get("custom.cancel"), Cancel, new Vector2(0f, 0f), new Vector2(0f, 0f), buttonColor, textColor);
         MakeButton("Confirm", rt, new Vector2(Margin + (bw + gap) * 2f, 30f), new Vector2(bw, 54f),
-            "확정", Confirm, new Vector2(0f, 0f), new Vector2(0f, 0f), AccentColor, AccentTextColor);
+            Loc.Get("custom.confirm"), Confirm, new Vector2(0f, 0f), new Vector2(0f, 0f), AccentColor, AccentTextColor);
 
         var hint = MakeText("Hint", rt, new Vector2(0f, 7f), new Vector2(w - Margin * 2f, 18f),
-            "Esc = 취소", 15, TextAlignmentOptions.Center,
+            Loc.Get("custom.eschint"), 15, TextAlignmentOptions.Center,
             new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
         hint.color = new Color(1f, 1f, 1f, 0.35f);
     }
 
-    private void BuildRow(RectTransform parent, int slotIndex, string label, float y, bool odd)
+    /// <summary>slotName = 오브젝트 이름용 (언어 무관한 rendererName). 화면에 뜨는 라벨은 Refresh가 채운다.</summary>
+    private void BuildRow(RectTransform parent, int slotIndex, string slotName, float y, bool odd)
     {
-        var row = new GameObject("Row_" + label, typeof(RectTransform)).GetComponent<RectTransform>();
+        var row = new GameObject("Row_" + slotName, typeof(RectTransform)).GetComponent<RectTransform>();
         row.SetParent(parent, false);
         row.anchorMin = row.anchorMax = new Vector2(0.5f, 1f);
         row.pivot = new Vector2(0.5f, 1f);
@@ -214,9 +216,11 @@ public class CustomizationPanel : MonoBehaviour
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), true);
 
         var lab = MakeText("Label", row, new Vector2(12f, 0f), new Vector2(w * 0.30f, rowHeight - 10f),
-            label, labelSize, TextAlignmentOptions.Left,
+            "", labelSize, TextAlignmentOptions.Left,
             new Vector2(0f, 0.5f), new Vector2(0f, 0.5f));
         lab.color = LabelColor;
+        while (labelTexts.Count <= slotIndex) labelTexts.Add(null);
+        labelTexts[slotIndex] = lab;
 
         int captured = slotIndex;
         float stepperLeft = w * 0.32f;   // 라벨 열 끝 = 스테퍼(◀ 값 ▶) 시작
@@ -256,6 +260,13 @@ public class CustomizationPanel : MonoBehaviour
         if (slot < 0 || slot >= valueTexts.Count || valueTexts[slot] == null || target == null) return;
         string s = target.GetSelectedName(slot);
         if (valueTexts[slot].text != s) valueTexts[slot].text = s;   // 같은 값이면 TMP 리빌드 안 하게
+
+        // 부위명도 같은 값-비교 방식으로 — 설정에서 언어를 바꾸고 돌아와도 라벨이 따라온다
+        if (slot < labelTexts.Count && labelTexts[slot] != null && target.Library != null)
+        {
+            string lab = target.Library.SlotLabel(slot);
+            if (labelTexts[slot].text != lab) labelTexts[slot].text = lab;
+        }
     }
 
     // ---- 작은 조립 헬퍼 ----

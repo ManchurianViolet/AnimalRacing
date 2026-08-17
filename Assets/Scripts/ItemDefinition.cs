@@ -8,9 +8,16 @@ public enum ItemKind { Boost, Slow, SkillTrigger, Execute }
 public class ItemDefinition : ScriptableObject
 {
     public string itemName;
+
+    [Tooltip("[로컬라이제이션] strings.csv의 이름 키 (item.boost 등). 비면 itemName 그대로")]
+    public string nameKey;
+
     public ItemKind kind;
     [TextArea] public string description;
     public Sprite icon;
+
+    /// <summary>현재 언어 아이템명 — 표시처는 itemName 대신 전부 이걸 쓴다.</summary>
+    public string LocalizedName => string.IsNullOrEmpty(nameKey) ? itemName : Loc.Get(nameKey, itemName);
 
     [Header("효과 수치")]
     public float duration = 3f;

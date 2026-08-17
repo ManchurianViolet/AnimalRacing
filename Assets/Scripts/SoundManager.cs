@@ -127,8 +127,12 @@ public class SoundManager : MonoBehaviour
     private void Start()
     {
         // 첫 씬은 sceneLoaded가 이미 지나갔으므로 직접 판단 (빌드 0 = 타이틀)
-        SwitchBgm(SceneManager.GetActiveScene().buildIndex == 0 ? BgmTrack.Title : BgmTrack.Lobby);
+        bool title = SceneManager.GetActiveScene().buildIndex == 0;
+        SwitchBgm(title ? BgmTrack.Title : BgmTrack.Lobby, title ? TitleFadeSeconds : -1f);
     }
+
+    /// <summary>타이틀 진입 전용 페이드 인 시간 (인트로 연출과 맞춘 긴 페이드).</summary>
+    private float TitleFadeSeconds => library != null ? library.bgmTitleFadeSeconds : 3.5f;
 
     private void OnDestroy()
     {
@@ -152,7 +156,9 @@ public class SoundManager : MonoBehaviour
         if (mode != LoadSceneMode.Single) return;
         StopLoopsInternal();   // 씬을 넘어 살아남는 싱글턴이라 직접 정리해야 한다
         // 게임 씬 진입 직후는 로비 취급 — 매치 중 합류/재접속자는 곧 도착하는 페이즈 방송이 교정한다
-        SwitchBgm(s.buildIndex == 0 ? BgmTrack.Title : BgmTrack.Lobby);
+        // 타이틀로 돌아올 때도 인트로가 다시 재생되므로 같은 긴 페이드를 쓴다
+        bool title = s.buildIndex == 0;
+        SwitchBgm(title ? BgmTrack.Title : BgmTrack.Lobby, title ? TitleFadeSeconds : -1f);
     }
 
     /// <summary>페이즈 → 트랙 매핑. 카운트다운은 무음(페이드 아웃)으로 긴장감 — 취향 따라 여기만 바꾸면 됨.</summary>
@@ -170,7 +176,10 @@ public class SoundManager : MonoBehaviour
         }
     }
 
-    private void SwitchBgm(BgmTrack track)
+    /// <summary>
+    /// 곡 전환. fadeSeconds에 0보다 큰 값을 주면 그 시간으로, 아니면 라이브러리의 기본 교차 페이드로.
+    /// </summary>
+    private void SwitchBgm(BgmTrack track, float fadeSeconds = -1f)
     {
         if (track == currentTrack) return;
         currentTrack = track;
@@ -186,6 +195,7 @@ public class SoundManager : MonoBehaviour
         if (clip != null)
         {
             bgmFront.src.clip = clip;
+            bgmFront.src.loop = entry == null || entry.loop;   // 베팅 곡 = 루프 끔 (페이즈 동기 곡)
             bgmFront.src.Play();
         }
         else
@@ -195,12 +205,13 @@ public class SoundManager : MonoBehaviour
         }
 
         if (fadeCo != null) StopCoroutine(fadeCo);
-        fadeCo = StartCoroutine(CrossfadeCo());
+        fadeCo = StartCoroutine(CrossfadeCo(fadeSeconds));
     }
 
-    private IEnumerator CrossfadeCo()
+    private IEnumerator CrossfadeCo(float fadeSeconds)
     {
-        float seconds = library != null ? Mathf.Max(0.01f, library.bgmCrossfadeSeconds) : 1f;
+        float seconds = fadeSeconds > 0f ? fadeSeconds
+                      : (library != null ? Mathf.Max(0.01f, library.bgmCrossfadeSeconds) : 1f);
         float fromIn = bgmFront.weight;    // 보통 0
         float fromOut = bgmBack.weight;    // 보통 1
         float t = 0f;

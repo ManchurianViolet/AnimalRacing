@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 43182a099179de640848c3d8aa0aed50
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 253624
+  packageName: Animals - Low Poly 3D Models Pack
+  packageVersion: 3.1
+  assetPath: Assets/ithappy/Animals/Scripts/RotationScript.cs
+  uploadId: 937280

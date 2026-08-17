@@ -60,6 +60,7 @@ MonoBehaviour:
   - RpcSwing
   - RpcGetUp
   - RpcKnockdown
+  - RpcSkillEvent
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

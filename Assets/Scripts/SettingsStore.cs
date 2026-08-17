@@ -8,6 +8,7 @@ using UnityEngine;
 /// </summary>
 public static class SettingsStore
 {
+    public const string KeyLanguage = "opt_lang";        // GameLanguage int (0=한 1=영 2=일)
     public const string KeyVolume = "opt_volume";        // 0~1 (마스터)
     public const string KeyBgm = "opt_bgm";              // 0~1 (배경음 배율)
     public const string KeySfx = "opt_sfx";              // 0~1 (효과음 배율)
@@ -21,11 +22,58 @@ public static class SettingsStore
     public const float FovDefault = 60f;   // NetPlayer 카메라 원래 값
 
     // 매 프레임 읽는 소비자(FPC)가 있으므로 캐시 — PlayerPrefs 왕복 방지
+    private static GameLanguage? langCache;
     private static float? volumeCache;
     private static float? bgmCache;
     private static float? sfxCache;
     private static float? sensCache;
     private static float? fovCache;
+
+    /// <summary>
+    /// [로컬라이제이션] 표시 언어. 첫 실행이면 스팀/OS 언어에서 자동 감지해 저장하고,
+    /// 이후엔 유저 선택을 존중한다 (스팀 언어를 바꿔도 안 따라감). 바뀌면 Loc 이벤트 발행.
+    /// </summary>
+    public static GameLanguage Language
+    {
+        get
+        {
+            if (langCache == null)
+            {
+                if (PlayerPrefs.HasKey(KeyLanguage))
+                    langCache = (GameLanguage)Mathf.Clamp(
+                        PlayerPrefs.GetInt(KeyLanguage), 0, Loc.LanguageCount - 1);
+                else
+                {
+                    langCache = DetectDefaultLanguage();
+                    PlayerPrefs.SetInt(KeyLanguage, (int)langCache.Value);
+                }
+            }
+            return langCache.Value;
+        }
+        set
+        {
+            if (langCache == value) return;
+            langCache = value;
+            PlayerPrefs.SetInt(KeyLanguage, (int)value);
+            Loc.NotifyLanguageChanged();
+        }
+    }
+
+    /// <summary>스팀 게임 언어 우선 (스토어에서 고른 언어), 스팀이 없으면 OS 언어. 그 외 전부 영어.</summary>
+    private static GameLanguage DetectDefaultLanguage()
+    {
+        string steam = SteamHub.GameLanguage;   // 스팀 API 코드명: "koreana"/"japanese"/"english"...
+        if (steam == "koreana") return GameLanguage.Korean;
+        if (steam == "japanese") return GameLanguage.Japanese;
+        if (!string.IsNullOrEmpty(steam)) return GameLanguage.English;
+
+        return Application.systemLanguage switch
+        {
+            SystemLanguage.Korean => GameLanguage.Korean,
+            SystemLanguage.Japanese => GameLanguage.Japanese,
+            _ => GameLanguage.English
+        };
+    }
 
     /// <summary>마스터 볼륨 0~1. 대입 즉시 AudioListener에 반영.</summary>
     public static float Volume

@@ -279,7 +279,7 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
         base.OnEnable();
         GameEvents.OnItemUsed     += HandleItemUsed;
         GameEvents.OnRacerFinished += HandleRacerFinished;
-        GameEvents.OnSkillProc    += HandleSkillProc;
+        GameEvents.OnSkillEvent   += HandleSkillEvent;
         GameEvents.OnItemRejected += HandleItemRejected;
         GameEvents.OnRaceSettled  += HandleSettled;
         GameEvents.OnBetAccepted  += HandleBetAccepted;
@@ -291,7 +291,7 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
         base.OnDisable();
         GameEvents.OnItemUsed     -= HandleItemUsed;
         GameEvents.OnRacerFinished -= HandleRacerFinished;
-        GameEvents.OnSkillProc    -= HandleSkillProc;
+        GameEvents.OnSkillEvent   -= HandleSkillEvent;
         GameEvents.OnItemRejected -= HandleItemRejected;
         GameEvents.OnRaceSettled  -= HandleSettled;
         GameEvents.OnBetAccepted  -= HandleBetAccepted;
@@ -338,26 +338,28 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
         GameEvents.RaiseRacerFinished(racerId, rank, eliminated);
     }
 
-    private void HandleSkillProc(string line)
+    // [로컬라이제이션] 문장 대신 (사건 byte + 동물 id) 중계 — 각 클라가 자기 언어로 조립.
+    // ⚠ v16 대비 RPC 시그니처 변경 (RpcSkillProc(string) → RpcSkillEvent(byte,int)) = 스탠드얼론 전원 재빌드
+    private void HandleSkillEvent(SkillFeedEvent evt, int rid)
     {
         if (!IsHost) return;
-        photonView.RPC(nameof(RpcSkillProc), RpcTarget.Others, line);
+        photonView.RPC(nameof(RpcSkillEvent), RpcTarget.Others, (byte)evt, rid);
     }
 
     [PunRPC]
-    private void RpcSkillProc(string line) => GameEvents.RaiseSkillProc(line);
+    private void RpcSkillEvent(byte evt, int rid) => GameEvents.RaiseSkillEvent((SkillFeedEvent)evt, rid);
 
-    private void HandleItemRejected(int pid, string reason)
+    private void HandleItemRejected(int pid, RejectReason reason)
     {
         if (!IsHost) return;
         var target = PhotonNetwork.PlayerList.FirstOrDefault(pl => pl.ActorNumber == pid);
         if (target != null && !target.IsMasterClient)
-            photonView.RPC(nameof(RpcItemRejected), target, reason);
+            photonView.RPC(nameof(RpcItemRejected), target, (byte)reason);
     }
 
     [PunRPC]
-    private void RpcItemRejected(string reason) =>
-        GameEvents.RaiseItemRejected(NetworkPlayers.LocalPlayerId, reason);
+    private void RpcItemRejected(byte reason) =>
+        GameEvents.RaiseItemRejected(NetworkPlayers.LocalPlayerId, (RejectReason)reason);
 
     // ================= 정산 방송 (베팅 공개의 순간) =================
 

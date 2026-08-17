@@ -14,8 +14,12 @@ public class PauseMenu : MonoBehaviour
     [SerializeField] private GameObject panel;          // 왼쪽 다크 패널 루트
     [SerializeField] private Button btnResume;          // 돌아가기
     [SerializeField] private Button btnSettings;        // 설정
+    [SerializeField] private Button btnLeave;           // 메인 메뉴로 (방 나가기 → 타이틀)
     [SerializeField] private Button btnQuit;            // 게임 종료
     [SerializeField] private SettingsPanel settingsPanel;
+
+    [Tooltip("방 이탈·타이틀 복귀 담당 (비면 씬에서 자동 탐색) — 복제 시 배선 누락 방지")]
+    [SerializeField] private NetworkSessionGuard sessionGuard;
 
     /// <summary>메뉴 열림 상태 — 다른 시스템이 참조할 수 있게 공개.</summary>
     public static bool IsOpen { get; private set; }
@@ -24,9 +28,33 @@ public class PauseMenu : MonoBehaviour
     {
         btnResume.onClick.AddListener(Close);
         btnSettings.onClick.AddListener(() => { if (settingsPanel != null) settingsPanel.Open(); });
+        if (btnLeave != null) btnLeave.onClick.AddListener(LeaveToTitle);
         btnQuit.onClick.AddListener(Application.Quit);
+
+        if (sessionGuard == null) sessionGuard = FindFirstObjectByType<NetworkSessionGuard>();
+
         panel.SetActive(false);
         IsOpen = false;
+    }
+
+    /// <summary>
+    /// 메인 메뉴로 — 방을 떠나 타이틀로.
+    /// ⚠ 여기서 Close()를 부르면 안 된다: Close()는 1인칭 조작을 "되돌리는" 함수라
+    ///    SetControlEnabled(true)로 커서를 다시 잠근다 → 타이틀에서 마우스가 사라진다(실사고).
+    ///    나가는 길에는 패널만 정리하고 커서는 UI 모드로 풀어둔다.
+    /// </summary>
+    private void LeaveToTitle()
+    {
+        IsOpen = false;
+        panel.SetActive(false);
+        if (settingsPanel != null && settingsPanel.gameObject.activeSelf) settingsPanel.Close();
+        SoundManager.PlaySfx(SfxId.PanelClose);
+
+        Cursor.lockState = CursorLockMode.None;   // 타이틀은 마우스로 조작하는 화면
+        Cursor.visible = true;
+
+        if (sessionGuard != null) sessionGuard.LeaveToTitle();
+        else UnityEngine.SceneManagement.SceneManager.LoadScene("TitleScene");   // 오프라인 폴백
     }
 
     private void Update()

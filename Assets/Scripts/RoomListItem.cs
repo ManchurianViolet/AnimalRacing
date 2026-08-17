@@ -30,7 +30,7 @@ public class RoomListItem : MonoBehaviour
         if (roundsText != null) roundsText.text = rounds.ToString();
         if (lockText != null)
         {
-            lockText.text = hasPw ? "잠금" : "—";
+            lockText.text = hasPw ? Loc.Get("room.locked") : "—";
             lockText.color = hasPw ? LockOn : LockOff;
         }
 

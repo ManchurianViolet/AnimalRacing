@@ -116,8 +116,8 @@ public class CharacterCustomization : MonoBehaviour
         Bind();
         var def = library.slots[slot];
         int i = selection[slot];
-        if (i < 0 || i >= def.parts.Length) return "없음";
-        return def.parts[i].displayName;
+        if (i < 0 || i >= def.parts.Length) return Loc.Get("custom.none");
+        return library.PartLabel(slot, i);   // SO의 한글 displayName이 아니라 현재 언어로
     }
 
     public void Randomize()

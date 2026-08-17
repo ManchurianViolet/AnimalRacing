@@ -8,7 +8,13 @@ using UnityEngine;
 public class Racer : MonoBehaviour
 {
     public int RacerId { get; private set; }
-    public string DisplayName { get; private set; }
+    public int PostNumber { get; private set; }   // 등번호 (1부터) — 번호판·전광판과 같은 값
+
+    /// <summary>표기 이름 ("4번 호랑이" / "#4 Tiger"). [로컬라이제이션] 캐시하지 않고
+    /// 그때그때 조립 — 캐시하면 인게임 언어 전환이 이름에 안 먹는다. (종명은 5단계에서 키 전환 예정)</summary>
+    public string DisplayName => Definition != null
+        ? Loc.Format("racer.name", PostNumber, Definition.LocalizedName)
+        : Loc.Format("racer.fallback", PostNumber);
     public AnimalDefinition Definition { get; private set; }
 
     /// <summary>누적 주행거리 (랩 포함, 음수 = 출발선 뒤 그리드). 경로 좌표가 필요하면 TrackPath.WrapProgress 경유.</summary>
@@ -42,11 +48,15 @@ public class Racer : MonoBehaviour
     private bool activeConsumed;
     private bool flightRequested;       // 사슴: 모터에게 비행 개시 요청 (다음 FixedUpdate)
     private float catWalkRemaining;     // 고양이: 코너 감속 무시 잔여 (초)
+    private float clubRushRemaining;    // 인간: 몽둥이 질주 잔여 (초)
 
     /// <summary>[사슴] 루돌프 비행 중 — 이동은 모터의 스크립트 궤적, 모든 효과 면역.</summary>
     public bool IsFlying { get; private set; }
     /// <summary>[고양이] 사뿐한 발놀림 지속 중 — 모터가 코너 감속을 건너뛴다.</summary>
     public bool CornerIgnoreActive => catWalkRemaining > 0f;
+
+    /// <summary>[인간] 몽둥이 질주 지속 중 — RaceManager가 접촉 스턴을 판정한다.</summary>
+    public bool ClubRushActive => clubRushRemaining > 0f;
 
     public float ProgressRatio => Progress / Mathf.Max(1f, trackLength);
     public bool IsStunned
@@ -154,7 +164,7 @@ public class Racer : MonoBehaviour
     {
         RacerId = id;
         Definition = def;
-        DisplayName = $"{postNumber}번 {def.displayName}";
+        PostNumber = postNumber;
         animator = GetComponentInChildren<Animator>();
         rb = GetComponent<Rigidbody>();
 
@@ -174,6 +184,7 @@ public class Racer : MonoBehaviour
         flightRequested = false;
         IsFlying = false;
         catWalkRemaining = 0f;
+        clubRushRemaining = 0f;
         activeTriggerRatio = Random.Range(SkillTuning.ActiveMinRatio, SkillTuning.ActiveMaxRatio);
     }
 
@@ -200,7 +211,7 @@ public class Racer : MonoBehaviour
                 case AnimalSkill.CatWalk:
                     activeConsumed = true;
                     catWalkRemaining = SkillTuning.CatWalkDuration;
-                    GameEvents.RaiseSkillProc($"{DisplayName}이(가) 사뿐사뿐, 코너를 풀스피드로 파고든다!");
+                    GameEvents.RaiseSkillEvent(SkillFeedEvent.CatWalk, RacerId);
                     break;
 
                 case AnimalSkill.Dash:
@@ -208,13 +219,24 @@ public class Racer : MonoBehaviour
                     // 셀프 효과라 AddEffect 관문(펭귄/비행 면역)을 거치지 않고 직접 추가
                     effects.Add(new StatusEffect(StatusEffectType.Boost,
                         SkillTuning.DashDuration, SkillTuning.DashMult));
-                    GameEvents.RaiseSkillProc($"{DisplayName}이(가) 냅다 달린다!!");
+                    GameEvents.RaiseSkillEvent(SkillFeedEvent.Dash, RacerId);
+                    break;
+
+                case AnimalSkill.ClubRush:
+                    activeConsumed = true;
+                    clubRushRemaining = SkillTuning.ClubRushDuration;
+                    effects.Add(new StatusEffect(StatusEffectType.Boost,
+                        SkillTuning.ClubRushDuration, SkillTuning.ClubRushMult));
+                    GameEvents.RaiseSkillEvent(SkillFeedEvent.ClubRush, RacerId);
                     break;
             }
         }
 
         // [고양이] 사뿐한 발놀림 잔여 시간
         if (catWalkRemaining > 0f) catWalkRemaining -= dt;
+
+        // [인간] 몽둥이 질주 잔여 시간 — 접촉 스턴 판정은 RaceManager(전역 시야)가 이 플래그로 처리
+        if (clubRushRemaining > 0f) clubRushRemaining -= dt;
 
         // 상태이상 갱신
         for (int i = effects.Count - 1; i >= 0; i--)

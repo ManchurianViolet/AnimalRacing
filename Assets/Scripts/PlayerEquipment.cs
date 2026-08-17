@@ -49,6 +49,21 @@ public class PlayerEquipment : MonoBehaviourPun
     [Tooltip("손잡이 끝(노브)이 주먹 아래로 나오는 길이 (m) — 실제로 배트를 쥔 모양")]
     [SerializeField] private float batKnobBelowHand = 0.05f;
 
+    [Header("주사기 모델")]
+    [Tooltip("low_poly_radioactive_needle 구운 프리팹. 비우면 예전 코드 생성 임시 주사기로 폴백")]
+    [SerializeField] private GameObject syringeModel;
+    [Tooltip("플런저 끝에서 바늘 끝까지 목표 전체 길이 (m) — 원본 0.185유닛을 이 크기로 정규화한다")]
+    [SerializeField] private float syringeModelLength = 0.26f;
+    [Tooltip("모델의 길이축을 손 기준 +Y(바늘이 위)로 돌리는 보정. " +
+             "이 모델은 바늘이 +X라 (0,0,90) — 바늘이 아래로 나오면 (0,0,-90)으로")]
+    [SerializeField] private Vector3 syringeModelEuler = new Vector3(0f, 0f, 90f);
+    [Tooltip("플런저 끝이 주먹 아래로 나오는 길이 (m) — 실제로 몸통을 쥔 모양")]
+    [SerializeField] private float syringeButtBelowHand = 0.04f;
+    [Tooltip("본체에 먹이는 액체색 틴트 세기 (0=원본 색 그대로, 1=지정색 100%). " +
+             "유리(액체창) 재질은 이 값과 무관하게 항상 액체색 100% — 부스트/감속 식별의 주 신호")]
+    [Range(0f, 1f)]
+    [SerializeField] private float syringeTintStrength = 0.45f;
+
     [Header("무전기 모델")]
     [Tooltip("handheld_transceiver__lowpoly 구운 프리팹. 비우면 예전 코드 생성 임시 무전기로 폴백")]
     [SerializeField] private GameObject radioModel;
@@ -165,10 +180,13 @@ public class PlayerEquipment : MonoBehaviourPun
     /// <summary>
     /// 빠따 내구도 소모 (기본 1). 명중한 스윙에서만 호출 — 헛스윙은 무료.
     /// public인 이유: 테스트/연출(부서짐 이펙트 등)에서 재사용할 수 있게.
+    /// ⚠ 대기실(Lobby)에서는 소모하지 않는다 — 매치 전 장난으로 때리는 것까지 닳으면
+    ///    정작 라운드에서 쓸 게 없다 (유저 결정).
     /// </summary>
     public void ApplyBatWear(int amount = 1)
     {
         if (BatDurability <= 0) return;
+        if (GameManager.Instance != null && GameManager.Instance.CurrentPhase == GamePhase.Lobby) return;
         BatDurability = Mathf.Max(0, BatDurability - amount);
 
         // 부서지는 순간 한 번만. 내구도는 로컬 상태라 내 화면에서만 들린다 (2D)
@@ -435,6 +453,35 @@ public class PlayerEquipment : MonoBehaviourPun
     {
         var root = NewProp(name, syringeLocalPos, syringeLocalEuler);
 
+        // 실제 모델이 있으면 그것을 쓴다. syringeModelEuler로 길이축을 +Y(바늘 위)에 맞추면
+        // 코드 생성판과 축 규약이 같아져 인스펙터에 잡아둔 syringeLocalEuler(쥔 각도)가 그대로 유효하다.
+        if (syringeModel != null)
+        {
+            var model = Instantiate(syringeModel, root.transform);
+            model.name = "SyringeModel";
+            model.transform.localPosition = Vector3.zero;
+            model.transform.localRotation = Quaternion.Euler(syringeModelEuler);
+            model.transform.localScale = Vector3.one;
+
+            // 소품 콜라이더는 CC/동물과 부딪히면 안 된다
+            foreach (var c in model.GetComponentsInChildren<Collider>(true)) Destroy(c);
+
+            // ⚠ 축 보정 "뒤"에 재야 한다 — 회전 전 크기로 계산하면 축이 뒤바뀐 값이 나온다 (빠따와 동일)
+            var raw = LocalMeshBounds(root.transform);
+            float scale = 1f;
+            if (syringeModelLength > 0.0001f && raw.size.y > 0.0001f)
+                scale = syringeModelLength / raw.size.y;
+            model.transform.localScale = Vector3.one * scale;
+
+            // 플런저 끝이 주먹 아래 syringeButtBelowHand에 오도록 세우고, 좌우 중심은 손에 맞춘다
+            var fitted = LocalMeshBounds(root.transform);
+            model.transform.localPosition = new Vector3(
+                -fitted.center.x, -syringeButtBelowHand - fitted.min.y, -fitted.center.z);
+
+            TintSyringe(model, liquid);
+            return root;
+        }
+
         var glass = MakeMat(new Color(0.9f, 0.95f, 1f));
         var metal = MakeMat(new Color(0.6f, 0.62f, 0.65f));
         var fluid = MakeMat(liquid);
@@ -488,6 +535,36 @@ public class PlayerEquipment : MonoBehaviourPun
         AddSphere(root, "Lamp", lampMat, new Vector3(0.02f, 0.17f, -0.017f), 0.008f);
 
         return root;
+    }
+
+    /// <summary>
+    /// 주사기 모델에 액체색을 먹인다. 유리(액체창) 서브메시는 100% 액체색 — 멀리서도 부스트/감속이 갈리는 주 신호.
+    /// 본체는 syringeTintStrength만큼만 물들여 원본 텍스처 디테일을 살린다.
+    /// ⚠ 'phong1SG' = 몸통 가운데 액체가 보이는 유리창 재질 (정점 실측) — 모델이 바뀌면 이름을 다시 확인할 것.
+    /// </summary>
+    private void TintSyringe(GameObject model, Color liquid)
+    {
+        float peak = Mathf.Max(liquid.r, Mathf.Max(liquid.g, liquid.b));
+        Color vivid = peak > 0.01f ? new Color(liquid.r / peak, liquid.g / peak, liquid.b / peak) : Color.white;
+        Color bodyTint = Color.Lerp(Color.white, vivid, syringeTintStrength);
+
+        foreach (var r in model.GetComponentsInChildren<Renderer>(true))
+        {
+            var mats = r.materials;                    // 인스턴스화 — 원본 에셋을 건드리지 않는다
+            for (int i = 0; i < mats.Length; i++)
+            {
+                if (mats[i] == null) continue;
+                // 인스턴스화되면 이름 뒤에 " (Instance)"가 붙으므로 StartsWith로 판별
+                bool isGlass = mats[i].name.StartsWith("phong1SG");
+                Color c = isGlass ? vivid : bodyTint;
+                // ⚠ 유리창은 텍스처를 뗀다 — 원본 액체 텍스처(초록빛)가 남으면 곱셈 틴트라
+                //    주황 × 초록 = 갈색이 돼 부스트가 "주황"으로 안 읽힌다 (캡처 실측)
+                if (isGlass && mats[i].HasProperty("_BaseMap")) mats[i].SetTexture("_BaseMap", null);
+                if (mats[i].HasProperty("_BaseColor")) mats[i].SetColor("_BaseColor", c);
+                else if (mats[i].HasProperty("_Color")) mats[i].SetColor("_Color", c);
+            }
+            r.materials = mats;
+        }
     }
 
     /// <summary>모델 본체에 색을 먹인다. 원본 텍스처가 어두워서 곱셈 틴트가 죽지 않게 밝기를 정규화한다.</summary>

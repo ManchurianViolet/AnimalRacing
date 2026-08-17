@@ -73,34 +73,35 @@ public class PlayerHUD : MonoBehaviour
 
     private void Start()
     {
-        if (slotBat != null) slotBat.Init(itemController, PlayerEquipment.SlotBat, null, "빠따", "1");
+        // 이름은 키로 넘긴다 — ItemSlotView가 언어 전환 때 스스로 다시 조회 (완성 문자열 금지)
+        if (slotBat != null) slotBat.Init(itemController, PlayerEquipment.SlotBat, null, "item.bat", "1");
         slotBoost.Init(itemController, PlayerEquipment.SlotBoost, itemController.BoostItem, null, "2");
         slotSlow.Init(itemController, PlayerEquipment.SlotSlow, itemController.SlowItem, null, "3");
         if (slotRadioSkill != null)
-            slotRadioSkill.Init(itemController, PlayerEquipment.SlotRadioSkill, itemController.RadioSkillItem, "발동 무전기", "4");
+            slotRadioSkill.Init(itemController, PlayerEquipment.SlotRadioSkill, itemController.RadioSkillItem, "item.radioskill", "4");
         if (slotRadioExec != null)
-            slotRadioExec.Init(itemController, PlayerEquipment.SlotRadioExec, itemController.RadioExecItem, "처형 무전기", "5");
+            slotRadioExec.Init(itemController, PlayerEquipment.SlotRadioExec, itemController.RadioExecItem, "item.radioexec", "5");
     }
 
     private void UpdatePhaseTimer()
     {
         if (phaseTimerText == null) return;
 
-        string lobbyLabel = "대기 중";
+        string lobbyLabel = Loc.Get("phase.lobby");
         if (Photon.Pun.PhotonNetwork.InRoom)
         {
             var room = Photon.Pun.PhotonNetwork.CurrentRoom;
-            lobbyLabel = $"참가자 {room.PlayerCount}/{room.MaxPlayers} — 방장의 시작 대기 중";
+            lobbyLabel = Loc.Format("hud.lobbyplayers", room.PlayerCount, room.MaxPlayers);
         }
 
         string label = GameManager.Instance.CurrentPhase switch
         {
             GamePhase.Lobby      => lobbyLabel,
-            GamePhase.Betting    => "베팅 중",
-            GamePhase.Loadout    => "준비 중",
-            GamePhase.Countdown  => "출발 준비",
-            GamePhase.Racing     => "경기 중",
-            GamePhase.Settlement => "결과 표시 중",
+            GamePhase.Betting    => Loc.Get("phase.betting"),
+            GamePhase.Loadout    => Loc.Get("phase.loadout"),
+            GamePhase.Countdown  => Loc.Get("phase.countdown"),
+            GamePhase.Racing     => Loc.Get("phase.racing"),
+            GamePhase.Settlement => Loc.Get("phase.settlement"),
             _ => ""
         };
         float remain = matchManager != null ? matchManager.PhaseEndTime - Time.time : 0f;
@@ -140,14 +141,18 @@ public class PlayerHUD : MonoBehaviour
             if (roomMode)
             {
                 var fig = FigurineBetting.HeldFigurine;
-                bool hasIcon = fig != null && fig.Def != null && fig.Def.icon != null;
+                // 수제 초상화(icon)가 있으면 그것을, 없으면 런타임 썸네일(피규어 모양 자동 렌더)을 쓴다
+                Sprite figSprite = null;
+                if (fig != null && fig.Def != null)
+                    figSprite = fig.Def.icon != null ? fig.Def.icon : FigurineThumbs.Get(fig.Def, fig.PostNumber);
+                bool hasIcon = figSprite != null;
                 if (handIcon != null)
                 {
                     handIcon.enabled = hasIcon;
-                    if (hasIcon) handIcon.sprite = fig.Def.icon;
+                    if (hasIcon) { handIcon.sprite = figSprite; handIcon.preserveAspect = true; }
                 }
                 if (handNameLabel != null)
-                    handNameLabel.text = fig == null ? "손" : (hasIcon ? "" : fig.HoverName);
+                    handNameLabel.text = fig == null ? Loc.Get("hud.hand") : fig.HoverName;   // 아이콘 위에도 "#6 펭귄" 유지
             }
         }
 
@@ -204,9 +209,13 @@ public class PlayerHUD : MonoBehaviour
         // (조준 힌트는 위에서 처리 — 로스터 바인딩 전에도 표시해야 해서 bound 가드 앞으로 이동)
     }
 
+    // 실시간 미리보기용 — 내 베팅 방의 상자 3개 (로컬 전용이라 비밀 유지·통신 0)
+    private BettingRoom localRoom;
+
     /// <summary>
     /// 우상단 예측 패널 갱신. betPanel이 없으면 옛 betText 한 줄 방식으로 폴백한다.
-    /// 행은 SetActive로 접히고, 패널은 ContentSizeFitter로 높이가 따라 줄어든다.
+    /// 표시 우선순위: ① 확정 티켓(제출 후) ② 베팅 중 = 내 방 상자 실시간 미리보기(빈칸 포함)
+    /// ③ 그 외 페이즈에 미제출이면 행 접음. 상자는 내 방에만 로컬 생성이라 비밀 유지 그대로.
     /// </summary>
     private void UpdateBetPanel(PlayerState me)
     {
@@ -217,7 +226,16 @@ public class PlayerHUD : MonoBehaviour
         }
 
         bool valid = me.Bet.IsValid(GameManager.Instance.Config.racerCount);
-        bool showRows = valid;
+        bool betting = GameManager.Instance.CurrentPhase == GamePhase.Betting;
+        bool live = !valid && betting;                  // 제출 전 + 베팅 중 = 상자 미리보기
+        bool showRows = valid || live;
+
+        if (live && (localRoom == null || !localRoom.IsLocalRoom))
+        {
+            localRoom = null;
+            foreach (var r in FindObjectsByType<BettingRoom>(FindObjectsSortMode.None))
+                if (r.IsLocalRoom) { localRoom = r; break; }
+        }
 
         for (int i = 0; i < betRows.Length; i++)
         {
@@ -227,40 +245,62 @@ public class PlayerHUD : MonoBehaviour
             row.root.SetActive(showRows);
             if (!showRows) continue;
 
-            int id = i switch
+            if (valid)
             {
-                0 => me.Bet.firstId,
-                1 => me.Bet.secondId,
-                _ => me.Bet.thirdId
-            };
-
-            // 등번호 = RacerId + 1 (전광판·번호판과 같은 규칙)
-            int post = id + 1;
-            if (row.badge != null) row.badge.color = RacerColors.Of(post);
-            if (row.badgeText != null)
-            {
-                row.badgeText.text = post.ToString();
-                row.badgeText.color = RacerColors.TextOn(post);
+                int id = i switch
+                {
+                    0 => me.Bet.firstId,
+                    1 => me.Bet.secondId,
+                    _ => me.Bet.thirdId
+                };
+                FillRow(row, id + 1, AnimalName(id));   // 등번호 = RacerId + 1 (전광판과 같은 규칙)
             }
-            if (row.nameLabel != null) row.nameLabel.text = AnimalName(id);
+            else
+            {
+                // 내 방 상자(rank i)에 놓인 피규어 — 없으면 빈칸
+                BetFigurine fig = null;
+                if (localRoom != null && localRoom.Boxes != null)
+                    foreach (var box in localRoom.Boxes)
+                        if (box != null && box.Rank == i) { fig = box.Current; break; }
+
+                if (fig != null) FillRow(row, fig.PostNumber, fig.AnimalName);
+                else FillRow(row, -1, "");              // 빈칸 (메달·화살표만 남김)
+            }
         }
 
         // 제출 후엔 안내가 필요 없다 — 끄면 ContentSizeFitter가 패널을 그만큼 줄인다
         if (betFooter != null)
         {
             betFooter.gameObject.SetActive(!valid);
-            if (!valid) betFooter.text = "예측 미제출";
+            if (!valid) betFooter.text = Loc.Get("hud.betnone");
         }
+    }
+
+    /// <summary>행 하나 채우기. postNumber < 1 = 빈칸 (배지 숨김 + 이름 비움).</summary>
+    private void FillRow(BetRow row, int postNumber, string name)
+    {
+        bool has = postNumber >= 1;
+        if (row.badge != null)
+        {
+            row.badge.gameObject.SetActive(has);
+            if (has) row.badge.color = RacerColors.Of(postNumber);
+        }
+        if (row.badgeText != null && has)
+        {
+            row.badgeText.text = postNumber.ToString();
+            row.badgeText.color = RacerColors.TextOn(postNumber);
+        }
+        if (row.nameLabel != null) row.nameLabel.text = name;
     }
 
     private string BuildBetText(PlayerState me)
     {
-        if (!me.Bet.IsValid(GameManager.Instance.Config.racerCount)) return "예측 미제출";
+        if (!me.Bet.IsValid(GameManager.Instance.Config.racerCount)) return Loc.Get("hud.betnone");
 
         var sb = new StringBuilder();
-        sb.Append("1등   ").Append(RacerName(me.Bet.firstId)).Append('\n');
-        sb.Append("2등↑ ").Append(RacerName(me.Bet.secondId)).Append('\n');
-        sb.Append("3등↑ ").Append(RacerName(me.Bet.thirdId));
+        sb.Append(Loc.Get("bet.slot1")).Append("   ").Append(RacerName(me.Bet.firstId)).Append('\n');
+        sb.Append(Loc.Get("bet.slot2")).Append(' ').Append(RacerName(me.Bet.secondId)).Append('\n');
+        sb.Append(Loc.Get("bet.slot3")).Append(' ').Append(RacerName(me.Bet.thirdId));
         return sb.ToString();
     }
 
@@ -269,12 +309,12 @@ public class PlayerHUD : MonoBehaviour
     {
         var r = raceManager.GetRacer(id);
         if (r == null) return "";
-        return r.Definition != null ? r.Definition.displayName : r.DisplayName;
+        return r.Definition != null ? r.Definition.LocalizedName : r.DisplayName;
     }
 
     private string RacerName(int id)
     {
         var r = raceManager.GetRacer(id);
-        return r != null ? r.DisplayName : $"{id + 1}번";
+        return r != null ? r.DisplayName : Loc.Format("racer.fallback", id + 1);
     }
 }

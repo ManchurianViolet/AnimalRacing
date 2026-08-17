@@ -17,6 +17,11 @@ public class RoomMonitorDetail : MonoBehaviour
 
     private int shownId = -2;   // -2 = 강제 첫 갱신
 
+    // 언어가 바뀌면 캐시를 깨서 다음 프레임에 새 언어로 다시 그린다
+    private void OnEnable() => Loc.OnLanguageChanged += ForceRefresh;
+    private void OnDisable() => Loc.OnLanguageChanged -= ForceRefresh;
+    private void ForceRefresh() => shownId = -2;
+
     private void Awake()
     {
         if (room == null) room = GetComponentInParent<BettingRoom>();
@@ -42,8 +47,8 @@ public class RoomMonitorDetail : MonoBehaviour
 
         if (id < 0)
         {
-            if (nameText != null) nameText.text = "출전 동물 정보";
-            if (bodyText != null) bodyText.text = "피규어를 아래 유리 상자에\n올려놓으세요";
+            if (nameText != null) nameText.text = Loc.Get("monitor.title");
+            if (bodyText != null) bodyText.text = Loc.Get("monitor.hint");
             return;
         }
 
@@ -54,13 +59,12 @@ public class RoomMonitorDetail : MonoBehaviour
         if (racer == null || racer.Definition == null) return;
 
         var def = racer.Definition;
-        if (nameText != null) nameText.text = $"{id + 1}번  {def.displayName}";
+        if (nameText != null) nameText.text = Loc.Format("monitor.name", id + 1, def.displayName);
         if (bodyText != null)
             bodyText.text =
-                $"최저 속도  <b>{def.minSpeed:F0}</b>\n" +
-                $"최고 속도  <b>{def.maxSpeed:F0}</b>\n" +
-                $"가속  <b>{def.acceleration}</b>\n\n" +
-                $"<b>{SkillTuning.DisplayName(def.skill)}</b>\n" +
+                Loc.Format("monitor.stats",
+                    def.minSpeed.ToString("F0"), def.maxSpeed.ToString("F0"), def.acceleration) +
+                $"\n\n<b>{SkillTuning.DisplayName(def.skill)}</b>\n" +
                 $"{SkillTuning.Description(def.skill)}";
     }
 }

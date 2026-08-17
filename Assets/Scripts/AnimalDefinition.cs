@@ -15,8 +15,32 @@ public class AnimalDefinition : ScriptableObject
     public const float AccelUnitGain = 0.025f;
 
     public string displayName;
+
+    [Tooltip("[로컬라이제이션] strings.csv의 이름 키 (animal.tiger 등). 비면 displayName(한국어) 그대로")]
+    public string nameKey;
+
     [TextArea] public string description;
     public GameObject prefab;
+
+    /// <summary>현재 언어 종명 — 표시처는 displayName 대신 전부 이걸 쓴다.</summary>
+    public string LocalizedName => string.IsNullOrEmpty(nameKey) ? displayName : Loc.Get(nameKey, displayName);
+
+    /// <summary>
+    /// 무전기 LCD용 — 한국어/영어는 현재 언어, 일본어만 영문 폴백.
+    /// LAB디지털 폰트가 가나를 미지원(§16)이라 일어만 영문 고정이고,
+    /// 한글은 전 지원(v11 실측)이라 그대로 쓴다. 대문자 변환은 한글에 무해.
+    /// </summary>
+    public string LcdName
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(nameKey)) return displayName.ToUpperInvariant();
+            string s = Loc.Language == GameLanguage.Japanese
+                ? Loc.GetIn(GameLanguage.English, nameKey, displayName)
+                : Loc.Get(nameKey, displayName);
+            return s.ToUpperInvariant();
+        }
+    }
 
     [Tooltip("동물 아이콘 (Texture Type: Sprite). 비워두면 UI 기본 이미지 유지")]
     public Sprite icon;

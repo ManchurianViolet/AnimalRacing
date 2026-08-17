@@ -16,6 +16,7 @@ public enum AnimalSkill
     Loyalty = 5,       // 개: 근성 (패시브 — 꼴등인 동안 가속, 처형 카운터)
     Dash = 6,          // 치킨: 냅다 달리기 (액티브 — 폭주)
     Apathy = 7,        // 펭귄: 무관심 (패시브 — 전 효과 면역)
+    ClubRush = 8,      // 인간: 몽둥이 질주 (액티브 — 2배속 질주 + 접촉 스턴)
 }
 
 public static class SkillTuning
@@ -41,7 +42,7 @@ public static class SkillTuning
     public const float RoarMult = 0.5f;             // 자신 제외 전원 50% 감속 (펭귄 면역)
 
     // 고양이 — 사뿐한 발놀림
-    public const float CatWalkDuration = 8f;        // 코너 감속 무시 지속
+    public const float CatWalkDuration = 20f;       // 코너 감속 무시 지속 (v18: 8→20초 — 유저 결정)
 
     // 개 — 근성
     public const float LoyaltyMult = 1.30f;         // 꼴등인 동안 (처형 5초 예고를 탈출하는 발버둥)
@@ -50,33 +51,42 @@ public static class SkillTuning
     public const float DashDuration = 8f;
     public const float DashMult = 1.50f;            // 슬럼프 없음 (v9 확정)
 
+    // 인간 — 몽둥이 질주: 몽둥이를 든 채 2배속 폭주, 스치는 동물은 1초 스턴 (펭귄은 무관심 면역)
+    public const float ClubRushDuration = 10f;
+    public const float ClubRushMult = 2.0f;
+    public const float ClubRushStunSeconds = 1f;
+    public const float ClubRushHitRadius = 1.3f;    // 접촉 판정 반경 — 물리 충돌이 꺼져 있어 근접 판정 (§3-6)
+
     /// <summary>액티브 스킬(무전기 발동 가능) 여부 — 조준 UI/발사 차단/호스트 검증의 공통 기준.</summary>
     public static bool IsActive(AnimalSkill s) =>
         s == AnimalSkill.Roar || s == AnimalSkill.Rudolph
-        || s == AnimalSkill.CatWalk || s == AnimalSkill.Dash;
+        || s == AnimalSkill.CatWalk || s == AnimalSkill.Dash
+        || s == AnimalSkill.ClubRush;
 
-    /// <summary>안내판/타임라인용 표기.</summary>
+    /// <summary>안내판/타임라인용 표기. [로컬라이제이션] 문구는 strings.csv의 skill.name.* / skill.desc.*</summary>
     public static string DisplayName(AnimalSkill s) => s switch
     {
-        AnimalSkill.FinalSprint => "최후의 질주",
-        AnimalSkill.Rudolph     => "루돌프",
-        AnimalSkill.Roar        => "포효",
-        AnimalSkill.CatWalk     => "사뿐한 발놀림",
-        AnimalSkill.Loyalty     => "근성",
-        AnimalSkill.Dash        => "냅다 달리기",
-        AnimalSkill.Apathy      => "무관심",
+        AnimalSkill.FinalSprint => Loc.Get("skill.name.finalsprint"),
+        AnimalSkill.Rudolph     => Loc.Get("skill.name.rudolph"),
+        AnimalSkill.Roar        => Loc.Get("skill.name.roar"),
+        AnimalSkill.CatWalk     => Loc.Get("skill.name.catwalk"),
+        AnimalSkill.Loyalty     => Loc.Get("skill.name.loyalty"),
+        AnimalSkill.Dash        => Loc.Get("skill.name.dash"),
+        AnimalSkill.Apathy      => Loc.Get("skill.name.apathy"),
+        AnimalSkill.ClubRush    => Loc.Get("skill.name.clubrush"),
         _ => "-"
     };
 
     public static string Description(AnimalSkill s) => s switch
     {
-        AnimalSkill.FinalSprint => "[패시브] 레이스 막판(85%~)에 속도 +20%",
-        AnimalSkill.Rudolph     => "[액티브] 경기 중 1회, 10초 거리의 전방 지점까지 하늘을 날아 5초 만에 도달한다",
-        AnimalSkill.Roar        => "[액티브] 경기 중 1회, 포효로 자신을 제외한 전원을 5초간 50% 감속",
-        AnimalSkill.CatWalk     => "[액티브] 경기 중 1회, 8초간 코너 감속을 무시하고 풀스피드로 코너링",
-        AnimalSkill.Loyalty     => "[패시브] 꼴등인 동안 속도 +30% — 악착같이 따라붙는다",
-        AnimalSkill.Dash        => "[액티브] 경기 중 1회, 8초간 속도 +50% 폭주",
-        AnimalSkill.Apathy      => "[패시브] 모든 스킬·아이템 효과를 무시한다",
-        _ => "스킬 없음"
+        AnimalSkill.FinalSprint => Loc.Get("skill.desc.finalsprint"),
+        AnimalSkill.Rudolph     => Loc.Get("skill.desc.rudolph"),
+        AnimalSkill.Roar        => Loc.Get("skill.desc.roar"),
+        AnimalSkill.CatWalk     => Loc.Get("skill.desc.catwalk"),
+        AnimalSkill.Loyalty     => Loc.Get("skill.desc.loyalty"),
+        AnimalSkill.Dash        => Loc.Get("skill.desc.dash"),
+        AnimalSkill.Apathy      => Loc.Get("skill.desc.apathy"),
+        AnimalSkill.ClubRush    => Loc.Get("skill.desc.clubrush"),
+        _ => Loc.Get("skill.none")
     };
 }

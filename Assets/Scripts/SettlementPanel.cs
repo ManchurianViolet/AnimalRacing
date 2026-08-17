@@ -62,7 +62,7 @@ public class SettlementPanel : MonoBehaviour
         root.SetActive(true);
         if (finalText != null) finalText.gameObject.SetActive(false);
         rowsParent.gameObject.SetActive(true);
-        titleText.text = $"ROUND {r.round} — 결과";
+        titleText.text = Loc.Format("settle.round", r.round);
 
         ClearRows();
 
@@ -148,7 +148,7 @@ public class SettlementPanel : MonoBehaviour
         if (finalText == null) return;
 
         finalText.gameObject.SetActive(true);
-        titleText.text = "최종 결과";
+        titleText.text = Loc.Get("settle.final");
 
         var ordered = new List<PlayerState>(matchManager.Players);
         ordered.Sort((a, b) => b.Points.CompareTo(a.Points));
@@ -158,9 +158,8 @@ public class SettlementPanel : MonoBehaviour
         foreach (var p in ordered)
         {
             if (rank == 1) sb.Append("<b><color=#FFD700>");
-            sb.Append(rank).Append("위   ").Append(p.Nickname)
-              .Append("   ").Append(p.Points.ToString("N0")).Append(" P");
-            if (rank == 1) sb.Append("   우승!</color></b>");
+            sb.Append(Loc.Format("settle.line", rank, p.Nickname, p.Points.ToString("N0")));
+            if (rank == 1) sb.Append(Loc.Get("settle.winner")).Append("</color></b>");
             sb.Append('\n');
             rank++;
         }

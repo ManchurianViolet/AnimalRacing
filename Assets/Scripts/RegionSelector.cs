@@ -17,6 +17,9 @@ public class RegionSelector : MonoBehaviour
     [SerializeField] private Transform optionParent;   // 선택 버튼 컨테이너 (VLG)
     [SerializeField] private Button optionTemplate;    // 복제용 템플릿 (비활성으로 두기)
 
+    // 언어 전환 시 라벨을 다시 그리기 위한 목록 (구독은 OnEnable/OnDisable 짝으로 — 누수 방지)
+    private readonly System.Collections.Generic.List<(TMP_Text label, string code)> optionLabels = new();
+
     private void Start()
     {
         btnChange.onClick.AddListener(() => popup.SetActive(!popup.activeSelf));
@@ -24,14 +27,27 @@ public class RegionSelector : MonoBehaviour
         popup.SetActive(false);
     }
 
+    private void OnEnable() => Loc.OnLanguageChanged += RefreshOptionLabels;
+    private void OnDisable() => Loc.OnLanguageChanged -= RefreshOptionLabels;
+
+    private void RefreshOptionLabels()
+    {
+        foreach (var (label, code) in optionLabels)
+            if (label != null) label.text = PhotonRegions.ChoiceName(code);
+    }
+
     private void BuildOptions()
     {
-        foreach (var (code, name) in PhotonRegions.Choices)
+        foreach (var code in PhotonRegions.Choices)
         {
             var btn = Instantiate(optionTemplate, optionParent);
             btn.gameObject.SetActive(true);
             var label = btn.GetComponentInChildren<TMP_Text>();
-            if (label != null) label.text = name;
+            if (label != null)
+            {
+                label.text = PhotonRegions.ChoiceName(code);
+                optionLabels.Add((label, code));
+            }
 
             string captured = code;
             btn.onClick.AddListener(() =>
@@ -51,11 +67,15 @@ public class RegionSelector : MonoBehaviour
         if (PhotonNetwork.IsConnectedAndReady && !string.IsNullOrEmpty(PhotonNetwork.CloudRegion))
         {
             string live = PhotonRegions.Of(PhotonNetwork.CloudRegion);
-            text = string.IsNullOrEmpty(saved) ? $"서버: 자동 ({live})" : $"서버: {live}";
+            text = string.IsNullOrEmpty(saved)
+                ? Loc.Format("server.auto", live)
+                : Loc.Format("server.fixed", live);
         }
         else
         {
-            text = string.IsNullOrEmpty(saved) ? "서버: 접속 중..." : $"서버: {PhotonRegions.Of(saved)} 접속 중...";
+            text = string.IsNullOrEmpty(saved)
+                ? Loc.Get("server.connecting")
+                : Loc.Format("server.connectingto", PhotonRegions.Of(saved));
         }
 
         // 값이 같으면 TMP를 건드리지 않는다 (커마 패널과 같은 규칙)

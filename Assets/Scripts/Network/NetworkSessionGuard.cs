@@ -37,10 +37,10 @@ public class NetworkSessionGuard : MonoBehaviourPunCallbacks
         if (!reconnecting)
         {
             reconnecting = true;
-            SetStatus("연결이 끊겼습니다 — 재접속 중...");
+            SetStatus(Loc.Get("net.reconnecting"));
             Debug.LogWarning($"[SessionGuard] 접속 끊김({cause}) → ReconnectAndRejoin 시도");
             if (!PhotonNetwork.ReconnectAndRejoin())
-                GoToTitle("재접속 실패");
+                GoToTitle(Loc.Get("net.reconnectfail"));
         }
         else
         {
@@ -60,7 +60,7 @@ public class NetworkSessionGuard : MonoBehaviourPunCallbacks
 
     public override void OnJoinRoomFailed(short returnCode, string message)
     {
-        if (reconnecting) GoToTitle("방 복귀 실패 (매치가 끝났거나 자리가 만료됨)");
+        if (reconnecting) GoToTitle(Loc.Get("net.rejoinfail"));
     }
 
     // ---- 방장 이탈 ----
@@ -78,7 +78,7 @@ public class NetworkSessionGuard : MonoBehaviourPunCallbacks
             if (PhotonNetwork.IsMasterClient)                        // 내가 새 방장이면
                 PhotonNetwork.CurrentRoom.IsOpen = true;             // 방 재개방 (N/4 노출)
 
-            SetStatus("방장이 나가서 매치가 중단되었습니다 — 대기실로 복귀");
+            SetStatus(Loc.Get("net.hostleft"));
             Invoke(nameof(ClearStatus), 4f);
             Debug.LogWarning($"[SessionGuard] 매치 중단 → 대기실 (새 방장: {newMaster.NickName})");
         }
@@ -91,6 +91,13 @@ public class NetworkSessionGuard : MonoBehaviourPunCallbacks
     private void ClearStatus() => SetStatus("");
 
     // ---- 공통 ----
+
+    /// <summary>
+    /// 플레이어가 직접 방을 떠나 타이틀로 (ESC 메뉴의 "메인 메뉴로").
+    /// 이탈 처리(LeaveRoom → 잠깐 뒤 씬 로드)는 호스트 이탈·강제 종료와 같은 경로를 쓴다 —
+    /// 여기서 LoadScene을 직접 부르면 Photon이 방을 정리하기 전에 씬이 갈려 유령 자리가 남는다.
+    /// </summary>
+    public void LeaveToTitle() => GoToTitle(Loc.Get("pause.leaving", "메인 메뉴로 나가는 중..."));
 
     private void GoToTitle(string reason)
     {

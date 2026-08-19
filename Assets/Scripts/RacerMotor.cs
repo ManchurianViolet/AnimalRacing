@@ -78,7 +78,18 @@ public class RacerMotor : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (!SimEnabled || racer == null) return;
+        if (!SimEnabled || racer == null)
+        {
+            // 레이스 밖(로비/베팅/카운트다운)에선 아무도 속도를 관리하지 않는데 몸이 무마찰이라,
+            // 스폰 침투 밀림 등으로 한 번 밀리면 영원히 미끄러진다 (북극곰이 출발선을 이탈한 실사고).
+            // 수평 속도만 매 틱 소거 — 수직은 남겨 중력 착지는 그대로.
+            if (rb != null && !rb.isKinematic)
+            {
+                Vector3 v = rb.linearVelocity;
+                if (v.x != 0f || v.z != 0f) rb.linearVelocity = new Vector3(0f, v.y, 0f);
+            }
+            return;
+        }
         float dt = Time.fixedDeltaTime;
 
         if (racer.HasFinished)
@@ -140,8 +151,10 @@ public class RacerMotor : MonoBehaviour
 
         foreach (var other in raceManager.Racers)
         {
+            if (racer.IsGhost) break;       // [얼룩말] 위장 유체 — 나도 아무를 안 피하고 몸싸움도 안 한다
             if (other == null || other == racer || other.HasFinished) continue;
             if (other.IsFlying) continue;   // 하늘 위의 사슴은 장애물이 아니다
+            if (other.IsGhost) continue;    // 위장 유체는 장애물이 아니다 — 서로 통과 (§3-6 몸싸움 = 이 로직뿐)
 
             float dp = other.Progress - myProg;
             // 이웃 횡좌표: 전체 투영은 교차/근접 구간에서 오염되므로 이웃 모터의 상태값 사용

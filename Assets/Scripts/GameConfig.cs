@@ -66,6 +66,30 @@ public class GameConfig : ScriptableObject
     [Tooltip("예측 상자·전시대(유리 진열장) 안에서의 추가 축소 배율 — 큰 동물이 유리를 뚫지 않게")]
     public float figurineCaseScale = 0.8f;
 
+    [Header("시상식 — 매치 종료 연출 (출발선 앞 정렬 + 돈다발 낙하 + 방 해산)")]
+    [Tooltip("연출 구간 (초) — 돈다발이 쏟아지고 춤/낙담이 재생되는 시간. 이후 카운트다운 시작")]
+    public float ceremonyShowSeconds = 8f;
+    [Tooltip("카운트다운 구간 (초) — 우측 상단 'N초 후 메인메뉴로 이동' 표시, 끝나면 방 해산·타이틀 복귀")]
+    public float ceremonyExitSeconds = 10f;
+    [Tooltip("돈다발 1개당 포인트 — 최종 포인트 ÷ 이 값 = 떨어지는 돈다발 개수")]
+    public int ceremonyPointsPerBundle = 10;
+    [Tooltip("플레이어당 돈다발 개수 상한 (물리 오브젝트 폭주 방지)")]
+    public int ceremonyMaxBundles = 60;
+    [Tooltip("돈다발 낙하 간격 (초) — 한 명 기준, 전원 병렬로 떨어진다")]
+    public float ceremonyDropInterval = 0.12f;
+    [Tooltip("돈다발이 떨어지기 시작하는 높이 (m)")]
+    public float ceremonyDropHeight = 6f;
+    [Tooltip("돈다발 목표 길이 (m, 가장 긴 변 기준) — 모델이 바뀌어도 이 값으로 정규화")]
+    public float ceremonyMoneyLength = 0.42f;
+    [Tooltip("정렬 슬롯 간격 (m) — 트랙 폭 방향, 1등부터 순서대로")]
+    public float ceremonySlotSpacing = 1.5f;
+    [Tooltip("출발선(진행도 0)에서 얼마나 앞에 정렬하나 (m)")]
+    public float ceremonyAheadMeters = 8f;
+    [Tooltip("시상식 카메라 거리 (m) — 정렬 중심에서 진행 방향 앞쪽")]
+    public float ceremonyCamDistance = 6.5f;
+    [Tooltip("시상식 카메라 높이 (m)")]
+    public float ceremonyCamHeight = 1.9f;
+
     [Header("매치")]
     public int defaultRounds = 3;
     // ⚠ 베팅 BGM은 Betting·Loadout 두 페이즈에 걸쳐 재생된다 (SoundManager.TrackForPhase).
@@ -191,6 +215,30 @@ public class GameConfig : ScriptableObject
     public float roarHeadForward = 0.18f;
     [Tooltip("포효 연출 전체 길이 (초) — 확대 0.2초 + 유지 + 복귀 0.4초 포함")]
     public float roarFxSeconds = 1.2f;
+
+    [Header("연출 — 목 휘두르기 (기린)")]
+    [Tooltip("예열 때 머리를 하늘로 뻗는 높이 (m)")]
+    public float neckRaiseHeight = 1.6f;
+    [Tooltip("훑을 때 머리가 도는 높이 (지면 위 m)")]
+    public float neckSweepHeight = 0.7f;
+    [Tooltip("목 꺾임 배분 — 0이면 목 중간(머리 부모)에서만 꺾이고, 1에 가까울수록 목 밑동(몸통 분기점)이 변위를 다 받아 어깨에서 꺾인다")]
+    [Range(0f, 1f)]
+    public float neckBendShare = 0.6f;
+    // neckCrouch(웅크림)는 v22에서 폐기 — 기린이 멈춰 앉는 그림 대신 달리면서 목만 휘두른다 (유저 결정)
+
+    [Header("연출 — 위장 (얼룩말)")]
+    [Tooltip("위장 중 몸의 투명도 (0=완전 투명, 1=불투명) — 형체만 희미하게 보이는 정도")]
+    public float camoAlpha = 0.18f;
+    [Tooltip("투명해지고/돌아오는 페이드 시간 (초)")]
+    public float camoFadeSeconds = 0.5f;
+
+    [Header("연출 — 비행 호버 (비둘기 등 hoverFlight 동물)")]
+    [Tooltip("이동 중 몸을 띄우는 높이 (m, 월드 기준 — 스케일된 프리팹도 자동 보정)")]
+    public float hoverFlightHeight = 0.55f;
+    [Tooltip("이륙/착지 블렌드 시간 (초) — 출발하면 떠오르고 멈추면 내려앉는 속도")]
+    public float hoverFlightBlendSeconds = 0.5f;
+    [Tooltip("이 속도(m/s) 이상으로 움직여야 떠오른다 — 정지·스턴·탈락이면 자동 착지")]
+    public float hoverFlightMinSpeed = 1.5f;
 
     [Header("디버그")]
     [Tooltip("Scene 뷰에 동물별 조향 목표/상태 라벨 표시")]

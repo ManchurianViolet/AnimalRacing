@@ -38,10 +38,15 @@ public static class GameEvents
     public static event Action<RaceResult> OnRaceSettled;
     public static void RaiseRaceSettled(RaceResult r) => OnRaceSettled?.Invoke(r);
 
+    /// <summary>[시상식] 우승자 춤 변경 (pid = 누른 사람, danceIndex = 0~5). 수신 쪽이 우승자 여부 검증.</summary>
+    public static event Action<int, int> OnCeremonyDance;
+    public static void RaiseCeremonyDance(int pid, int danceIndex) => OnCeremonyDance?.Invoke(pid, danceIndex);
+
     // ---- 배당 (베팅 페이즈 시작 시 계산 완료 알림 — 베팅 UI가 구독) ----
 }
 
-public enum GamePhase { Lobby, Betting, Loadout, Countdown, Racing, Settlement }
+// ⚠ Ceremony는 뒷번호 추가 (페이즈는 방송 RPC에 int로 실림 — 재배치 금지)
+public enum GamePhase { Lobby, Betting, Loadout, Countdown, Racing, Settlement, Ceremony }
 
 /// <summary>
 /// 스킬/사건 피드 종류 — RPC로 byte 하나에 실려 나간다.
@@ -58,6 +63,8 @@ public enum SkillFeedEvent : byte
     ExecuteHit = 6,      // 처형 집행 (racerId = 희생자)
     ClubRush = 7,        // [인간] 몽둥이 질주 (racerId = 인간)
     ClubHit = 8,         // [인간] 몽둥이 명중 — 스윙 연출+타격음용, 피드 없음 (racerId = 때린 인간)
+    Camouflage = 9,      // [얼룩말] 위장 (racerId = 얼룩말 — 반투명 연출/스킬음용)
+    NeckSweep = 10,      // [기린] 목 휘두르기 (racerId = 기린 — 목 연출/스킬음용)
 }
 
 /// <summary>아이템 사용 거절 사유 — 개인 RPC로 byte 하나. 표시 문구는 수신 클라가 Loc로 조립.</summary>

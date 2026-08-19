@@ -21,6 +21,15 @@ public class NetworkPlayerSetup : MonoBehaviourPunCallbacks
 
     private bool isRemote;
 
+    /// <summary>
+    /// 이 아바타의 주인 playerId (오프라인 = 0, 온라인 = ActorNumber) —
+    /// CeremonyDirector가 로스터 ↔ 아바타 매핑에 사용.
+    /// </summary>
+    public int OwnerPlayerId =>
+        !PhotonNetwork.IsConnected || photonView.Owner == null
+            ? NetworkPlayers.LocalPlayerId
+            : photonView.Owner.ActorNumber;
+
     private void Awake()
     {
         // 오프라인(미접속)은 무조건 내 것 — 접속이 없으면 PhotonView의 소유자가

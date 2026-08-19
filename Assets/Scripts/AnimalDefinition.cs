@@ -57,6 +57,10 @@ public class AnimalDefinition : ScriptableObject
     [Header("스킬 (동물당 1개)")]
     public AnimalSkill skill = AnimalSkill.None;
 
+    [Header("연출")]
+    [Tooltip("이동을 비행으로 연기 (비둘기) — 컨트롤러의 Walk/Run 자리에 Fly 클립이 구워져 있고(AnimalControllerBaker의 FlyMovers), 달리는 동안 HoverFlightFx가 몸을 띄운다. 높이 등 튜닝은 GameConfig '연출 — 비행 호버'")]
+    public bool hoverFlight = false;
+
     // ---- 변환 프로퍼티 (게임 내부는 전부 이걸 사용) ----
     public float MinSpeedMs => minSpeed * SpeedUnitToMs;
     public float MaxSpeedMs => maxSpeed * SpeedUnitToMs;

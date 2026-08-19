@@ -168,6 +168,9 @@ public class PlayerItemController : MonoBehaviour
         // 판정은 이번 프레임의 조준 힌트와 동일한 결과(aimRacer)를 공유 — 화면 안내와 발사가 항상 일치
         var item = Selected;
         if (item == null || Me == null || CountOf(item) <= 0) return;
+        // ⚠ 쿨다운 가드 (처형 무전기와 동일 규칙) — 이게 없으면 광클 클릭마다 요청이 나가고,
+        //    게스트는 낙관적 반영(소비+쿨다운 리셋)이 클릭 수만큼 실행돼 개수가 녹아내린다 (실사고)
+        if (!Me.IsCooldownReady) return;
         if (aimRacer == null || AimBlocked) return;   // 발동 무전기 × 패시브 동물 = 발사 차단
         gateway.RequestUseItem(item, aimRacer.RacerId);
     }

@@ -64,6 +64,9 @@ phase.loadout,준비 중,Get ready,準備中,
 phase.countdown,출발 준비,On your marks,スタート準備,
 phase.racing,경기 중,Racing,レース中,
 phase.settlement,결과 표시 중,Results,結果表示中,
+phase.ceremony,시상식,Ceremony,表彰式,매치 종료 연출
+ceremony.exit,{0}초 후 메인메뉴로 이동,Returning to menu in {0}s,{0}秒後にメインメニューへ,시상식 우측 상단 카운트다운
+ceremony.dancehint,[1~6] 춤 바꾸기,[1-6] Change dance,[1~6] ダンス変更,우승자 전용 힌트
 hud.lobbyplayers,참가자 {0}/{1} — 방장의 시작 대기 중,Players {0}/{1} — waiting for host,参加者 {0}/{1} — ホストの開始待ち,
 hud.hand,손,Hand,手,베팅 방 손 칸
 hud.betnone,예측 미제출,No prediction yet,予想未提出,
@@ -229,3 +232,60 @@ animal.camel,낙타,Camel,ラクダ,
 animal.monkey,원숭이,Monkey,サル,
 animal.polarbear,북극곰,Polar Bear,ホッキョクグマ,
 animal.zebra,얼룩말,Zebra,シマウマ,
+guide.game.title,게임 안내,How to Play,遊び方,대기장소 게임 설명판 제목
+guide.game.body,"동물 9마리가 트랙을 2바퀴 달린다.
+
+① 베팅 — 자기 방에서 피규어를 상자에 넣어
+1등 / 2등 이상 / 3등 이상을 예측한다 (비밀!)
+② 레이스 — 주사기와 무전기로 개입하고
+빠따로 다른 플레이어를 견제하자
+③ 정산 — 적중하면 90 / 50 / 30점
+
+모든 라운드가 끝나고 점수가 가장 높은 사람이 우승!","Nine animals race two laps around the track.
+
+1) Bet — in your room, place figurines in the boxes
+to predict 1st / top 2 / top 3 (in secret!)
+2) Race — interfere with syringes and radios,
+and swing your bat at other players
+3) Payout — correct picks earn 90 / 50 / 30 points
+
+Highest total score after all rounds wins!","9頭の動物がトラックを2周走る。
+
+① ベット — 自分の部屋でフィギュアを箱に入れ
+1位・2位以内・3位以内を予想（秘密厳守！）
+② レース — 注射器と無線機で介入し
+バットで他プレイヤーを妨害しよう
+③ 精算 — 的中で90/50/30点
+
+全ラウンド終了後、最高得点の人が優勝！",대기장소 게임 설명판 본문
+guide.item.bat.desc,다른 플레이어를 한 방에 쓰러트리는 근접무기,A melee weapon that knocks other players down in one hit.,他のプレイヤーを一撃で倒す近接武器。,대기장소 아이템 설명
+guide.item.boost.desc,"레이스 중 동물에게 조준 발사하면
+잠시동안 빨라진다.","Shoot an animal during the race
+to speed it up for a moment.","レース中に動物へ撃つと
+しばらく速くなる。",
+guide.item.slow.desc,"레이스 중 동물에게 조준 발사하면
+잠시동안 느려진다.","Shoot an animal during the race
+to slow it down for a moment.","レース中に動物へ撃つと
+しばらく遅くなる。",
+guide.item.radioskill.desc,"동물에게 조준 발사하면 5초 후
+그 동물의 스킬을 강제로 발동시킨다.
+이미 쓴 액티브 스킬도 다시 터뜨릴 수 있다.","Shoot an animal and 5 seconds later
+its skill is forcibly triggered.
+Even an already-used active skill fires again.","動物へ撃つと5秒後に
+そのスキルを強制発動させる。
+使用済みのアクティブスキルも再発動できる。",
+guide.item.radioexec.desc,"조준 없이 사용하면 5초 후
+그 순간 꼴등인 동물이 탈락한다.","Use it (no aiming) and 5 seconds later
+the animal currently in last place is eliminated.","照準なしで使うと5秒後に
+その時点で最下位の動物が脱落する。",
+skill.name.camouflage,위장,Camouflage,擬態,얼룩말 스킬
+skill.desc.camouflage,"15초간 몸이 희미해지며 유체가 된다.
+이동속도 50% 증가, 몸싸움과 몽둥이를 그대로 통과.","Fades to a ghost for 15 seconds.
++50% speed, phases through jostling and club hits.","15秒間、体が薄れて幽体になる。
+移動速度50%増加、体当たりや棍棒をすり抜ける。",
+animal.giraffe,기린,Giraffe,キリン,신규 레이서 (v21)
+skill.name.necksweep,목 휘두르기,Neck Sweep,ネックスイープ,기린 스킬
+skill.desc.necksweep,"달리면서 목을 하늘로 쭉 뻗었다가 내리찍으며
+주변을 360도 휩쓴다. 닿은 동물은 3초 기절.","While running, stretches its neck sky-high, then swings it low
+in a full circle. Animals hit are stunned for 3s.","走りながら首を高く伸ばして振り下ろし、
+周囲を360度なぎ払う。当たった動物は3秒気絶。",

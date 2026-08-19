@@ -48,10 +48,10 @@ public class SettlementPanel : MonoBehaviour
 
     private void HandlePhase(GamePhase p)
     {
-        if (p == GamePhase.Betting || p == GamePhase.Countdown)
+        if (p == GamePhase.Betting || p == GamePhase.Countdown || p == GamePhase.Ceremony)
         {
             if (playRoutine != null) StopCoroutine(playRoutine);
-            root.SetActive(false);
+            root.SetActive(false);   // 시상식: 결과판이 연출 화면을 가리지 않게
         }
     }
 

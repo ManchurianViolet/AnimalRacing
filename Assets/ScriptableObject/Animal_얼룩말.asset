@@ -21,4 +21,5 @@ MonoBehaviour:
   maxSpeed: 84
   speedRerollInterval: 15
   acceleration: 50
-  skill: 0
+  skill: 9
+  hoverFlight: 0

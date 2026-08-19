@@ -23,6 +23,13 @@ public class ItemSlotView : MonoBehaviour
     [SerializeField] private float emptyAlpha = 0.35f;
     [Tooltip("다 썼지만 커서가 올라가 있는 슬롯의 투명도 — 노란 테두리가 읽힐 만큼은 밝아야 한다")]
     [SerializeField] private float emptySelectedAlpha = 0.75f;
+    [Tooltip("아이템 그림 — 비워두면 Init 때 자동 생성 (칸 중앙, 글자들 뒤). 소모형은 item.icon, " +
+             "빠따처럼 ItemDefinition 없는 슬롯은 아래 fixedIcon을 쓴다. 그림이 있으면 이름 글자는 숨김")]
+    [SerializeField] private Image iconImage;
+    [Tooltip("ItemDefinition 없는 슬롯(빠따) 전용 아이콘 스프라이트")]
+    [SerializeField] private Sprite fixedIcon;
+    [Tooltip("아이콘이 칸 가장자리에서 띄우는 여백 (px)")]
+    [SerializeField] private float iconPadding = 12f;
 
     private PlayerItemController controller;
     private ItemDefinition item;     // 주사기 슬롯만 사용, 빠따/무전기는 null
@@ -40,11 +47,53 @@ public class ItemSlotView : MonoBehaviour
         this.item = item;
         this.nameKey = nameKey;
         slotIndex = slot;
+        SetupIcon();
         RefreshName();
         if (hotkeyLabel != null) hotkeyLabel.text = hotkey;
 
         var btn = GetComponent<Button>();
         if (btn != null) btn.onClick.AddListener(() => controller.SelectSlot(slot));
+    }
+
+    /// <summary>
+    /// 아이콘 표시 — 스프라이트가 있으면 칸 중앙에 그림, 이름 글자는 숨긴다 (그림이 이름을 대신).
+    /// 아이콘 Image가 씬에 없으면 코드로 생성 (첫 자식 = 배경 위·글자/게이지 뒤).
+    /// </summary>
+    private void SetupIcon()
+    {
+        Sprite sprite = item != null && item.icon != null ? item.icon : fixedIcon;
+        if (sprite == null)
+        {
+            if (iconImage != null) iconImage.gameObject.SetActive(false);
+            return;
+        }
+
+        if (iconImage == null)
+        {
+            var go = new GameObject("Icon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            var rt = (RectTransform)go.transform;
+            rt.SetParent(transform, false);
+
+            // 렌더 순서: 내구도 게이지(초록 채움) 바로 위 — 게이지가 그림의 "배경"이 되고,
+            // 쿨다운 오버레이·글자들은 그림 위에 남는다 (유저 지적: 초록이 빠따를 덮었음)
+            int idx = 0;
+            if (durabilityFill != null && durabilityFill.transform.parent == transform)
+                idx = durabilityFill.transform.GetSiblingIndex() + 1;
+            else if (selectedFrame != null && selectedFrame.transform.parent == transform)
+                idx = selectedFrame.transform.GetSiblingIndex() + 1;
+            rt.SetSiblingIndex(idx);
+
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = new Vector2(iconPadding, iconPadding + 10f);   // 아래는 이름 띠 자리
+            rt.offsetMax = new Vector2(-iconPadding, -iconPadding);
+            iconImage = go.GetComponent<Image>();
+            iconImage.raycastTarget = false;
+            iconImage.preserveAspect = true;
+        }
+        iconImage.gameObject.SetActive(true);
+        iconImage.sprite = sprite;
+        // 이름 글자는 유지 — 하단 띠에 그림과 함께 표시 (유저 지적: 뭔지 알려면 글자 필요)
     }
 
     /// <summary>

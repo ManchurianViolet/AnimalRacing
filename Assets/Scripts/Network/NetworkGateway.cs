@@ -119,14 +119,37 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
         Debug.Log($"[NET] 로스터 수신: {ids.Length}명 (내 ID {NetworkPlayers.LocalPlayerId})");
     }
 
-    /// <summary>[호스트] 매치 종료 → 방 다시 열기 (재경기 대기) + 대타 봇 전원 해제.</summary>
+    /// <summary>
+    /// [호스트] 매치 종료 → 대타 봇 전원 해제.
+    /// v22: 방 재개방 폐기 — 매치 종료 = 시상식 후 방 해산이라 죽어가는 방에
+    /// 새 사람이 들어오면 안 된다 (재대결 루프 자체가 사라짐 — 유저 결정).
+    /// </summary>
     private void HandleMatchEnded()
     {
         if (!IsHost) return;
-        PhotonNetwork.CurrentRoom.IsOpen = true;
         if (bots != null)
             foreach (var b in bots) if (b != null) b.Bind(null);
     }
+
+    // ================= 시상식 춤 중계 (v22) =================
+
+    /// <summary>
+    /// [시상식] 우승자 춤 변경 요청 — 순수 코스메틱이라 호스트 검증 없이 전 클라 직행.
+    /// 수신 쪽(CeremonyDirector)이 "보낸 사람 == 우승자"를 각자 검증한다.
+    /// </summary>
+    public void RelayCeremonyDance(int danceIndex)
+    {
+        if (Offline)
+        {
+            GameEvents.RaiseCeremonyDance(NetworkPlayers.LocalPlayerId, danceIndex);
+            return;
+        }
+        photonView.RPC(nameof(RpcCeremonyDance), RpcTarget.All, (byte)danceIndex);
+    }
+
+    [PunRPC]
+    private void RpcCeremonyDance(byte danceIndex, PhotonMessageInfo info) =>
+        GameEvents.RaiseCeremonyDance(info.Sender != null ? info.Sender.ActorNumber : -1, danceIndex);
 
     /// <summary>[호스트] 게스트 이탈 → 매치 중이면 그 자리에 봇 대타 투입.</summary>
     public override void OnPlayerLeftRoom(Player otherPlayer)
@@ -257,7 +280,11 @@ public class NetworkGateway : MonoBehaviourPunCallbacks
         }
 
         // 클라: 낙관적 반영 (쿨다운/개수) — 진실은 1초 내 경제 방송이 정정
+        // ⚠ 쿨다운 중엔 여기서 끊는다 — 낙관적 소비가 검증보다 먼저라, 광클을 그대로 통과시키면
+        //    호스트가 거절할 요청에도 클릭마다 개수가 줄고(→0이면 자동 수납으로 손에서 사라짐)
+        //    쿨다운 게이지가 계속 리셋된다. 호스트는 어차피 거절하므로 RPC 낭비이기도 함.
         var me = matchManager.GetPlayer(NetworkPlayers.LocalPlayerId);
+        if (me != null && !me.IsCooldownReady) return;
         if (me != null)
         {
             me.StartCooldown(GameManager.Instance.Config.GetCooldownFor(matchManager.Players.Count));

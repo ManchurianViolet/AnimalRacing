@@ -172,6 +172,7 @@ public class SoundManager : MonoBehaviour
             case GamePhase.Countdown: return BgmTrack.None;
             case GamePhase.Racing: return BgmTrack.Racing;
             case GamePhase.Settlement: return BgmTrack.Settlement;
+            case GamePhase.Ceremony: return BgmTrack.Settlement;   // 시상식 = 정산 곡 이어서 (별도 곡 원하면 트랙 추가)
             default: return BgmTrack.None;
         }
     }

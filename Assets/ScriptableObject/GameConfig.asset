@@ -40,6 +40,17 @@ MonoBehaviour:
   roomDoorSlideSeconds: 0.6
   figurineScale: 0.33
   figurineCaseScale: 0.8
+  ceremonyShowSeconds: 8
+  ceremonyExitSeconds: 10
+  ceremonyPointsPerBundle: 10
+  ceremonyMaxBundles: 60
+  ceremonyDropInterval: 0.12
+  ceremonyDropHeight: 6
+  ceremonyMoneyLength: 0.42
+  ceremonySlotSpacing: 1.5
+  ceremonyAheadMeters: 8
+  ceremonyCamDistance: 6.5
+  ceremonyCamHeight: 1.9
   defaultRounds: 3
   bettingSeconds: 64.28
   loadoutSeconds: 10
@@ -93,5 +104,13 @@ MonoBehaviour:
   roarHeadScale: 1.7
   roarHeadForward: 0.18
   roarFxSeconds: 1.2
+  neckRaiseHeight: 1.6
+  neckSweepHeight: 0.7
+  neckBendShare: 0.6
+  camoAlpha: 0.18
+  camoFadeSeconds: 0.5
+  hoverFlightHeight: 0.55
+  hoverFlightBlendSeconds: 0.5
+  hoverFlightMinSpeed: 1.5
   debugMotorGizmos: 1
   debugProgressLog: 1

@@ -5,8 +5,10 @@ using TMPro;
 
 /// <summary>
 /// 우측 사건 피드 — v19 개편: 문장 나열 → 아이콘 행.
-/// 플레이어가 행한 행동(주사기/무전기 사용)만 표시한다 (유저 결정 —
-/// 동물 셀프 스킬·펭귄 면역·완주/탈락은 표시 안 함. 그쪽은 전광판/연출이 맡는다).
+/// 표시 대상: ① 플레이어가 행한 행동(주사기/무전기 사용) ② 동물 셀프 스킬 발동(v21 복구 —
+/// [배지][동물 이름][번개][빈칸] 순서, 무전기 강제 발동분은 무전기 행과 중복이라 억제). 펭귄 면역·완주/탈락은 제외.
+/// 행 규격 통일(v22 유저 지정): 두 행 타입 모두 4칸 = (이름폭 칸 + 아이콘 + 배지 + 동물이름 칸) 조합이라
+/// 배경 박스 총폭·높이가 동일하다 — 셀프 스킬 행의 끝 빈칸이 이름 칸 폭을 대신 채운다.
 /// 행 = [플레이어 이름] [행동 아이콘] [번호 배지][동물 이름] — 처형 무전기(무조준)는 대상 칸 생략.
 /// 행동 아이콘(v20 개편 — 유저 그림 발주): 부스트=초록 ↑ / 감속=빨강 ↓ / 발동 무전기=노랑 번개 /
 /// 처형 무전기=해골. 스프라이트는 흰색 아이콘(Skymon 팩)에 색 틴트 — 비어 있으면 투명 공란으로
@@ -31,28 +33,31 @@ public class TimelineFeed : MonoBehaviour
     [SerializeField] private Sprite radioSkillIcon;
     [Tooltip("처형 무전기 — 해골 (팩에 없음 — 구해오면 여기 드래그, 그동안은 공란)")]
     [SerializeField] private Sprite radioExecIcon;
+    [Tooltip("동물 셀프 스킬 발동 — 번개. 비워두면 발동 무전기 아이콘을 같이 쓴다 (씬 배선 0)")]
+    [SerializeField] private Sprite selfSkillIcon;
 
     [Header("행동 아이콘 색 (흰 아이콘에 곱해짐)")]
     [SerializeField] private Color boostColor = new Color(0.55f, 0.92f, 0.18f);   // 연두
     [SerializeField] private Color slowColor = new Color(0.93f, 0.24f, 0.20f);    // 빨강
     [SerializeField] private Color radioSkillColor = new Color(1f, 0.85f, 0.20f); // 노랑
     [SerializeField] private Color radioExecColor = Color.white;                  // 해골은 원색
+    [SerializeField] private Color selfSkillColor = new Color(1f, 0.85f, 0.20f); // 셀프 스킬 번개 — 노랑
 
     [Header("행 크기")]
     [Tooltip("행 높이(px) — 아이콘 칸도 이 크기의 정사각형")]
-    [SerializeField] private float rowHeight = 34f;
+    [SerializeField] private float rowHeight = 38f;
     [Tooltip("행 사이 간격(px)")]
-    [SerializeField] private float rowSpacing = 6f;
+    [SerializeField] private float rowSpacing = 7f;
     [Tooltip("칸 사이 간격(px)")]
     [SerializeField] private float cellSpacing = 6f;
     [Tooltip("플레이어 이름 글자 크기")]
-    [SerializeField] private float nameFontSize = 24f;
+    [SerializeField] private float nameFontSize = 26f;
 
     [Header("칸 폭 고정 (세로 줄 맞춤 — 행마다 폭이 다르면 삐뚤삐뚤해진다)")]
-    [Tooltip("플레이어 이름 칸 폭(px) — 긴 닉네임은 자동 축소")]
-    [SerializeField] private float nameColumnWidth = 130f;
+    [Tooltip("플레이어 이름 칸 폭(px) — 긴 닉네임은 자동 축소. 셀프 스킬 행의 끝 빈칸도 이 폭 (행 총폭 통일)")]
+    [SerializeField] private float nameColumnWidth = 145f;
     [Tooltip("동물 이름 칸 폭(px)")]
-    [SerializeField] private float animalColumnWidth = 96f;
+    [SerializeField] private float animalColumnWidth = 106f;
 
     [Header("행 배경 (검정 테두리 + 회색 채움 — 배경 없인 글자가 트랙에 묻힌다)")]
     [SerializeField] private Color rowBorderColor = new Color(0.03f, 0.03f, 0.04f, 0.95f);
@@ -66,6 +71,9 @@ public class TimelineFeed : MonoBehaviour
 
     private RectTransform container;
     private readonly LinkedList<GameObject> rows = new();
+
+    // 발동 무전기를 쏜 대상 기록 — 5초 뒤 강제 발동의 스킬 행이 무전기 행과 중복으로 뜨는 것 억제
+    private readonly Dictionary<int, float> radioSkillUsedAt = new();
 
     private void Awake()
     {
@@ -81,12 +89,14 @@ public class TimelineFeed : MonoBehaviour
     private void OnEnable()
     {
         GameEvents.OnItemUsed     += HandleItemUsed;
+        GameEvents.OnSkillEvent   += HandleSkillEvent;
         GameEvents.OnPhaseChanged += HandlePhase;
     }
 
     private void OnDisable()
     {
         GameEvents.OnItemUsed     -= HandleItemUsed;
+        GameEvents.OnSkillEvent   -= HandleSkillEvent;
         GameEvents.OnPhaseChanged -= HandlePhase;
     }
 
@@ -100,7 +110,107 @@ public class TimelineFeed : MonoBehaviour
 
     private void HandleItemUsed(int pid, ItemDefinition item, int rid)
     {
-        if (item == null || container == null) return;
+        if (item == null) return;
+
+        // 발동 무전기 기록 — 5초 뒤 강제 발동의 스킬 행은 이 행과 중복이라 억제한다 (유저 지적)
+        if (item.kind == ItemKind.SkillTrigger && rid >= 0)
+            radioSkillUsedAt[rid] = Time.time;
+
+        var (icon, tint) = ActionIcon(item.kind);
+        AddRow(PlayerName(pid), Color.white, icon, tint, rid);
+    }
+
+    /// <summary>동물 셀프 스킬 발동 — [배지][동물 이름][번개] 행 (유저 지정 순서).
+    /// 무전기로 강제 발동된 것은 무전기 행이 이미 떠 있으므로 중복 표시하지 않는다.</summary>
+    private void HandleSkillEvent(SkillFeedEvent evt, int rid)
+    {
+        switch (evt)
+        {
+            case SkillFeedEvent.Roar:
+            case SkillFeedEvent.CatWalk:
+            case SkillFeedEvent.Dash:
+            case SkillFeedEvent.Rudolph:
+            case SkillFeedEvent.ClubRush:
+            case SkillFeedEvent.Camouflage:
+            case SkillFeedEvent.NeckSweep:
+                // 무전기 발동분 억제 — 지연 5초(radioDelaySeconds) + 여유
+                if (radioSkillUsedAt.TryGetValue(rid, out float usedAt))
+                {
+                    radioSkillUsedAt.Remove(rid);   // 1회분만 억제 — 이후 자동 발동은 다시 표시
+                    if (Time.time - usedAt < 6.5f) return;
+                }
+                AddSkillRow(rid);
+                break;
+            // 펭귄 면역/처형/몽둥이 명중은 여전히 피드 제외 (v19 결정 유지)
+        }
+    }
+
+    /// <summary>
+    /// 셀프 스킬 행: [번호 배지][동물 이름][번개][빈칸] — 끝 빈칸은 플레이어 이름 칸과 같은 폭 (유저 지정).
+    /// 이러면 두 행 타입의 칸 구성이 (배지 + 동물이름 + 아이콘 + 이름폭 칸)으로 같아져
+    /// 행 배경 박스의 총폭·높이 규격이 플레이어 행동 행과 완전히 동일해진다.
+    /// </summary>
+    private void AddSkillRow(int rid)
+    {
+        var row = NewRowShell();
+        if (row == null) return;
+
+        var racer = raceManager != null ? raceManager.GetRacer(rid) : null;
+        int post = racer != null ? racer.PostNumber : rid + 1;
+        AddBadge(row.transform, post);
+
+        string animalName = racer != null && racer.Definition != null ? racer.Definition.LocalizedName : "?";
+        AddText(row.transform, animalName, nameFontSize, Color.white,
+                animalColumnWidth, TextAlignmentOptions.MidlineLeft);
+
+        Sprite icon = selfSkillIcon != null ? selfSkillIcon : radioSkillIcon;
+        AddIcon(row.transform, icon, icon != null ? selfSkillColor : Color.clear);
+
+        // 빈칸 — 이름 칸 폭으로 자리만 채워 행 규격 통일 (투명이라 안 보임)
+        AddText(row.transform, "", nameFontSize, Color.clear,
+                nameColumnWidth, TextAlignmentOptions.MidlineLeft);
+
+        TrimRows(row);
+    }
+
+    private void AddRow(string nameText, Color nameColor, Sprite icon, Color iconTint, int rid)
+    {
+        var row = NewRowShell();
+        if (row == null) return;
+
+        // ① 플레이어 이름 — 고정폭 칸 (우측 정렬 = 아이콘 옆에 붙음)
+        AddText(row.transform, nameText, nameFontSize, nameColor,
+                nameColumnWidth, TextAlignmentOptions.MidlineRight);
+
+        // ② 행동 아이콘 (스프라이트가 비면 투명 공란으로 자리만 지킴)
+        AddIcon(row.transform, icon, icon != null ? iconTint : Color.clear);
+
+        // ③ 대상 동물 — 번호 배지 + 동물 이름. 처형 무전기(무조준)는 내용 없이 투명 칸으로
+        //    자리만 채운다 — 행마다 폭이 다르면 세로로 삐뚤삐뚤해진다 (유저 지적).
+        if (rid >= 0)
+        {
+            var racer = raceManager != null ? raceManager.GetRacer(rid) : null;
+            int post = racer != null ? racer.PostNumber : rid + 1;   // 레인 번호는 1부터
+            AddBadge(row.transform, post);
+
+            string animalName = racer != null && racer.Definition != null ? racer.Definition.LocalizedName : "?";
+            AddText(row.transform, animalName, nameFontSize, Color.white,
+                    animalColumnWidth, TextAlignmentOptions.MidlineLeft);
+        }
+        else
+        {
+            AddIcon(row.transform, null, Color.clear);   // 배지 자리
+            AddText(row.transform, "", nameFontSize, Color.clear,
+                    animalColumnWidth, TextAlignmentOptions.MidlineLeft);
+        }
+
+        TrimRows(row);
+    }
+
+    /// <summary>행 껍데기 (배경+레이아웃) — 칸은 호출부가 원하는 순서로 채운다.</summary>
+    private GameObject NewRowShell()
+    {
+        if (container == null) return null;
 
         var row = new GameObject("FeedRow", typeof(RectTransform));
         var rt = (RectTransform)row.transform;
@@ -142,34 +252,12 @@ public class TimelineFeed : MonoBehaviour
         fill.raycastTarget = false;
         fillGo.AddComponent<LayoutElement>().ignoreLayout = true;
 
-        // ① 플레이어 이름 — 고정폭 칸 (우측 정렬 = 아이콘 옆에 붙음)
-        AddText(row.transform, PlayerName(pid), nameFontSize, Color.white,
-                nameColumnWidth, TextAlignmentOptions.MidlineRight);
+        return row;
+    }
 
-        // ② 행동 아이콘 — 아이템 종류별 그림+색 (스프라이트가 비면 투명 공란으로 자리만 지킴)
-        var (icon, tint) = ActionIcon(item.kind);
-        AddIcon(row.transform, icon, icon != null ? tint : Color.clear);
-
-        // ③ 대상 동물 — 번호 배지 + 동물 이름. 처형 무전기(무조준)는 내용 없이 투명 칸으로
-        //    자리만 채운다 — 행마다 폭이 다르면 세로로 삐뚤삐뚤해진다 (유저 지적).
-        if (rid >= 0)
-        {
-            var racer = raceManager != null ? raceManager.GetRacer(rid) : null;
-            int post = racer != null ? racer.PostNumber : rid + 1;   // 레인 번호는 1부터
-            AddBadge(row.transform, post);
-
-            string animalName = racer != null && racer.Definition != null ? racer.Definition.LocalizedName : "?";
-            AddText(row.transform, animalName, nameFontSize, Color.white,
-                    animalColumnWidth, TextAlignmentOptions.MidlineLeft);
-        }
-        else
-        {
-            AddIcon(row.transform, null, Color.clear);   // 배지 자리
-            AddText(row.transform, "", nameFontSize, Color.clear,
-                    animalColumnWidth, TextAlignmentOptions.MidlineLeft);
-        }
-
-        rows.AddFirst(row);
+    private void TrimRows(GameObject newRow)
+    {
+        rows.AddFirst(newRow);
         while (rows.Count > maxLines)
         {
             var oldest = rows.Last.Value;
@@ -192,6 +280,7 @@ public class TimelineFeed : MonoBehaviour
     {
         foreach (var r in rows) if (r != null) Destroy(r);
         rows.Clear();
+        radioSkillUsedAt.Clear();
     }
 
     // ================= UI 조립 (코드 생성 — 씬 배선 0) =================

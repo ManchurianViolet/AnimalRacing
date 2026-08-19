@@ -22,3 +22,4 @@ MonoBehaviour:
   speedRerollInterval: 15
   acceleration: 25
   skill: 0
+  hoverFlight: 0

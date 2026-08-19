@@ -39,9 +39,19 @@ public static class AnimalControllerBaker
     {
         public string folderName;
         public string prefix;                              // 클립 이름 앞머리 (폴더명과 다를 수 있다)
-        public AnimationClip idle, walk, run, jump;
+        public AnimationClip idle, walk, run, jump, fly;
         public bool claimed;
     }
+
+    /// <summary>
+    /// 이동 = 비행인 동물 (Normalize된 리그 이름). Walk/Run 자리에 Fly 클립을 굽는다 —
+    /// 지상 이동 클립 오인 차단(아래 Swim/Fly 스킵)의 의도적 예외.
+    /// 몸을 띄우는 연출은 HoverFlightFx(AnimalDefinition.hoverFlight) 담당 — 클립 루트 높이는 0이다.
+    /// </summary>
+    private static readonly HashSet<string> FlyMovers = new HashSet<string> { "pigeon" };
+
+    /// <summary>비행 이동 클립 재생 배속 — 원본 날갯짓(0.67초/사이클)이 느긋해서 레이스 속도감에 안 맞는다.</summary>
+    private const float FlyAnimSpeed = 1.8f;
 
     [MenuItem("Tools/짜고치는레이스/정식판 동물 컨트롤러 굽기")]
     public static void Bake()
@@ -86,6 +96,10 @@ public static class AnimalControllerBaker
                 continue;
             }
 
+            // [비둘기] 이동 = 비행 — Walk/Run 자리에 Fly (아래 루프/부호 정렬도 그대로 통과)
+            bool flyMover = FlyMovers.Contains(Normalize(rig)) && set.fly != null;
+            if (flyMover) { walk = set.fly; run = set.fly; }
+
             bool substituted = set.walk == null || set.run == null || set.idle == null;
             if (substituted) fallbacks++;
 
@@ -100,10 +114,11 @@ public static class AnimalControllerBaker
                 log.Append($"  [부호정렬] {rig}: Walk {fixedW}본 / Run {fixedR}본 교정\n");
 
             string path = $"{OutRoot}/Animal_{rig}.controller";
-            BuildController(path, idle, walk, run);
+            BuildController(path, idle, walk, run, flyMover ? FlyAnimSpeed : 1f);
             baked++;
 
             log.Append($"{rig,-18} ← Idle:{idle.name} / Walk:{walk.name} / Run:{run.name}")
+               .Append(flyMover ? "  ✈비행이동" : "")
                .Append(substituted ? "  ⚠대체사용" : "")
                .Append($"   (프리팹 {rigs[rig].Count}종: {string.Join(", ", rigs[rig])})\n");
         }
@@ -162,6 +177,8 @@ public static class AnimalControllerBaker
                     if (clip == null) continue;
 
                     string n = clip.name;
+                    // 비행 클립은 따로 챙겨둔다 — FlyMovers(비둘기)만 이동 클립으로 쓴다
+                    if (n.EndsWith("_Fly")) { if (set.fly == null) set.fly = clip; continue; }
                     // 수중 동작은 육상 이동과 섞이면 안 된다 (Duck_Swim_Idle 같은 이름이 Idle로 잡히는 것 방지)
                     if (n.Contains("Swim") || n.Contains("Fly")) continue;
 
@@ -195,7 +212,8 @@ public static class AnimalControllerBaker
 
     // ---------------- 컨트롤러 조립 ----------------
 
-    private static void BuildController(string path, AnimationClip idle, AnimationClip walk, AnimationClip run)
+    private static void BuildController(string path, AnimationClip idle, AnimationClip walk, AnimationClip run,
+                                        float moveTimeScale = 1f)
     {
         var ctrl = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
         if (ctrl == null) ctrl = AnimatorController.CreateAnimatorControllerAtPath(path);
@@ -221,6 +239,14 @@ public static class AnimalControllerBaker
         // AddChild가 자동 문턱값을 다시 계산해버리는 경우가 있어 마지막에 못 박는다
         SetThresholds(idleMove, 0f, 1f);
         SetThresholds(moveTree, 0f, 1f);
+
+        // 이동 클립 재생 배속 (비행 이동 등 — 1이면 원본 그대로)
+        if (!Mathf.Approximately(moveTimeScale, 1f))
+        {
+            var mc = moveTree.children;
+            for (int i = 0; i < mc.Length; i++) mc[i].timeScale = moveTimeScale;
+            moveTree.children = mc;
+        }
 
         EditorUtility.SetDirty(ctrl);
     }

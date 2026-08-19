@@ -50,6 +50,8 @@ public static class BalanceExporter
         public float catWalkDuration;
         public float loyaltyMult;
         public float dashDuration, dashMult;
+        public float camouflageDuration, camouflageMult;
+        public float neckSweepRadius, neckSweepStunSeconds, neckSweepWindupSeconds;
     }
 
     [System.Serializable]
@@ -167,6 +169,11 @@ public static class BalanceExporter
                 loyaltyMult = SkillTuning.LoyaltyMult,
                 dashDuration = SkillTuning.DashDuration,
                 dashMult = SkillTuning.DashMult,
+                camouflageDuration = SkillTuning.CamouflageDuration,
+                camouflageMult = SkillTuning.CamouflageMult,
+                neckSweepRadius = SkillTuning.NeckSweepRadius,
+                neckSweepStunSeconds = SkillTuning.NeckSweepStunSeconds,
+                neckSweepWindupSeconds = SkillTuning.NeckSweepWindupSeconds,
             },
         };
 

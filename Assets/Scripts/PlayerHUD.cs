@@ -102,6 +102,7 @@ public class PlayerHUD : MonoBehaviour
             GamePhase.Countdown  => Loc.Get("phase.countdown"),
             GamePhase.Racing     => Loc.Get("phase.racing"),
             GamePhase.Settlement => Loc.Get("phase.settlement"),
+            GamePhase.Ceremony   => Loc.Get("phase.ceremony"),
             _ => ""
         };
         float remain = matchManager != null ? matchManager.PhaseEndTime - Time.time : 0f;
@@ -120,9 +121,10 @@ public class PlayerHUD : MonoBehaviour
         // 로스터 바인딩 전(대기실): 게임플레이 HUD 숨김
         bool bound = me != null;
         bool uiOpen = playerController != null && !playerController.ControlEnabled;
-        // 정산 중엔 결과판이 화면을 덮으므로 아이템 슬롯 숨김 (겹침 방지)
+        // 정산 중엔 결과판이 화면을 덮으므로 아이템 슬롯 숨김 (겹침 방지). 시상식도 동일 (연출 화면)
         bool settlement = GameManager.Instance != null &&
-                          GameManager.Instance.CurrentPhase == GamePhase.Settlement;
+                          (GameManager.Instance.CurrentPhase == GamePhase.Settlement ||
+                           GameManager.Instance.CurrentPhase == GamePhase.Ceremony);
         bool showGameplay = bound && !uiOpen && !settlement;
 
         // 베팅 방 조작 모드(내 방 안): 무기 5칸 대신 "손" 1칸 — 든 피규어가 담긴다

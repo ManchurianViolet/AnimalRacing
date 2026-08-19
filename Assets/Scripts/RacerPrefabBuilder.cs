@@ -45,6 +45,7 @@ public static class RacerPrefabBuilder
         new Spec { korean = "원숭이", sourcePath = "Assets/ithappy/Animals/Prefabs/Animals/Exotic_Animals/Monkey_01.prefab",     controller = "Animal_Monkey",     nameKey = "animal.monkey",    scale = 1.5f,  min = 56, max = 85, accel = 80 },
         new Spec { korean = "북극곰", sourcePath = "Assets/ithappy/Animals/Prefabs/Animals/Polar_Animals/Polar_Bear_01.prefab",  controller = "Animal_Polar_Bear", nameKey = "animal.polarbear", scale = 1.0f,  min = 60, max = 84, accel = 40 },
         new Spec { korean = "얼룩말", sourcePath = "Assets/ithappy/Animals/Prefabs/Animals/Savanna_Animals/Zebra_01.prefab",     controller = "Animal_Zebra",      nameKey = "animal.zebra",     scale = 1.0f,  min = 62, max = 84, accel = 50 },
+        new Spec { korean = "기린",   sourcePath = "Assets/ithappy/Animals/Prefabs/Animals/Savanna_Animals/Giraffe_01.prefab",   controller = "Animal_Giraffe",    nameKey = "animal.giraffe",   scale = 0.42f, min = 63, max = 80, accel = 35 },   // 원본 5.91m → 2.5m (캡슐이 도로 반폭을 넘어 출발선에 끼던 실사고)
     };
 
     private const string TemplatePath = "Assets/Resources/말프리팹.prefab";   // 동기 설정·판 재질의 기준
@@ -57,8 +58,8 @@ public static class RacerPrefabBuilder
         if (Application.productName != "AnimalRacing") { Debug.LogError("[레이서조립] 다른 프로젝트 — 중단"); return; }
 
         var template = AssetDatabase.LoadAssetAtPath<GameObject>(TemplatePath);
-        var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Font/Pretendard SDF.asset");
-        if (template == null || font == null) { Debug.LogError("[레이서조립] 말프리팹 또는 Pretendard SDF를 못 찾음"); return; }
+        var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Font/BMJUA SDF.asset");
+        if (template == null || font == null) { Debug.LogError("[레이서조립] 말프리팹 또는 BMJUA SDF를 못 찾음"); return; }
 
         // 판 큐브의 메시/머티리얼은 말프리팹 것을 그대로 공유 (런타임 Apply가 color만 인스턴스화)
         Mesh cubeMesh = null; Material cubeMat = null;
@@ -139,7 +140,9 @@ public static class RacerPrefabBuilder
         {
             def = ScriptableObject.CreateInstance<AnimalDefinition>();
             AssetDatabase.CreateAsset(def, soPath);
+            def.skill = AnimalSkill.None;              // 신규만 깡통 — 발동 무전기는 IsActive(None)=false로 자동 거부
         }
+        // ⚠ 기존 SO의 skill/hoverFlight는 보존 — 재실행이 뒤에 붙인 스킬(얼룩말 위장 등)을 지우면 안 된다
         def.displayName = spec.korean;
         def.nameKey = spec.nameKey;
         def.prefab = saved;
@@ -147,7 +150,6 @@ public static class RacerPrefabBuilder
         def.maxSpeed = spec.max;
         def.acceleration = spec.accel;
         def.speedRerollInterval = 15f;                 // 기존 8종과 동일 (밸런스 대전제 §3-3-b)
-        def.skill = AnimalSkill.None;                  // 깡통 — 발동 무전기는 IsActive(None)=false로 자동 거부
         EditorUtility.SetDirty(def);
 
         log.Append($"  ✓ {spec.korean} — {saved.name}.prefab (스케일 {spec.scale}) / {plateInfo}\n");

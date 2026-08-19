@@ -72,7 +72,36 @@ public class BettingRoomManager : MonoBehaviour
         {
             bettingStartedAt = Time.time;
             builtLineupHash = 0;   // 라운드마다 피규어 리셋 (배치 초기화)
+            TeleportLocalToMyRoom();   // 대기실 → 자기 방 순간이동 (v21 유저 결정 — 매 라운드)
         }
+    }
+
+    /// <summary>
+    /// 베팅 시작 순간 내 아바타를 내 방 스폰 지점으로 순간이동 (v21 유저 결정 —
+    /// 대기실이 트랙 건너편으로 옮겨져 걸어가면 베팅 시간을 까먹는다).
+    /// [멀티] 각 클라가 자기 아바타만 옮긴다 — 원격 위치는 TransformView가 이미 미러. 통신 0.
+    /// </summary>
+    private void TeleportLocalToMyRoom()
+    {
+        RefreshOwners();   // 페이즈 방송이 0.5초 주기 배정보다 먼저 도착할 수 있어 즉시 갱신
+
+        if (LocalRoom == null) return;   // 매치 중 합류자 등 — 방 없으면 그대로
+        var avatar = PlayerEquipment.Local;
+        if (avatar == null) return;
+
+        // 방 안 스폰 지점 (스포너가 쓰던 RoomSpawn 재사용, 없으면 방 중앙 폴백)
+        Transform spawn = null;
+        foreach (Transform child in LocalRoom.transform)
+            if (child.name.StartsWith("RoomSpawn")) { spawn = child; break; }
+        Vector3 pos = spawn != null ? spawn.position
+                                    : LocalRoom.transform.TransformPoint(new Vector3(0f, 0.1f, -1.5f));
+        Quaternion rot = spawn != null ? spawn.rotation : LocalRoom.transform.rotation;
+
+        // CC는 켜진 채 position 대입이 씹힌다 — 끄고 옮기고 켠다
+        var cc = avatar.GetComponent<CharacterController>();
+        if (cc != null) cc.enabled = false;
+        avatar.transform.SetPositionAndRotation(pos, rot);
+        if (cc != null) cc.enabled = true;
     }
 
     private void Update()

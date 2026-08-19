@@ -42,6 +42,8 @@ public enum SfxId
     SkillDash = 52,
     SkillCatWalk = 53,
     SkillClubRush = 54,   // [인간] 몽둥이 질주 (그룹 뒷번호 — 재배치 금지)
+    SkillCamouflage = 55, // [얼룩말] 위장 (그룹 뒷번호 — 재배치 금지)
+    SkillNeckSweep = 56,  // [기린] 목 휘두르기 (그룹 뒷번호 — 재배치 금지)
 
     // ---- 베팅 방 (6x) ----
     DoorSlide = 60,

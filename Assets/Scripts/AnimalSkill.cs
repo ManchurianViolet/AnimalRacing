@@ -17,6 +17,8 @@ public enum AnimalSkill
     Dash = 6,          // 치킨: 냅다 달리기 (액티브 — 폭주)
     Apathy = 7,        // 펭귄: 무관심 (패시브 — 전 효과 면역)
     ClubRush = 8,      // 인간: 몽둥이 질주 (액티브 — 2배속 질주 + 접촉 스턴)
+    Camouflage = 9,    // 얼룩말: 위장 (액티브 — 1.5배속 + 유체화 + 반투명)
+    NeckSweep = 10,    // 기린: 목 휘두르기 (액티브 — 달리면서 목을 뻗었다 내리찍어 주변 360° 훑기, 닿으면 3초 기절)
 }
 
 public static class SkillTuning
@@ -57,11 +59,25 @@ public static class SkillTuning
     public const float ClubRushStunSeconds = 1f;
     public const float ClubRushHitRadius = 1.3f;    // 접촉 판정 반경 — 물리 충돌이 꺼져 있어 근접 판정 (§3-6)
 
+    // 얼룩말 — 위장: 15초 1.5배속 + 유체화(몸싸움·회피·몽둥이 스턴 통과) + 반투명 연출.
+    // 펭귄 상호작용: 셀프 버프라 없음 (3종 세트 정의 — 주사기/무전기 조준은 그대로 가능)
+    public const float CamouflageDuration = 15f;
+    public const float CamouflageMult = 1.5f;
+
+    // 기린 — 목 휘두르기: 목을 뻗는 예열(Windup) 뒤 훑는 동안(SpinSeconds) 반경 안 전원 기절 (StunSeconds).
+    // v22: 판정을 순간 1회 → 훑는 내내 창 판정으로 확장 (도는 원에 들어온 동물도 맞게 — 연출이 거짓말하지 않게).
+    // 펭귄 상호작용: AddEffect 관문에서 자동 면역 (포효와 동일 — 관전 피드 발행)
+    public const float NeckSweepRadius = 2.5f;        // 훑기 반경 (연출 원과 일치)
+    public const float NeckSweepStunSeconds = 3f;   // v22: 2→3초 (유저 결정. v21: 1→2)
+    public const float NeckSweepWindupSeconds = 0.8f; // 목 뻗기 예열 — 이 후에 기절 판정
+    public const float NeckSweepSpinSeconds = 1.0f;   // 360도 회전 연출 시간 (판정과 무관)
+
     /// <summary>액티브 스킬(무전기 발동 가능) 여부 — 조준 UI/발사 차단/호스트 검증의 공통 기준.</summary>
     public static bool IsActive(AnimalSkill s) =>
         s == AnimalSkill.Roar || s == AnimalSkill.Rudolph
         || s == AnimalSkill.CatWalk || s == AnimalSkill.Dash
-        || s == AnimalSkill.ClubRush;
+        || s == AnimalSkill.ClubRush || s == AnimalSkill.Camouflage
+        || s == AnimalSkill.NeckSweep;
 
     /// <summary>안내판/타임라인용 표기. [로컬라이제이션] 문구는 strings.csv의 skill.name.* / skill.desc.*</summary>
     public static string DisplayName(AnimalSkill s) => s switch
@@ -74,6 +90,8 @@ public static class SkillTuning
         AnimalSkill.Dash        => Loc.Get("skill.name.dash"),
         AnimalSkill.Apathy      => Loc.Get("skill.name.apathy"),
         AnimalSkill.ClubRush    => Loc.Get("skill.name.clubrush"),
+        AnimalSkill.Camouflage  => Loc.Get("skill.name.camouflage"),
+        AnimalSkill.NeckSweep   => Loc.Get("skill.name.necksweep"),
         _ => "-"
     };
 
@@ -87,6 +105,8 @@ public static class SkillTuning
         AnimalSkill.Dash        => Loc.Get("skill.desc.dash"),
         AnimalSkill.Apathy      => Loc.Get("skill.desc.apathy"),
         AnimalSkill.ClubRush    => Loc.Get("skill.desc.clubrush"),
+        AnimalSkill.Camouflage  => Loc.Get("skill.desc.camouflage"),
+        AnimalSkill.NeckSweep   => Loc.Get("skill.desc.necksweep"),
         _ => Loc.Get("skill.none")
     };
 }

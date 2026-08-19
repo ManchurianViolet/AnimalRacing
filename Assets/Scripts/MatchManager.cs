@@ -147,10 +147,13 @@ public class MatchManager : MonoBehaviour
             yield return new WaitForSeconds(config.resultSeconds);
         }
 
+        // [v22] 매치 종료 = 시상식 → 방 해산 (대기실 복귀 루프 폐기 — 유저 결정).
+        // 타이틀 이탈은 CeremonyDirector가 각 클라 로컬 타이머로 수행 (호스트는 1초 늦게 나가
+        // 게스트가 방장 승계 AbortMatch에 휘말리지 않게 한다).
         IsMatchRunning = false;
         GameEvents.RaiseMatchEnded();
-        gm.SetPhase(GamePhase.Lobby);
-        PhaseEndTime = 0f;
+        gm.SetPhase(GamePhase.Ceremony);
+        PhaseEndTime = Time.time + config.ceremonyShowSeconds + config.ceremonyExitSeconds;
     }
 
     /// <summary>

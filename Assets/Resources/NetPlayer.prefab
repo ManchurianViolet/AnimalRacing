@@ -334,7 +334,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -4621484808779741411, guid: dd2808cb1a091ef40b17f1a3550b93ee, type: 2}
+  - {fileID: 7355015404605309563, guid: d554dc730e76b1540acd9023e2d7d03f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -380,8 +380,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: JEbi
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: dd2808cb1a091ef40b17f1a3550b93ee, type: 2}
-  m_sharedMaterial: {fileID: -4621484808779741411, guid: dd2808cb1a091ef40b17f1a3550b93ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: d554dc730e76b1540acd9023e2d7d03f, type: 2}
+  m_sharedMaterial: {fileID: 7355015404605309563, guid: d554dc730e76b1540acd9023e2d7d03f, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

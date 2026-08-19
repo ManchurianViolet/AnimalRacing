@@ -49,6 +49,7 @@ public class Racer : MonoBehaviour
     private bool flightRequested;       // 사슴: 모터에게 비행 개시 요청 (다음 FixedUpdate)
     private float catWalkRemaining;     // 고양이: 코너 감속 무시 잔여 (초)
     private float clubRushRemaining;    // 인간: 몽둥이 질주 잔여 (초)
+    private float camouflageRemaining;  // 얼룩말: 위장 잔여 (초)
 
     /// <summary>[사슴] 루돌프 비행 중 — 이동은 모터의 스크립트 궤적, 모든 효과 면역.</summary>
     public bool IsFlying { get; private set; }
@@ -57,6 +58,10 @@ public class Racer : MonoBehaviour
 
     /// <summary>[인간] 몽둥이 질주 지속 중 — RaceManager가 접촉 스턴을 판정한다.</summary>
     public bool ClubRushActive => clubRushRemaining > 0f;
+
+    /// <summary>[얼룩말] 위장 유체화 중 — 몸싸움 스프링/회피/몽둥이 스턴에서 제외 (서로 통과).
+    /// 물리 충돌은 원래 전면 오프(§3-6)라 실질 의미는 모터 몸싸움 로직 제외다. 조준(콜라이더)은 유지.</summary>
+    public bool IsGhost => camouflageRemaining > 0f;
 
     public float ProgressRatio => Progress / Mathf.Max(1f, trackLength);
     public bool IsStunned
@@ -185,6 +190,7 @@ public class Racer : MonoBehaviour
         IsFlying = false;
         catWalkRemaining = 0f;
         clubRushRemaining = 0f;
+        camouflageRemaining = 0f;
         activeTriggerRatio = Random.Range(SkillTuning.ActiveMinRatio, SkillTuning.ActiveMaxRatio);
     }
 
@@ -229,6 +235,14 @@ public class Racer : MonoBehaviour
                         SkillTuning.ClubRushDuration, SkillTuning.ClubRushMult));
                     GameEvents.RaiseSkillEvent(SkillFeedEvent.ClubRush, RacerId);
                     break;
+
+                case AnimalSkill.Camouflage:
+                    activeConsumed = true;
+                    camouflageRemaining = SkillTuning.CamouflageDuration;
+                    effects.Add(new StatusEffect(StatusEffectType.Boost,
+                        SkillTuning.CamouflageDuration, SkillTuning.CamouflageMult));
+                    GameEvents.RaiseSkillEvent(SkillFeedEvent.Camouflage, RacerId);
+                    break;
             }
         }
 
@@ -237,6 +251,9 @@ public class Racer : MonoBehaviour
 
         // [인간] 몽둥이 질주 잔여 시간 — 접촉 스턴 판정은 RaceManager(전역 시야)가 이 플래그로 처리
         if (clubRushRemaining > 0f) clubRushRemaining -= dt;
+
+        // [얼룩말] 위장 잔여 시간 — 유체화(IsGhost)는 모터/몽둥이 판정이 이 플래그로 처리
+        if (camouflageRemaining > 0f) camouflageRemaining -= dt;
 
         // 상태이상 갱신
         for (int i = effects.Count - 1; i >= 0; i--)

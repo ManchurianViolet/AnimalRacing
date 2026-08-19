@@ -36,6 +36,14 @@ public class RaceManager : MonoBehaviour
 
     private void HandlePhase(GamePhase phase)
     {
+        // [v22] 시상식: 무대(출발선 앞)가 완주 산개 동물로 어질러져 있으므로 전원 제거.
+        // 호스트의 PhotonNetwork.Destroy가 전 클라에 전파 — 클라는 잔재 정리만.
+        if (phase == GamePhase.Ceremony)
+        {
+            if (IsAuthority) DespawnRacers();
+            else racers.RemoveAll(r => r == null);
+        }
+
         if (phase == GamePhase.Betting)
         {
             if (IsAuthority) SpawnRacers();
@@ -63,7 +71,8 @@ public class RaceManager : MonoBehaviour
         }
     }
 
-    private void SpawnRacers()
+    /// <summary>[호스트] 지난 판 동물 전원 제거 — 새 라운드 스폰 직전과 시상식 진입 시 공용.</summary>
+    private void DespawnRacers()
     {
         foreach (var r in racers)
         {
@@ -77,6 +86,11 @@ public class RaceManager : MonoBehaviour
         lineup.Clear();
         nextFinishRank = 1;
         eliminatedCount = 0;
+    }
+
+    private void SpawnRacers()
+    {
+        DespawnRacers();
 
         var picks = Enumerable.Range(0, animalPool.Length).OrderBy(_ => Random.value).ToList();
         while (picks.Count < config.racerCount)
@@ -366,6 +380,30 @@ public class RaceManager : MonoBehaviour
             catFx.Init(racer, config);
         }
 
+        // [비둘기] 이동 = 비행 호버 — 위치 변화 기반 로컬 연출, 클라도 통신 0
+        if (racer.Definition != null && racer.Definition.hoverFlight)
+        {
+            var hoverFx = go.GetComponent<HoverFlightFx>();
+            if (hoverFx == null) hoverFx = go.AddComponent<HoverFlightFx>();
+            hoverFx.Init(racer, config);
+        }
+
+        // [얼룩말] 위장 반투명 — 스킬 사건 중계(OnSkillEvent) 구독이라 클라도 통신 0
+        if (racer.Definition != null && racer.Definition.skill == AnimalSkill.Camouflage)
+        {
+            var camoFx = go.GetComponent<CamouflageFx>();
+            if (camoFx == null) camoFx = go.AddComponent<CamouflageFx>();
+            camoFx.Init(racer, config);
+        }
+
+        // [기린] 목 휘두르기 — 스킬 사건 중계 구독 본 연출, 클라도 통신 0
+        if (racer.Definition != null && racer.Definition.skill == AnimalSkill.NeckSweep)
+        {
+            var neckFx = go.GetComponent<NeckSweepFx>();
+            if (neckFx == null) neckFx = go.AddComponent<NeckSweepFx>();
+            neckFx.Init(racer, config);
+        }
+
         // [인간] 몽둥이 질주 — 발동하면 오른손에 몽둥이 (피드 구독이라 클라도 통신 0)
         if (racer.Definition != null && racer.Definition.skill == AnimalSkill.ClubRush)
         {
@@ -439,9 +477,17 @@ public class RaceManager : MonoBehaviour
             if (c.enabled) c.material = frictionlessMat;
     }
 
+    // [기린] 목 휘두르기 대기열 (발동 → Windup 예열 → Spin 동안 창 판정)
+    // v22: 판정을 "예열 끝 순간 1회" → "훑는 내내(SpinSeconds)"로 확장 — 순간 판정은
+    // 훑는 도중 원 안에 들어온 동물을 놓쳐 연출이 거짓말했다 (사슴 미적중 실사고).
+    // 한 번의 훑기에 같은 동물은 1회만 (sweepHit — 펭귄 면역 피드 스팸 방지 겸용).
+    private readonly System.Collections.Generic.List<Racer> sweepPending = new();
+    private readonly System.Collections.Generic.List<float> sweepTimers = new();
+    private readonly System.Collections.Generic.List<System.Collections.Generic.HashSet<Racer>> sweepHit = new();
+
     /// <summary>
     /// 전역 시야가 필요한 스킬 처리 (매 시뮬 틱, 호스트 전용):
-    /// [개] 꼴등 판정 세팅, [호랑이] 포효 발동 (자신 제외 전원 감속).
+    /// [개] 꼴등 판정 세팅, [호랑이] 포효 발동 (자신 제외 전원 감속), [기린] 목 휘두르기.
     /// </summary>
     private void UpdateSkillContext()
     {
@@ -474,6 +520,52 @@ public class RaceManager : MonoBehaviour
             }
         }
 
+        // [기린] 목 휘두르기 — 발동 즉시 연출 중계(전 클라 목 뻗기 시작), 기절 판정은
+        // 예열(Windup)이 끝나 "훑는 순간"에 1회 (연출과 판정 타이밍 일치 — 연출이 거짓말 X)
+        foreach (var giraffe in racers)
+        {
+            if (giraffe == null) continue;
+            if (!giraffe.TryConsumeActive(AnimalSkill.NeckSweep)) continue;
+            GameEvents.RaiseSkillEvent(SkillFeedEvent.NeckSweep, giraffe.RacerId);
+            sweepPending.Add(giraffe);
+            sweepTimers.Add(SkillTuning.NeckSweepWindupSeconds);
+            sweepHit.Add(new System.Collections.Generic.HashSet<Racer>());
+        }
+        for (int i = sweepPending.Count - 1; i >= 0; i--)
+        {
+            sweepTimers[i] -= Time.deltaTime;
+            var giraffe = sweepPending[i];
+
+            // 훑기(Spin)까지 끝났거나 기린이 사라졌으면 대기열에서 제거
+            if (giraffe == null || giraffe.HasFinished ||
+                sweepTimers[i] <= -SkillTuning.NeckSweepSpinSeconds)
+            {
+                sweepPending.RemoveAt(i);
+                sweepTimers.RemoveAt(i);
+                sweepHit.RemoveAt(i);
+                continue;
+            }
+            if (sweepTimers[i] > 0f) continue;   // 아직 예열 (목 뻗는 중)
+
+            // 훑는 동안(음수 구간 = SpinSeconds) 매 틱 판정 — 도는 원 안에 들어온 동물도 맞는다
+            foreach (var other in racers)
+            {
+                if (other == null || other == giraffe || other.HasFinished) continue;
+                if (sweepHit[i].Contains(other)) continue;   // 한 훑기에 1회만
+                if (other.IsGhost) continue;   // 위장 유체는 목이 몸을 통과한다
+                Vector3 d = other.transform.position - giraffe.transform.position;
+                d.y = 0f;
+                if (d.sqrMagnitude > SkillTuning.NeckSweepRadius * SkillTuning.NeckSweepRadius) continue;
+
+                sweepHit[i].Add(other);   // 면역자도 기록 — 펭귄 피드가 틱마다 도배되지 않게
+                other.AddEffect(new StatusEffect(StatusEffectType.Stun,
+                    SkillTuning.NeckSweepStunSeconds, 0f));
+                // 펭귄/비행 사슴은 관문에서 튕김 — 펭귄만 관전 재미로 피드 (포효와 동일)
+                if (other.Definition.skill == AnimalSkill.Apathy)
+                    GameEvents.RaiseSkillEvent(SkillFeedEvent.PenguinIgnore, other.RacerId);
+            }
+        }
+
         // [인간] 몽둥이 질주 접촉 스턴 — 동물끼리 물리 충돌이 꺼져 있어(§3-6) 근접 판정으로.
         // 매 틱 반경 안의 동물에 1초 스턴을 리필 — 나란히 달리는 동안은 계속 잡혀 있다가
         // 인간(2배속)이 지나가면 1초 뒤 풀리는 그림. 펭귄은 AddEffect 관문에서 자동 면역.
@@ -483,6 +575,7 @@ public class RaceManager : MonoBehaviour
             foreach (var other in racers)
             {
                 if (other == null || other == human || other.HasFinished) continue;
+                if (other.IsGhost) continue;   // [얼룩말] 위장 유체 — 몽둥이가 몸을 통과한다
                 Vector3 d = other.transform.position - human.transform.position;
                 d.y = 0f;
                 if (d.sqrMagnitude > SkillTuning.ClubRushHitRadius * SkillTuning.ClubRushHitRadius) continue;

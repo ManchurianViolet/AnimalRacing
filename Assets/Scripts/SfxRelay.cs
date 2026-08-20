@@ -107,6 +107,7 @@ public class SfxRelay : MonoBehaviour
             case SkillFeedEvent.ClubRush: id = SfxId.SkillClubRush; break;
             case SkillFeedEvent.Camouflage: id = SfxId.SkillCamouflage; break;
             case SkillFeedEvent.NeckSweep: id = SfxId.SkillNeckSweep; break;
+            case SkillFeedEvent.Banana: id = SfxId.SkillBanana; break;
             default: return;   // 처형 예고·펭귄 무관심 등 나머지 사건은 소리 없음
         }
 

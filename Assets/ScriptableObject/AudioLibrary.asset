@@ -236,6 +236,12 @@ MonoBehaviour:
     pitchMin: 0.92
     pitchMax: 1.08
     maxDistance: 18
+  - id: 57
+    clips: []
+    volume: 0.7
+    pitchMin: 0.92
+    pitchMax: 1.08
+    maxDistance: 18
   bgm:
   - track: 1
     clip: {fileID: 8300000, guid: 479684ad8924e9246a7961c6fc6d9fc6, type: 3}

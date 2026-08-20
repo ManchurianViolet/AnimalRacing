@@ -232,6 +232,12 @@ public class GameConfig : ScriptableObject
     [Tooltip("투명해지고/돌아오는 페이드 시간 (초)")]
     public float camoFadeSeconds = 0.5f;
 
+    [Header("연출 — 바나나 뿌리기 (원숭이)")]
+    [Tooltip("바나나 껍질 실물 모델 (GltfBaker 산출 프리팹) — 비면 코드 생성 노란 캡슐 폴백")]
+    public GameObject bananaPeelPrefab;
+    [Tooltip("껍질의 화면상 크기 — 가장 긴 변 기준 목표 길이 (m). 관전 거리에서 읽히게 일부러 큼직하게")]
+    public float bananaVisualSize = 0.5f;
+
     [Header("연출 — 비행 호버 (비둘기 등 hoverFlight 동물)")]
     [Tooltip("이동 중 몸을 띄우는 높이 (m, 월드 기준 — 스케일된 프리팹도 자동 보정)")]
     public float hoverFlightHeight = 0.55f;

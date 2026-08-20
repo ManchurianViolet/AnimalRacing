@@ -62,9 +62,23 @@ public class RoomMonitorDetail : MonoBehaviour
         if (nameText != null) nameText.text = Loc.Format("monitor.name", id + 1, def.displayName);
         if (bodyText != null)
             bodyText.text =
-                Loc.Format("monitor.stats",
-                    def.minSpeed.ToString("F0"), def.maxSpeed.ToString("F0"), def.acceleration) +
+                Loc.Format("monitor.stats", Stars(def.SpeedStars), Stars(def.AccelStars)) +
                 $"\n\n<b>{SkillTuning.DisplayName(def.skill)}</b>\n" +
                 $"{SkillTuning.Description(def.skill)}";
+    }
+
+    /// <summary>
+    /// 별점 마크업 — 채운 별 5 - filled개까지 노랑, 나머지는 어두운 회색.
+    /// star 스프라이트는 TMP Settings 전역 기본 스프라이트 에셋(StarSprites)에서 온다 (씬 배선 0).
+    /// tint=1이라 color 태그 색이 흰 아이콘에 곱해진다 (피드 아이콘과 같은 틴트 방식).
+    /// </summary>
+    public static string Stars(int filled)
+    {
+        var sb = new System.Text.StringBuilder();
+        for (int i = 0; i < 5; i++)
+            sb.Append(i < filled
+                ? "<color=#FFD34D><sprite name=\"star\" tint=1></color>"
+                : "<color=#4E4A42><sprite name=\"star\" tint=1></color>");
+        return sb.ToString();
     }
 }

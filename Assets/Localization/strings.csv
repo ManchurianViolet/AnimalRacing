@@ -23,14 +23,14 @@ skill.name.loyalty,근성,Grit,根性,개
 skill.name.dash,냅다 달리기,Mad Dash,全力疾走,치킨
 skill.name.clubrush,몽둥이 질주,Club Rush,棍棒ダッシュ,인간 (v18)
 skill.name.apathy,무관심,Apathy,無関心,펭귄
-skill.desc.finalsprint,[패시브] 레이스 막판(85%~)에 속도 +20%,[Passive] +20% speed in the final stretch (85%+),【パッシブ】レース終盤(85%～)に速度+20%,
-skill.desc.rudolph,"[액티브] 경기 중 1회, 10초 거리의 전방 지점까지 하늘을 날아 5초 만에 도달한다","[Active] Once per race, fly to a point 10s ahead in just 5s",【アクティブ】レース中1回、10秒先の地点まで空を飛び5秒で到達,
-skill.desc.roar,"[액티브] 경기 중 1회, 포효로 자신을 제외한 전원을 5초간 50% 감속","[Active] Once per race, roar to slow everyone else by 50% for 5s",【アクティブ】レース中1回、咆哮で自分以外の全員を5秒間50%減速,
-skill.desc.catwalk,"[액티브] 경기 중 1회, 20초간 코너 감속을 무시하고 풀스피드로 코너링","[Active] Once per race, ignore corner slowdown and take corners at full speed for 20s",【アクティブ】レース中1回、20秒間コーナー減速を無視してフルスピードでコーナリング,
-skill.desc.clubrush,"[액티브] 경기 중 1회, 10초간 몽둥이를 들고 2배속으로 질주 — 부딪히는 동물은 1초간 스턴","[Active] Once per race, sprint at double speed for 10s wielding a club — animals in the way are stunned for 1s",【アクティブ】レース中1回、10秒間棍棒を持って2倍速で疾走 — ぶつかった動物は1秒スタン,인간 (v18)
-skill.desc.loyalty,[패시브] 꼴등인 동안 속도 +30% — 악착같이 따라붙는다,[Passive] +30% speed while in last place — never gives up,【パッシブ】最下位の間は速度+30% — 必死に食らいつく,
-skill.desc.dash,"[액티브] 경기 중 1회, 8초간 속도 +50% 폭주","[Active] Once per race, +50% speed rampage for 8s",【アクティブ】レース中1回、8秒間速度+50%で暴走,
-skill.desc.apathy,[패시브] 모든 스킬·아이템 효과를 무시한다,[Passive] Immune to all skill and item effects,【パッシブ】全てのスキル・アイテム効果を無視する,
+skill.desc.finalsprint,[패시브] 레이스 막판(85%~)에 [[속도 +20%]],[Passive] [[+20% speed]] in the final stretch (85%+),【パッシブ】レース終盤(85%～)に[[速度+20%]],[[...]]=노랑 강조
+skill.desc.rudolph,"[액티브] 경기 중 1회, 10초 거리의 전방 지점까지 [[하늘을 날아]] 5초 만에 도달한다","[Active] Once per race, [[fly]] to a point 10s ahead in just 5s",【アクティブ】レース中1回、10秒先の地点まで[[空を飛び]]5秒で到達,
+skill.desc.roar,"[액티브] 경기 중 1회, 포효로 자신을 제외한 전원을 5초간 [[50% 감속]]","[Active] Once per race, roar to [[slow]] everyone else by 50% for 5s",【アクティブ】レース中1回、咆哮で自分以外の全員を5秒間[[50%減速]],
+skill.desc.catwalk,"[액티브] 경기 중 1회, 20초간 [[코너 감속을 무시]]하고 풀스피드로 코너링","[Active] Once per race, [[ignore corner slowdown]] and take corners at full speed for 20s",【アクティブ】レース中1回、20秒間[[コーナー減速を無視]]してフルスピードでコーナリング,
+skill.desc.clubrush,"[액티브] 경기 중 1회, 10초간 몽둥이를 들고 [[2배속]]으로 질주 — 부딪히는 동물은 [[1초간 스턴]]","[Active] Once per race, sprint at [[double speed]] for 10s wielding a club — animals in the way are [[stunned for 1s]]",【アクティブ】レース中1回、10秒間棍棒を持って[[2倍速]]で疾走 — ぶつかった動物は[[1秒スタン]],인간 (v18)
+skill.desc.loyalty,[패시브] 꼴등인 동안 [[속도 +30%]] — 악착같이 따라붙는다,[Passive] [[+30% speed]] while in last place — never gives up,【パッシブ】最下位の間は[[速度+30%]] — 必死に食らいつく,
+skill.desc.dash,"[액티브] 경기 중 1회, 8초간 [[속도 +50%]] 폭주","[Active] Once per race, [[+50% speed]] rampage for 8s",【アクティブ】レース中1回、8秒間[[速度+50%]]で暴走,
+skill.desc.apathy,[패시브] 모든 스킬·아이템 효과를 [[무시]]한다,[Passive] [[Immune]] to all skill and item effects,【パッシブ】全てのスキル・アイテム効果を[[無視]]する,
 skill.none,스킬 없음,No skill,スキルなし,
 bet.place1,1등에 예측하기,Predict 1st place,1位に予想する,상자 조준 안내
 bet.place2,2등 이상에 예측하기,Predict 2nd or better,2位以上に予想する,
@@ -48,13 +48,10 @@ monitor.hint,"피규어를 아래 유리 상자에
 glass case below","フィギュアを下のガラスケースに
 置いてください",줄바꿈 포함
 monitor.name,{0}번  {1},#{0}  {1},{0}番  {1},스크린 제목 (공백 2칸)
-monitor.stats,"최저 속도  <b>{0}</b>
-최고 속도  <b>{1}</b>
-가속  <b>{2}</b>","Min speed  <b>{0}</b>
-Max speed  <b>{1}</b>
-Acceleration  <b>{2}</b>","最低速度  <b>{0}</b>
-最高速度  <b>{1}</b>
-加速  <b>{2}</b>",줄바꿈 포함
+monitor.stats,"속도  {0}
+가속  {1}","Speed  {0}
+Accel  {1}","速度  {0}
+加速  {1}",줄바꿈 포함 · v22 별점 표기({0}·{1}=별 스프라이트 마크업)
 item.bat,빠따,Bat,バット,HUD 슬롯 1
 item.radioskill,발동 무전기,Skill Radio,発動無線機,HUD 슬롯 4
 item.radioexec,처형 무전기,Execution Radio,処刑無線機,HUD 슬롯 5
@@ -279,13 +276,18 @@ guide.item.radioexec.desc,"조준 없이 사용하면 5초 후
 the animal currently in last place is eliminated.","照準なしで使うと5秒後に
 その時点で最下位の動物が脱落する。",
 skill.name.camouflage,위장,Camouflage,擬態,얼룩말 스킬
-skill.desc.camouflage,"15초간 몸이 희미해지며 유체가 된다.
-이동속도 50% 증가, 몸싸움과 몽둥이를 그대로 통과.","Fades to a ghost for 15 seconds.
-+50% speed, phases through jostling and club hits.","15秒間、体が薄れて幽体になる。
-移動速度50%増加、体当たりや棍棒をすり抜ける。",
+skill.desc.camouflage,"15초간 몸이 희미해지며 [[유체]]가 된다.
+[[이동속도 50% 증가]], 몸싸움과 몽둥이를 그대로 [[통과]].","Fades to a [[ghost]] for 15 seconds.
+[[+50% speed]], [[phases through]] jostling and club hits.","15秒間、体が薄れて[[幽体]]になる。
+[[移動速度50%増加]]、体当たりや棍棒を[[すり抜ける]]。",
 animal.giraffe,기린,Giraffe,キリン,신규 레이서 (v21)
 skill.name.necksweep,목 휘두르기,Neck Sweep,ネックスイープ,기린 스킬
 skill.desc.necksweep,"달리면서 목을 하늘로 쭉 뻗었다가 내리찍으며
-주변을 360도 휩쓴다. 닿은 동물은 3초 기절.","While running, stretches its neck sky-high, then swings it low
-in a full circle. Animals hit are stunned for 3s.","走りながら首を高く伸ばして振り下ろし、
-周囲を360度なぎ払う。当たった動物は3秒気絶。",
+주변을 360도 휩쓴다. 닿은 동물은 [[3초 기절]].","While running, stretches its neck sky-high, then swings it low
+in a full circle. Animals hit are [[stunned for 3s]].","走りながら首を高く伸ばして振り下ろし、
+周囲を360度なぎ払う。当たった動物は[[3秒気絶]]。",
+skill.name.banana,바나나 뿌리기,Banana Scatter,バナナまき,원숭이 스킬
+skill.desc.banana,"달리면서 바나나 껍질 5개를 길에 흩뿌린다.
+밟은 동물은 [[3초 꽈당]]. 껍질은 레이스 끝까지 남는다.","Scatters 5 banana peels on the track while running.
+Step on one and you [[slip flat for 3s]]. Peels stay until the race ends.","走りながらバナナの皮を5枚ばらまく。
+踏んだ動物は[[3秒転倒]]。皮はレース終了まで残る。",원숭이 스킬 설명

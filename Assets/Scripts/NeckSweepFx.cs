@@ -16,11 +16,17 @@ public class NeckSweepFx : MonoBehaviour
     private Racer racer;
     private GameConfig config;
     private Transform head;
-    private Transform neckBase;             // 목 밑동 — 머리에서 단일 체인을 거슬러 몸통 분기 직전 본 (기린 = spine.010)
     private Vector3 headBaseScale = Vector3.one;
     private Vector3 headBaseLocalPos;
-    private Vector3 neckBaseLocalPos;
     private float timer = -1f;   // -1 = 대기
+
+    // 목 체인 전체 (밑동 → ... → 머리). v22 재작성: 밑동 60% + 머리 100% 두 지점만 옮기던
+    // 이전 방식은 중간 목 본들이 밑동에 강체로 붙어 따라가서 머리 직전에 남은 변위를
+    // 한 번에 점프 = 목이 W자로 꺾였다 (유저 제보). 이제 체인 전 본을 "어깨→머리 목표점"
+    // 직선 위에 거리 비례로 앉혀 목이 곧은 막대기 하나로 뻗는다.
+    private Transform[] chain;
+    private Vector3[] chainBaseLocalPos;
+    private float[] chainFrac;      // 밑동 관절 = 0 ~ 머리 = 1 (바인드 자세 본 간 거리 비례)
 
     public void Init(Racer racer, GameConfig config)
     {
@@ -28,18 +34,32 @@ public class NeckSweepFx : MonoBehaviour
         this.config = config;
 
         head = FindHeadBone();
-        if (head != null)
+        if (head == null)
         {
-            headBaseScale = head.localScale;
-            headBaseLocalPos = head.localPosition;
-
-            // 목 밑동 탐색 — 머리에서 위로, 부모가 "자식 1개짜리 단일 체인"인 동안 올라간다.
-            // 분기(자식 여럿 = 어깨/몸통)를 만나면 그 직전 본이 목의 시작 (§11 — 이름 대신 구조로)
-            var t = head;
-            while (t.parent != null && t.parent.childCount == 1) t = t.parent;
-            if (t != head) { neckBase = t; neckBaseLocalPos = t.localPosition; }
+            Debug.LogWarning($"[NeckSweepFx] {name}: 머리 본을 못 찾음 (연출 생략)");
+            return;
         }
-        else Debug.LogWarning($"[NeckSweepFx] {name}: 머리 본을 못 찾음 (연출 생략)");
+        headBaseScale = head.localScale;
+        headBaseLocalPos = head.localPosition;
+
+        // 목 체인 수집 — 머리에서 위로, 부모가 "자식 1개짜리 단일 체인"인 동안 올라간다.
+        // 분기(자식 여럿 = 어깨/몸통)를 만나면 그 직전 본이 목 밑동 (§11 — 이름 대신 구조로)
+        var list = new System.Collections.Generic.List<Transform> { head };
+        var t = head;
+        while (t.parent != null && t.parent.childCount == 1) { t = t.parent; list.Add(t); }
+        list.Reverse();                                   // [0]=밑동 ... [n-1]=머리
+        chain = list.ToArray();
+
+        chainBaseLocalPos = new Vector3[chain.Length];
+        chainFrac = new float[chain.Length];
+        float total = 0f;
+        for (int i = 0; i < chain.Length; i++)
+        {
+            chainBaseLocalPos[i] = chain[i].localPosition;
+            if (i > 0) { total += chain[i].localPosition.magnitude; chainFrac[i] = total; }
+        }
+        for (int i = 1; i < chain.Length; i++)
+            chainFrac[i] = total > 1e-5f ? chainFrac[i] / total : 1f;   // 정규화 (밑동 0 ~ 머리 1)
     }
 
     // 머리 본 탐색 — RoarFx와 같은 다단 전략 (이름 → 턱의 부모 → 최심부 spine)
@@ -90,12 +110,13 @@ public class NeckSweepFx : MonoBehaviour
 
         float raise = config != null ? config.neckRaiseHeight : 1.6f;
         float sweepH = config != null ? config.neckSweepHeight : 0.7f;
-        float bendShare = config != null ? config.neckBendShare : 0.6f;
         float radius = SkillTuning.NeckSweepRadius * 0.9f;         // 연출 원 ≈ 판정 반경 (연출이 거짓말 X)
 
-        // ⚠ 밑동을 기준 자세로 먼저 리셋 — 지난 프레임에 옮겨둔 값이 남아 있으면(애니는 회전 커브만
+        // ⚠ 체인을 기준 자세로 먼저 리셋 — 지난 프레임에 옮겨둔 값이 남아 있으면(애니는 회전 커브만
         //    쓰므로 위치는 안 되돌려준다 §11) 아래 "제자리" 측정이 오염돼 변위가 눈덩이처럼 불어난다
-        if (neckBase != null) neckBase.localPosition = neckBaseLocalPos;
+        if (chain != null)
+            for (int i = 0; i < chain.Length; i++)
+                chain[i].localPosition = chainBaseLocalPos[i];
 
         // 머리 본의 "제자리" 월드 좌표 (애니 포즈 기준) — 오프셋은 여기서부터 계산
         Vector3 baseWorld = head.parent != null ? head.parent.TransformPoint(headBaseLocalPos)
@@ -132,31 +153,38 @@ public class NeckSweepFx : MonoBehaviour
             scaleK = Mathf.Lerp(1.25f, 1f, k);
         }
 
-        // 목 밑동을 변위의 일부만큼 먼저 옮긴다 — 꺾임점이 목 중간(머리 부모)이 아니라
-        // 몸통 분기점(기린 = 어깨)으로 내려온다 (v22 유저 발주). 머리는 그 뒤에 정확한
-        // 목표점으로 재계산하므로 판정 원과의 정합은 그대로다.
-        if (neckBase != null)
+        // 체인 전 본을 "어깨(밑동 관절) → 머리 목표점" 직선 위에 거리 비례로 앉힌다 —
+        // 목이 한 덩어리 막대기로 뻗는다 (유저 그림 발주). 밑동(frac 0)은 제자리라 회전축이 어깨.
+        // 머리(frac 1)는 정확히 목표점이므로 기절 판정 원과의 정합은 그대로다.
+        // 적용은 밑동→머리 순서 — 부모를 먼저 확정해야 자식의 로컬 변환이 맞는다.
+        if (chain != null && chain.Length >= 2)
         {
-            Vector3 disp = (desired - baseWorld) * bendShare;
-            neckBase.localPosition = neckBaseLocalPos + (neckBase.parent != null
-                ? neckBase.parent.InverseTransformVector(disp)
-                : disp);
+            Vector3 anchor = chain[0].position;            // 리셋 직후 = 애니 포즈의 밑동 관절
+            for (int i = 1; i < chain.Length; i++)
+            {
+                Vector3 target = Vector3.Lerp(anchor, desired, chainFrac[i]);
+                chain[i].localPosition = chain[i].parent != null
+                    ? chain[i].parent.InverseTransformPoint(target)
+                    : target;
+            }
         }
-
-        head.localPosition = head.parent != null
-            ? head.parent.InverseTransformPoint(desired)
-            : desired;
+        else
+        {
+            // 폴백 (체인이 머리뿐인 리그): 머리만 목표점으로
+            head.localPosition = head.parent != null
+                ? head.parent.InverseTransformPoint(desired)
+                : desired;
+        }
         head.localScale = headBaseScale * scaleK;
     }
 
     private void ResetHead()
     {
         timer = -1f;
-        if (head != null)
-        {
-            head.localPosition = headBaseLocalPos;
-            head.localScale = headBaseScale;
-        }
-        if (neckBase != null) neckBase.localPosition = neckBaseLocalPos;
+        if (head != null) head.localScale = headBaseScale;
+        if (chain != null)
+            for (int i = 0; i < chain.Length; i++)
+                chain[i].localPosition = chainBaseLocalPos[i];
+        else if (head != null) head.localPosition = headBaseLocalPos;
     }
 }

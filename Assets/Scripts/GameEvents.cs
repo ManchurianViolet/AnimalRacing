@@ -65,6 +65,8 @@ public enum SkillFeedEvent : byte
     ClubHit = 8,         // [인간] 몽둥이 명중 — 스윙 연출+타격음용, 피드 없음 (racerId = 때린 인간)
     Camouflage = 9,      // [얼룩말] 위장 (racerId = 얼룩말 — 반투명 연출/스킬음용)
     NeckSweep = 10,      // [기린] 목 휘두르기 (racerId = 기린 — 목 연출/스킬음용)
+    Banana = 11,         // [원숭이] 바나나 뿌리기 (racerId = 원숭이 — 투척 연출/스킬음/피드)
+    BananaSlip = 12,     // [원숭이] 껍질 밟힘 — 클라가 희생자 근처 시각 껍질 제거용, 피드 없음 (racerId = 밟은 동물)
 }
 
 /// <summary>아이템 사용 거절 사유 — 개인 RPC로 byte 하나. 표시 문구는 수신 클라가 Loc로 조립.</summary>

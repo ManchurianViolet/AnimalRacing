@@ -133,6 +133,7 @@ public class TimelineFeed : MonoBehaviour
             case SkillFeedEvent.ClubRush:
             case SkillFeedEvent.Camouflage:
             case SkillFeedEvent.NeckSweep:
+            case SkillFeedEvent.Banana:
                 // 무전기 발동분 억제 — 지연 5초(radioDelaySeconds) + 여유
                 if (radioSkillUsedAt.TryGetValue(rid, out float usedAt))
                 {

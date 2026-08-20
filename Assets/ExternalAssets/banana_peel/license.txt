@@ -1,0 +1,11 @@
+Model Information:
+* title:	Banana Peel
+* source:	https://sketchfab.com/3d-models/banana-peel-c05c98f523df45b78d50913b4917e9fe
+* author:	Sofia Echeverri (https://sketchfab.com/sofiaecheverri)
+
+Model License:
+* license type:	CC-BY-SA-4.0 (http://creativecommons.org/licenses/by-sa/4.0/)
+* requirements:	Author must be credited. Modified versions must have the same license. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Banana Peel" (https://sketchfab.com/3d-models/banana-peel-c05c98f523df45b78d50913b4917e9fe) by Sofia Echeverri (https://sketchfab.com/sofiaecheverri) licensed under CC-BY-SA-4.0 (http://creativecommons.org/licenses/by-sa/4.0/)

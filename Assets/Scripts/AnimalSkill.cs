@@ -19,6 +19,7 @@ public enum AnimalSkill
     ClubRush = 8,      // 인간: 몽둥이 질주 (액티브 — 2배속 질주 + 접촉 스턴)
     Camouflage = 9,    // 얼룩말: 위장 (액티브 — 1.5배속 + 유체화 + 반투명)
     NeckSweep = 10,    // 기린: 목 휘두르기 (액티브 — 달리면서 목을 뻗었다 내리찍어 주변 360° 훑기, 닿으면 3초 기절)
+    Banana = 11,       // 원숭이: 바나나 뿌리기 (액티브 — 뒤로 껍질 5개 투척, 밟으면 3초 꽈당, 껍질은 레이스 끝까지 잔존)
 }
 
 public static class SkillTuning
@@ -71,13 +72,33 @@ public static class SkillTuning
     public const float NeckSweepStunSeconds = 3f;   // v22: 2→3초 (유저 결정. v21: 1→2)
     public const float NeckSweepWindupSeconds = 0.8f; // 목 뻗기 예열 — 이 후에 기절 판정
     public const float NeckSweepSpinSeconds = 1.0f;   // 360도 회전 연출 시간 (판정과 무관)
+    // 시전 유체화 — 재운 동물들이 일어날 때까지(예열+기절+여유) 시체 벽을 통과해 계속 달린다.
+    // 없으면 밀집 발동 때 기린이 자기가 만든 시체 더미에 갇혀 2초쯤 같이 멈추는 실사고(v22 실측 0.0m/s)
+    public const float NeckSweepGhostSeconds = NeckSweepWindupSeconds + NeckSweepStunSeconds + 0.5f;
+
+    // 원숭이 — 바나나 뿌리기: 발동하면 SpreadSeconds 동안 뒤로 껍질 Count개 투척, 트랙에 잔존.
+    // 밟으면(TriggerRadius) StunSeconds 꽈당(기존 스턴 눕기 연출 자동). 밟힌 껍질은 소멸
+    // (같은 자리 무한 연쇄 기절 방지), 안 밟힌 껍질은 레이스 끝까지 남는다 (유저 확정).
+    // 주인 면역 없음(v22) — 껍질이 1.2m 뒤에 떨어져 던질 땐 안전하고, 한 바퀴 돌아와
+    // 자기 껍질에 자빠지는 건 의도된 개그. 위장 유체·비행 중 사슴은 통과. 펭귄: 안 미끄러짐 + 피드 1회.
+    // 투척 위치는 인덱스 결정적(BananaLocalOffset) — 호스트 판정과 클라 연출이 같은 함수를 써서
+    // 통신 0으로 그림이 일치한다 (부스트 먼지 철학).
+    public const int BananaCount = 5;
+    public const float BananaSpreadSeconds = 2.0f;   // 껍질 5개를 이 시간에 걸쳐 투척
+    public const float BananaStunSeconds = 3f;       // 꽈당 시간 (v22: 2→3초 유저 결정)
+    public const float BananaTriggerRadius = 0.55f;  // 밟힘 판정 반경
+
+    // 투척 로컬 오프셋 (원숭이 기준: -z=뒤, x=좌우) — 레인 폭을 가로질러 흩뿌려 병렬 추격자도 걸리게
+    private static readonly float[] BananaLateral = { 0f, -0.6f, 0.6f, -0.3f, 0.3f };
+    public static UnityEngine.Vector3 BananaLocalOffset(int index) =>
+        new UnityEngine.Vector3(BananaLateral[index % BananaLateral.Length], 0f, -1.2f);
 
     /// <summary>액티브 스킬(무전기 발동 가능) 여부 — 조준 UI/발사 차단/호스트 검증의 공통 기준.</summary>
     public static bool IsActive(AnimalSkill s) =>
         s == AnimalSkill.Roar || s == AnimalSkill.Rudolph
         || s == AnimalSkill.CatWalk || s == AnimalSkill.Dash
         || s == AnimalSkill.ClubRush || s == AnimalSkill.Camouflage
-        || s == AnimalSkill.NeckSweep;
+        || s == AnimalSkill.NeckSweep || s == AnimalSkill.Banana;
 
     /// <summary>안내판/타임라인용 표기. [로컬라이제이션] 문구는 strings.csv의 skill.name.* / skill.desc.*</summary>
     public static string DisplayName(AnimalSkill s) => s switch
@@ -92,21 +113,33 @@ public static class SkillTuning
         AnimalSkill.ClubRush    => Loc.Get("skill.name.clubrush"),
         AnimalSkill.Camouflage  => Loc.Get("skill.name.camouflage"),
         AnimalSkill.NeckSweep   => Loc.Get("skill.name.necksweep"),
+        AnimalSkill.Banana      => Loc.Get("skill.name.banana"),
         _ => "-"
     };
 
-    public static string Description(AnimalSkill s) => s switch
+    // 스킬 설명의 [[단어]] 마커 → 노랑 강조 (감속/기절/가속/투명화 등 효과 단어 — 유저 결정 v22).
+    // 색은 여기 한 곳이 단일 출처 — CSV엔 색 코드 대신 [[...]]만 심는다 (번역 시에도 마커만 유지).
+    public const string EmphColor = "#FFD34D";   // HUD 별점과 같은 앰버 톤
+    private static string Emph(string s) =>
+        s.Replace("[[", "<color=" + EmphColor + ">").Replace("]]", "</color>");
+
+    public static string Description(AnimalSkill s)
     {
-        AnimalSkill.FinalSprint => Loc.Get("skill.desc.finalsprint"),
-        AnimalSkill.Rudolph     => Loc.Get("skill.desc.rudolph"),
-        AnimalSkill.Roar        => Loc.Get("skill.desc.roar"),
-        AnimalSkill.CatWalk     => Loc.Get("skill.desc.catwalk"),
-        AnimalSkill.Loyalty     => Loc.Get("skill.desc.loyalty"),
-        AnimalSkill.Dash        => Loc.Get("skill.desc.dash"),
-        AnimalSkill.Apathy      => Loc.Get("skill.desc.apathy"),
-        AnimalSkill.ClubRush    => Loc.Get("skill.desc.clubrush"),
-        AnimalSkill.Camouflage  => Loc.Get("skill.desc.camouflage"),
-        AnimalSkill.NeckSweep   => Loc.Get("skill.desc.necksweep"),
-        _ => Loc.Get("skill.none")
-    };
+        string raw = s switch
+        {
+            AnimalSkill.FinalSprint => Loc.Get("skill.desc.finalsprint"),
+            AnimalSkill.Rudolph     => Loc.Get("skill.desc.rudolph"),
+            AnimalSkill.Roar        => Loc.Get("skill.desc.roar"),
+            AnimalSkill.CatWalk     => Loc.Get("skill.desc.catwalk"),
+            AnimalSkill.Loyalty     => Loc.Get("skill.desc.loyalty"),
+            AnimalSkill.Dash        => Loc.Get("skill.desc.dash"),
+            AnimalSkill.Apathy      => Loc.Get("skill.desc.apathy"),
+            AnimalSkill.ClubRush    => Loc.Get("skill.desc.clubrush"),
+            AnimalSkill.Camouflage  => Loc.Get("skill.desc.camouflage"),
+            AnimalSkill.NeckSweep   => Loc.Get("skill.desc.necksweep"),
+            AnimalSkill.Banana      => Loc.Get("skill.desc.banana"),
+            _ => Loc.Get("skill.none")
+        };
+        return Emph(raw);
+    }
 }

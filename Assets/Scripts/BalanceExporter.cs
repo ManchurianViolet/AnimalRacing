@@ -52,6 +52,8 @@ public static class BalanceExporter
         public float dashDuration, dashMult;
         public float camouflageDuration, camouflageMult;
         public float neckSweepRadius, neckSweepStunSeconds, neckSweepWindupSeconds;
+        public int bananaCount;
+        public float bananaStunSeconds, bananaTriggerRadius;
     }
 
     [System.Serializable]
@@ -174,6 +176,9 @@ public static class BalanceExporter
                 neckSweepRadius = SkillTuning.NeckSweepRadius,
                 neckSweepStunSeconds = SkillTuning.NeckSweepStunSeconds,
                 neckSweepWindupSeconds = SkillTuning.NeckSweepWindupSeconds,
+                bananaCount = SkillTuning.BananaCount,
+                bananaStunSeconds = SkillTuning.BananaStunSeconds,
+                bananaTriggerRadius = SkillTuning.BananaTriggerRadius,
             },
         };
 

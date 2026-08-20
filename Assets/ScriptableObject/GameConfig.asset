@@ -109,6 +109,8 @@ MonoBehaviour:
   neckBendShare: 0.6
   camoAlpha: 0.18
   camoFadeSeconds: 0.5
+  bananaPeelPrefab: {fileID: 946195520967672160, guid: d84a196b940276a42b9fec97ff79a49f, type: 3}
+  bananaVisualSize: 0.5
   hoverFlightHeight: 0.55
   hoverFlightBlendSeconds: 0.5
   hoverFlightMinSpeed: 1.5

@@ -169,7 +169,7 @@ MonoBehaviour:
     dimension: 1
   bloomIntensity:
     m_OverrideState: 1
-    m_Value: 0.18
+    m_Value: 0.16
   bloomThreshold:
     m_OverrideState: 0
     m_Value: 0
@@ -663,7 +663,7 @@ MonoBehaviour:
     m_Value: {fileID: 0}
     dimension: 1
   outline:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 1
   outlineColor:
     m_OverrideState: 1

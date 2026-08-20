@@ -61,6 +61,25 @@ public class AnimalDefinition : ScriptableObject
     [Tooltip("이동을 비행으로 연기 (비둘기) — 컨트롤러의 Walk/Run 자리에 Fly 클립이 구워져 있고(AnimalControllerBaker의 FlyMovers), 달리는 동안 HoverFlightFx가 몸을 띄운다. 높이 등 튜닝은 GameConfig '연출 — 비행 호버'")]
     public bool hoverFlight = false;
 
+    // ---- 별점 (표시용 단일 출처 — v22 스탯 표기 리뉴얼, 유저 결정) ----
+    // 속도 별 = (최저+최고)/2 평균 기준. 밸런스상 전 동물 평균이 69~74에 몰려 있어
+    // 구간을 촘촘히 잡았다 — 현 15종이 대부분 2~4성에 분포하도록 (1·5성은 극단값 예비).
+    public int SpeedStars
+    {
+        get
+        {
+            float avg = MedianSpeed;
+            if (avg < 66f) return 1;
+            if (avg < 71f) return 2;
+            if (avg < 73f) return 3;
+            if (avg < 75f) return 4;
+            return 5;
+        }
+    }
+
+    // 가속 별 = 0~100을 20 단위 균등 분할로 1~5성 (~20→1 / ~40→2 / ~60→3 / ~80→4 / 81+→5)
+    public int AccelStars => Mathf.Clamp(1 + (acceleration - 1) / 20, 1, 5);
+
     // ---- 변환 프로퍼티 (게임 내부는 전부 이걸 사용) ----
     public float MinSpeedMs => minSpeed * SpeedUnitToMs;
     public float MaxSpeedMs => maxSpeed * SpeedUnitToMs;

@@ -50,6 +50,7 @@ public class Racer : MonoBehaviour
     private float catWalkRemaining;     // 고양이: 코너 감속 무시 잔여 (초)
     private float clubRushRemaining;    // 인간: 몽둥이 질주 잔여 (초)
     private float camouflageRemaining;  // 얼룩말: 위장 잔여 (초)
+    private float sweepGhostRemaining;  // 기린: 목 휘두르기 시전 중 유체화 잔여 (초) — 재운 시체 더미에 갇히지 않게
 
     /// <summary>[사슴] 루돌프 비행 중 — 이동은 모터의 스크립트 궤적, 모든 효과 면역.</summary>
     public bool IsFlying { get; private set; }
@@ -59,9 +60,13 @@ public class Racer : MonoBehaviour
     /// <summary>[인간] 몽둥이 질주 지속 중 — RaceManager가 접촉 스턴을 판정한다.</summary>
     public bool ClubRushActive => clubRushRemaining > 0f;
 
-    /// <summary>[얼룩말] 위장 유체화 중 — 몸싸움 스프링/회피/몽둥이 스턴에서 제외 (서로 통과).
-    /// 물리 충돌은 원래 전면 오프(§3-6)라 실질 의미는 모터 몸싸움 로직 제외다. 조준(콜라이더)은 유지.</summary>
-    public bool IsGhost => camouflageRemaining > 0f;
+    /// <summary>[얼룩말 위장 / 기린 목 휘두르기] 유체화 중 — 몸싸움 스프링/회피/몽둥이 스턴에서 제외 (서로 통과).
+    /// 물리 충돌은 원래 전면 오프(§3-6)라 실질 의미는 모터 몸싸움 로직 제외다. 조준(콜라이더)은 유지.
+    /// 기린은 시전 창 동안만 — 주변 전원을 재우면 쓰러진 몸들이 벽이 돼 기린이 갇혀 멈추던 실사고(v22).</summary>
+    public bool IsGhost => camouflageRemaining > 0f || sweepGhostRemaining > 0f;
+
+    /// <summary>[기린] 목 휘두르기 시전 유체화 개시 — RaceManager가 발동 순간 호출.</summary>
+    public void BeginSweepGhost(float seconds) => sweepGhostRemaining = seconds;
 
     public float ProgressRatio => Progress / Mathf.Max(1f, trackLength);
     public bool IsStunned
@@ -191,6 +196,7 @@ public class Racer : MonoBehaviour
         catWalkRemaining = 0f;
         clubRushRemaining = 0f;
         camouflageRemaining = 0f;
+        sweepGhostRemaining = 0f;
         activeTriggerRatio = Random.Range(SkillTuning.ActiveMinRatio, SkillTuning.ActiveMaxRatio);
     }
 
@@ -254,6 +260,9 @@ public class Racer : MonoBehaviour
 
         // [얼룩말] 위장 잔여 시간 — 유체화(IsGhost)는 모터/몽둥이 판정이 이 플래그로 처리
         if (camouflageRemaining > 0f) camouflageRemaining -= dt;
+
+        // [기린] 시전 유체화 잔여 시간 — 재운 동물들이 일어날 때까지 시체 벽을 통과해 계속 달린다
+        if (sweepGhostRemaining > 0f) sweepGhostRemaining -= dt;
 
         // 상태이상 갱신
         for (int i = effects.Count - 1; i >= 0; i--)

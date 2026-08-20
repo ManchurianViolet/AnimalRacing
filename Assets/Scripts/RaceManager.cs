@@ -86,18 +86,24 @@ public class RaceManager : MonoBehaviour
         lineup.Clear();
         nextFinishRank = 1;
         eliminatedCount = 0;
+        // [원숭이] 지난 레이스의 바나나 정리 (시각 껍질은 BananaTrailFx가 자기 소멸 때 정리)
+        bananaDroppers.Clear(); bananaDropTimers.Clear(); bananaDropCounts.Clear();
+        bananas.Clear(); bananaFed.Clear();
     }
 
     private void SpawnRacers()
     {
         DespawnRacers();
 
-        var picks = Enumerable.Range(0, animalPool.Length).OrderBy(_ => Random.value).ToList();
-        while (picks.Count < config.racerCount)
-            picks.Add(Random.Range(0, animalPool.Length));
-        picks = picks.Take(config.racerCount).OrderBy(_ => Random.value).ToList();
+        // 풀에서 중복 없이 racerCount만큼 추첨 — 중복 출전 제도는 폐지 (v22 유저 결정, 풀 15종 ≥ 출전 9).
+        // 풀이 모자라면 채우지 않고 풀 크기만큼만 스폰 + 에러 로그 (조용한 중복 부활 방지)
+        var picks = Enumerable.Range(0, animalPool.Length).OrderBy(_ => Random.value)
+            .Take(config.racerCount).ToList();
+        int spawnCount = picks.Count;
+        if (spawnCount < config.racerCount)
+            Debug.LogError($"[RaceManager] animalPool({animalPool.Length}종)이 racerCount({config.racerCount})보다 적다 — {spawnCount}마리만 스폰");
 
-        for (int i = 0; i < config.racerCount; i++)
+        for (int i = 0; i < spawnCount; i++)
         {
             var def = animalPool[picks[i]];
             lineup.Add(def);
@@ -411,6 +417,14 @@ public class RaceManager : MonoBehaviour
             if (clubFx == null) clubFx = go.AddComponent<ClubRushFx>();
             clubFx.Init(racer, config);
         }
+
+        // [원숭이] 바나나 뿌리기 — 시각 껍질 투척/제거 (스킬 사건 중계 구독, 클라도 통신 0)
+        if (racer.Definition != null && racer.Definition.skill == AnimalSkill.Banana)
+        {
+            var bananaFx = go.GetComponent<BananaTrailFx>();
+            if (bananaFx == null) bananaFx = go.AddComponent<BananaTrailFx>();
+            bananaFx.Init(racer, config);
+        }
     }
 
     /// <summary>
@@ -485,6 +499,17 @@ public class RaceManager : MonoBehaviour
     private readonly System.Collections.Generic.List<float> sweepTimers = new();
     private readonly System.Collections.Generic.List<System.Collections.Generic.HashSet<Racer>> sweepHit = new();
 
+    // [원숭이] 바나나 뿌리기 — 투척 스케줄(droppers) + 트랙 잔존 껍질(bananas, 호스트 판정 좌표).
+    // 투척 시각·오프셋은 SkillTuning의 결정적 함수라 클라 연출(BananaTrailFx)과 통신 0으로 일치.
+    // 밟힌 껍질은 소멸(연쇄 기절 방지), 나머지는 레이스 끝까지 잔존 — 스폰 때 일괄 정리.
+    // 주인 면역 없음(v22 유저 결정 — 풀 15종·중복 출전 없음): 껍질은 1.2m 뒤에 떨어져 던질 땐
+    // 안 밟히고, 한 바퀴 돌아와 자기 껍질에 자빠지는 자멸 개그는 의도된 그림.
+    private readonly System.Collections.Generic.List<Racer> bananaDroppers = new();
+    private readonly System.Collections.Generic.List<float> bananaDropTimers = new();
+    private readonly System.Collections.Generic.List<int> bananaDropCounts = new();
+    private readonly System.Collections.Generic.List<UnityEngine.Vector3> bananas = new();
+    private readonly System.Collections.Generic.List<System.Collections.Generic.HashSet<Racer>> bananaFed = new();
+
     /// <summary>
     /// 전역 시야가 필요한 스킬 처리 (매 시뮬 틱, 호스트 전용):
     /// [개] 꼴등 판정 세팅, [호랑이] 포효 발동 (자신 제외 전원 감속), [기린] 목 휘두르기.
@@ -527,6 +552,8 @@ public class RaceManager : MonoBehaviour
             if (giraffe == null) continue;
             if (!giraffe.TryConsumeActive(AnimalSkill.NeckSweep)) continue;
             GameEvents.RaiseSkillEvent(SkillFeedEvent.NeckSweep, giraffe.RacerId);
+            // 시전 유체화 — 자기가 재운 시체 더미에 갇혀 같이 멈추지 않게 (v22 실사고)
+            giraffe.BeginSweepGhost(SkillTuning.NeckSweepGhostSeconds);
             sweepPending.Add(giraffe);
             sweepTimers.Add(SkillTuning.NeckSweepWindupSeconds);
             sweepHit.Add(new System.Collections.Generic.HashSet<Racer>());
@@ -563,6 +590,69 @@ public class RaceManager : MonoBehaviour
                 // 펭귄/비행 사슴은 관문에서 튕김 — 펭귄만 관전 재미로 피드 (포효와 동일)
                 if (other.Definition.skill == AnimalSkill.Apathy)
                     GameEvents.RaiseSkillEvent(SkillFeedEvent.PenguinIgnore, other.RacerId);
+            }
+        }
+
+        // [원숭이] 바나나 뿌리기 — 발동 중계 + 투척 스케줄. 투척 시각/오프셋은 SkillTuning의
+        // 결정적 함수라 클라 연출과 좌표가 통신 0으로 일치한다 (부스트 먼지 철학).
+        foreach (var monkey in racers)
+        {
+            if (monkey == null) continue;
+            if (!monkey.TryConsumeActive(AnimalSkill.Banana)) continue;
+            GameEvents.RaiseSkillEvent(SkillFeedEvent.Banana, monkey.RacerId);
+            bananaDroppers.Add(monkey);
+            bananaDropTimers.Add(0f);   // 첫 개는 즉시
+            bananaDropCounts.Add(0);
+        }
+        for (int i = bananaDroppers.Count - 1; i >= 0; i--)
+        {
+            var monkey = bananaDroppers[i];
+            if (monkey == null || monkey.HasFinished || bananaDropCounts[i] >= SkillTuning.BananaCount)
+            {
+                bananaDroppers.RemoveAt(i); bananaDropTimers.RemoveAt(i); bananaDropCounts.RemoveAt(i);
+                continue;
+            }
+            bananaDropTimers[i] -= Time.deltaTime;
+            if (bananaDropTimers[i] > 0f) continue;
+            bananaDropTimers[i] += SkillTuning.BananaSpreadSeconds / SkillTuning.BananaCount;
+
+            Vector3 drop = monkey.transform.TransformPoint(
+                SkillTuning.BananaLocalOffset(bananaDropCounts[i]));
+            drop.y = monkey.transform.position.y;   // 판정은 수평 거리만 보므로 높이는 몸 기준
+            bananaDropCounts[i]++;
+            bananas.Add(drop);
+            bananaFed.Add(new System.Collections.Generic.HashSet<Racer>());
+        }
+        // 밟힘 판정 — 밟은 껍질은 소멸(같은 자리 무한 연쇄 기절 방지), 펭귄은 통과(피드 1회).
+        // 던진 원숭이도 예외 없음 — 한 바퀴 돌아와 자기 껍질에 자빠질 수 있다 (유저 결정)
+        for (int b = bananas.Count - 1; b >= 0; b--)
+        {
+            foreach (var other in racers)
+            {
+                if (other == null || other.HasFinished) continue;
+                if (other.IsGhost || other.IsFlying) continue;   // 위장 유체·비행 사슴은 통과
+                Vector3 d = other.transform.position - bananas[b];
+                d.y = 0f;
+                if (d.sqrMagnitude > SkillTuning.BananaTriggerRadius * SkillTuning.BananaTriggerRadius) continue;
+
+                if (other.Definition.skill == AnimalSkill.Apathy)
+                {
+                    // 펭귄: 안 미끄러지고 밟고 지나감 — 껍질 잔존, 관전 피드는 껍질당 1회만
+                    if (bananaFed[b].Add(other))
+                        GameEvents.RaiseSkillEvent(SkillFeedEvent.PenguinIgnore, other.RacerId);
+                    continue;
+                }
+
+                bool wasStunned = other.IsStunned;
+                other.AddEffect(new StatusEffect(StatusEffectType.Stun,
+                    SkillTuning.BananaStunSeconds, 0f));
+                if (!wasStunned && other.IsStunned)
+                {
+                    // 미끄덩 확정 — 전 클라에 중계 (클라는 희생자 근처 시각 껍질 제거)
+                    GameEvents.RaiseSkillEvent(SkillFeedEvent.BananaSlip, other.RacerId);
+                    bananas.RemoveAt(b); bananaFed.RemoveAt(b);
+                    break;
+                }
             }
         }
 

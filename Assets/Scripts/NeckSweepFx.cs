@@ -103,7 +103,8 @@ public class NeckSweepFx : MonoBehaviour
 
         timer += Time.deltaTime;
         float windup = SkillTuning.NeckSweepWindupSeconds;         // 뻗기 (기절 판정 직전까지)
-        float spin = SkillTuning.NeckSweepSpinSeconds;             // 360도 훑기
+        float spin = SkillTuning.NeckSweepSpinSeconds
+                   * SkillTuning.NeckSweepSpinCount;               // 훑기 전체 (한 바퀴 × 회전 수 — v23: 2회전)
         float settle = 0.4f;                                       // 복귀
         float total = windup + spin + settle;
         if (timer >= total) { ResetHead(); return; }
@@ -133,10 +134,11 @@ public class NeckSweepFx : MonoBehaviour
         }
         else if (timer < windup + spin)
         {
-            // ② 달리면서 목을 바닥 높이로 내리찍어 몸 주변 360도 훑기 —
-            //    원 중심이 매 프레임 현재 위치라 달리는 몸을 원이 따라온다
+            // ② 달리면서 목을 바닥 높이로 내리찍어 몸 주변 훑기(SpinCount 바퀴) —
+            //    원 중심이 매 프레임 현재 위치라 달리는 몸을 원이 따라온다.
+            //    각도 = 진행률 × 360 × 회전 수 — 회전 수가 정수라 끝 각도는 항상 전방(복귀 구간과 정합)
             float k = (timer - windup) / spin;
-            float ang = k * 360f * Mathf.Deg2Rad;
+            float ang = k * 360f * SkillTuning.NeckSweepSpinCount * Mathf.Deg2Rad;
             Vector3 dir = racer.transform.rotation *
                 new Vector3(Mathf.Sin(ang), 0f, Mathf.Cos(ang));
             Vector3 center = racer.transform.position;

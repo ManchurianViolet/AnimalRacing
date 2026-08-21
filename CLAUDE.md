@@ -904,6 +904,7 @@ TrackPath 빌드 검진 로그+기즈모.
 | **Baseball Bat** by **Dodecaplex** ([Sketchfab](https://sketchfab.com/3d-models/baseball-bat-0028b77436394fd7963c013e04e69e70)) | 빠따 소품 | **CC-BY-4.0** | This work is based on "Baseball Bat" by Dodecaplex, licensed under CC-BY-4.0 |
 | **Low Poly Radioactive Needle** by **Itz_EthanNC** ([Sketchfab](https://sketchfab.com/3d-models/low-poly-radioactive-needle-825fad281d764076852e35c6474349a5)) | 주사기 2종(부스트/감속) 소품 | **CC-BY-4.0** | This work is based on "Low Poly Radioactive Needle" by Itz_EthanNC, licensed under CC-BY-4.0 |
 | **Banana Peel** by **Sofia Echeverri** ([Sketchfab](https://sketchfab.com/3d-models/banana-peel-c05c98f523df45b78d50913b4917e9fe)) | 원숭이 스킬 바나나 껍질 (v22) | ⚠ **CC-BY-SA-4.0** — 유일한 SA 에셋. 모델 개작분은 동일 라이선스 공개 의무 (게임 전체 전염 여부는 해석 논쟁 있음 — 출시 전 유저 재검토 권장, 불안하면 CC-BY/CC0 바나나로 교체가 안전) | This work is based on "Banana Peel" (https://skfb.ly/c05c98f523df45b78d50913b4917e9fe) by Sofia Echeverri, licensed under CC-BY-SA-4.0 |
+| **Soda Bottle** by **pedrobax** ([Sketchfab](https://sketchfab.com/3d-models/soda-bottle-b11e9ccec4cb410a996a870bea4b4e54)) | 북극곰 스킬 콜라 병 (v23) — 무지 라벨이라 상표 무관 | **CC-BY-4.0** | This work is based on "Soda Bottle" (https://sketchfab.com/3d-models/soda-bottle-b11e9ccec4cb410a996a870bea4b4e54) by pedrobax (https://sketchfab.com/pedrobax) licensed under CC-BY-4.0 |
 
 ~~Winner Podium (dabblack, CC-BY)~~ — v21에서 굽기까지 했으나 유저가 안 쓰기로 하고 에셋 삭제 (크레딧 의무 없음).
 

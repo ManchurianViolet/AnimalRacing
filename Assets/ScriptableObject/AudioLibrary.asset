@@ -167,7 +167,7 @@ MonoBehaviour:
   - id: 53
     clips:
     - {fileID: 8300000, guid: 3fdce38ddf270a845821ae2ad4850f6c, type: 3}
-    volume: 0.82
+    volume: 0.41
     pitchMin: 0.95
     pitchMax: 1.05
     maxDistance: 50
@@ -231,17 +231,52 @@ MonoBehaviour:
     pitchMax: 1.08
     maxDistance: 18
   - id: 56
-    clips: []
-    volume: 0.7
+    clips:
+    - {fileID: 8300000, guid: 5415c4765b7af544a83ea18c1163e841, type: 3}
+    volume: 1
     pitchMin: 0.92
     pitchMax: 1.08
-    maxDistance: 18
+    maxDistance: 40
   - id: 57
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 510e686c65ccb28419bb854cf0dcdeab, type: 3}
     volume: 0.7
     pitchMin: 0.92
     pitchMax: 1.08
     maxDistance: 18
+  - id: 58
+    clips:
+    - {fileID: 8300000, guid: 7fab1e70983c90c4cb237aa7e5404f38, type: 3}
+    volume: 1
+    pitchMin: 0.97
+    pitchMax: 1.03
+    maxDistance: 40
+  - id: 54
+    clips: []
+    volume: 1
+    pitchMin: 0.97
+    pitchMax: 1.03
+    maxDistance: 40
+  - id: 80
+    clips:
+    - {fileID: 8300000, guid: f44f087500f138f4ba5a4ef297cf470a, type: 3}
+    volume: 1
+    pitchMin: 0.97
+    pitchMax: 1.03
+    maxDistance: 40
+  - id: 81
+    clips:
+    - {fileID: 8300000, guid: 5ce44c332aed785428b04ba6ea0b4098, type: 3}
+    volume: 1
+    pitchMin: 0.97
+    pitchMax: 1.03
+    maxDistance: 40
+  - id: 59
+    clips: []
+    volume: 1
+    pitchMin: 0.97
+    pitchMax: 1.03
+    maxDistance: 40
   bgm:
   - track: 1
     clip: {fileID: 8300000, guid: 479684ad8924e9246a7961c6fc6d9fc6, type: 3}

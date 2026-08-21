@@ -45,6 +45,13 @@ public enum SfxId
     SkillCamouflage = 55, // [얼룩말] 위장 (그룹 뒷번호 — 재배치 금지)
     SkillNeckSweep = 56,  // [기린] 목 휘두르기 (그룹 뒷번호 — 재배치 금지)
     SkillBanana = 57,     // [원숭이] 바나나 뿌리기 (그룹 뒷번호 — 재배치 금지)
+    SkillCola = 58,       // [북극곰] 콜라 원샷 = 병 따기 (그룹 뒷번호 — 재배치 금지)
+    SkillFreeRide = 59,   // [비둘기] 무임승차 (그룹 뒷번호 — 재배치 금지. 5x 그룹 마지막 칸)
+
+    // 8x = 스킬 2단계음 (v23 신설) — 발동음(5x)과 별개로 연출 중간 시점에 터지는 소리.
+    // 재생 시점은 SfxRelay가 SkillTuning 시계로 지연 재생 (호스트 판정·연출과 같은 단일 출처 — 통신 0)
+    SkillNeckSweepSwing = 80, // [기린] 예열 끝나고 훑기 시작하는 순간
+    SkillColaGulp = 81,       // [북극곰] 병 젖혀 들이키는 순간 (벌컥벌컥)
 
     // ---- 베팅 방 (6x) ----
     DoorSlide = 60,

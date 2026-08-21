@@ -272,6 +272,24 @@ public class RaceManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 현재 1등 (미완주 중 최고 진행도, exclude 제외) — [비둘기] 무임승차의 목표 추적과
+    /// 무전기 조준 차단(1등 비둘기)이 공유하는 단일 출처. Progress는 클라에서도 미러 갱신되므로
+    /// (UpdateMirrorProgress) 조준 UI가 클라에서 불러도 유효하다.
+    /// </summary>
+    public Racer GetLeadRacer(Racer exclude = null)
+    {
+        Racer best = null;
+        float bestProg = float.MinValue;
+        for (int i = 0; i < racers.Count; i++)
+        {
+            var r = racers[i];
+            if (r == null || r.HasFinished || r == exclude) continue;
+            if (r.Progress > bestProg) { bestProg = r.Progress; best = r; }
+        }
+        return best;
+    }
+
+    /// <summary>
     /// [클라 전용] 시뮬은 호스트만 돌지만 순위를 읽는 쪽(처형 무전기 화면 등)은 클라에도 있다.
     /// 미러된 위치로 진행도만 채워 Progress를 유효하게 유지한다 — 완주/스킬 판정은 하지 않는다.
     /// 이게 없으면 클라의 Progress가 0에 멈춰 있어 "꼴등"이 엉뚱하게 잡힌다.
@@ -425,6 +443,14 @@ public class RaceManager : MonoBehaviour
             if (bananaFx == null) bananaFx = go.AddComponent<BananaTrailFx>();
             bananaFx.Init(racer, config);
         }
+
+        // [북극곰] 콜라 원샷 — 들이키기/축소/부스터 연기 (스킬 사건 중계 구독, 클라도 통신 0)
+        if (racer.Definition != null && racer.Definition.skill == AnimalSkill.Cola)
+        {
+            var colaFx = go.GetComponent<ColaFx>();
+            if (colaFx == null) colaFx = go.AddComponent<ColaFx>();
+            colaFx.Init(racer, config);
+        }
     }
 
     /// <summary>
@@ -491,10 +517,11 @@ public class RaceManager : MonoBehaviour
             if (c.enabled) c.material = frictionlessMat;
     }
 
-    // [기린] 목 휘두르기 대기열 (발동 → Windup 예열 → Spin 동안 창 판정)
+    // [기린] 목 휘두르기 대기열 (발동 → Windup 예열 → Spin×SpinCount 동안 창 판정)
     // v22: 판정을 "예열 끝 순간 1회" → "훑는 내내(SpinSeconds)"로 확장 — 순간 판정은
     // 훑는 도중 원 안에 들어온 동물을 놓쳐 연출이 거짓말했다 (사슴 미적중 실사고).
-    // 한 번의 훑기에 같은 동물은 1회만 (sweepHit — 펭귄 면역 피드 스팸 방지 겸용).
+    // v23: 훑기 2회전 + 이미 기절해 누운 동물은 판정 제외 (유저 결정).
+    // 한 시전에 같은 동물은 1회만 (sweepHit — 펭귄 면역 피드 스팸 방지 겸용).
     private readonly System.Collections.Generic.List<Racer> sweepPending = new();
     private readonly System.Collections.Generic.List<float> sweepTimers = new();
     private readonly System.Collections.Generic.List<System.Collections.Generic.HashSet<Racer>> sweepHit = new();
@@ -517,15 +544,18 @@ public class RaceManager : MonoBehaviour
     private void UpdateSkillContext()
     {
         Racer last = null;
+        Racer lead = null;
         foreach (var r in racers)
         {
             if (r == null || r.HasFinished) continue;
             if (last == null || r.Progress < last.Progress) last = r;
+            if (lead == null || r.Progress > lead.Progress) lead = r;
         }
         foreach (var r in racers)
         {
             if (r == null) continue;
             r.SetLastPlace(r == last);
+            r.SetLeader(r == lead);   // [비둘기] 1등이면 무임승차 자동 발동 대기
         }
 
         foreach (var tiger in racers)
@@ -563,9 +593,9 @@ public class RaceManager : MonoBehaviour
             sweepTimers[i] -= Time.deltaTime;
             var giraffe = sweepPending[i];
 
-            // 훑기(Spin)까지 끝났거나 기린이 사라졌으면 대기열에서 제거
+            // 훑기(Spin×회전 수)까지 끝났거나 기린이 사라졌으면 대기열에서 제거
             if (giraffe == null || giraffe.HasFinished ||
-                sweepTimers[i] <= -SkillTuning.NeckSweepSpinSeconds)
+                sweepTimers[i] <= -SkillTuning.NeckSweepSpinSeconds * SkillTuning.NeckSweepSpinCount)
             {
                 sweepPending.RemoveAt(i);
                 sweepTimers.RemoveAt(i);
@@ -574,12 +604,15 @@ public class RaceManager : MonoBehaviour
             }
             if (sweepTimers[i] > 0f) continue;   // 아직 예열 (목 뻗는 중)
 
-            // 훑는 동안(음수 구간 = SpinSeconds) 매 틱 판정 — 도는 원 안에 들어온 동물도 맞는다
+            // 훑는 동안(음수 구간 = SpinSeconds×SpinCount, 2회전) 매 틱 판정 — 도는 원 안에 들어온 동물도 맞는다
             foreach (var other in racers)
             {
                 if (other == null || other == giraffe || other.HasFinished) continue;
-                if (sweepHit[i].Contains(other)) continue;   // 한 훑기에 1회만
+                if (sweepHit[i].Contains(other)) continue;   // 한 시전에 1회만
                 if (other.IsGhost) continue;   // 위장 유체는 목이 몸을 통과한다
+                // 이미 기절해 누워 있는 동물은 판정 제외 (v23 유저 결정) — 1회전째 맞아 누운 동물이
+                // 2회전째에 또 걸려 기절이 리필되거나, 바나나 등 딴 원인으로 누운 몸을 목이 또 치는 것 방지
+                if (other.IsStunned) continue;
                 Vector3 d = other.transform.position - giraffe.transform.position;
                 d.y = 0f;
                 if (d.sqrMagnitude > SkillTuning.NeckSweepRadius * SkillTuning.NeckSweepRadius) continue;
@@ -587,6 +620,9 @@ public class RaceManager : MonoBehaviour
                 sweepHit[i].Add(other);   // 면역자도 기록 — 펭귄 피드가 틱마다 도배되지 않게
                 other.AddEffect(new StatusEffect(StatusEffectType.Stun,
                     SkillTuning.NeckSweepStunSeconds, 0f));
+                // 기절이 실제로 박혔으면(면역자 제외) 타격음 중계 — 피해자 위치에서 퍽 (v23 유저 발주)
+                if (other.IsStunned)
+                    GameEvents.RaiseSkillEvent(SkillFeedEvent.NeckSweepHit, other.RacerId);
                 // 펭귄/비행 사슴은 관문에서 튕김 — 펭귄만 관전 재미로 피드 (포효와 동일)
                 if (other.Definition.skill == AnimalSkill.Apathy)
                     GameEvents.RaiseSkillEvent(SkillFeedEvent.PenguinIgnore, other.RacerId);
@@ -631,6 +667,10 @@ public class RaceManager : MonoBehaviour
             {
                 if (other == null || other.HasFinished) continue;
                 if (other.IsGhost || other.IsFlying) continue;   // 위장 유체·비행 사슴은 통과
+                // 이미 기절해 누운 동물은 밟기 판정 제외 (v23 — 기린 목과 같은 규칙).
+                // ⚠ 이 가드가 없으면 누운 몸 위/옆 껍질이 매 틱 스턴을 리필해 영구 기절 + 껍질 미소멸
+                // (기절 중 밟힘은 !wasStunned 가드에 걸려 소멸 경로를 영영 못 탐 — v23 실사고)
+                if (other.IsStunned) continue;
                 Vector3 d = other.transform.position - bananas[b];
                 d.y = 0f;
                 if (d.sqrMagnitude > SkillTuning.BananaTriggerRadius * SkillTuning.BananaTriggerRadius) continue;
@@ -643,10 +683,9 @@ public class RaceManager : MonoBehaviour
                     continue;
                 }
 
-                bool wasStunned = other.IsStunned;
                 other.AddEffect(new StatusEffect(StatusEffectType.Stun,
                     SkillTuning.BananaStunSeconds, 0f));
-                if (!wasStunned && other.IsStunned)
+                if (other.IsStunned)
                 {
                     // 미끄덩 확정 — 전 클라에 중계 (클라는 희생자 근처 시각 껍질 제거)
                     GameEvents.RaiseSkillEvent(SkillFeedEvent.BananaSlip, other.RacerId);

@@ -134,6 +134,8 @@ public class TimelineFeed : MonoBehaviour
             case SkillFeedEvent.Camouflage:
             case SkillFeedEvent.NeckSweep:
             case SkillFeedEvent.Banana:
+            case SkillFeedEvent.Cola:
+            case SkillFeedEvent.FreeRide:
                 // 무전기 발동분 억제 — 지연 5초(radioDelaySeconds) + 여유
                 if (radioSkillUsedAt.TryGetValue(rid, out float usedAt))
                 {

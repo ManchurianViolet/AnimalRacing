@@ -44,13 +44,16 @@ public class Racer : MonoBehaviour
     private float elimFreezeAt = -1f;   // 처형 후 애니 정지 예정 시각 (호스트/클라 각자 로컬)
     private bool animFrozen;
     private bool isLastPlace;           // RaceManager가 매 틱 세팅 (개)
+    private bool isLeader;              // RaceManager가 매 틱 세팅 (비둘기 — 1등이면 무임승차 대기)
     private float activeTriggerRatio;   // 액티브 자동 발동 진행률 (호랑이/사슴/고양이/치킨)
     private bool activeConsumed;
     private bool flightRequested;       // 사슴: 모터에게 비행 개시 요청 (다음 FixedUpdate)
+    private bool freeRideRequested;     // 비둘기: 모터에게 무임승차 비행 개시 요청 (다음 FixedUpdate)
     private float catWalkRemaining;     // 고양이: 코너 감속 무시 잔여 (초)
     private float clubRushRemaining;    // 인간: 몽둥이 질주 잔여 (초)
     private float camouflageRemaining;  // 얼룩말: 위장 잔여 (초)
     private float sweepGhostRemaining;  // 기린: 목 휘두르기 시전 중 유체화 잔여 (초) — 재운 시체 더미에 갇히지 않게
+    private float colaDrinkRemaining;   // 북극곰: 콜라 들이키는 연출 잔여 (초) — 0이 되는 순간 부스트 개시
 
     /// <summary>[사슴] 루돌프 비행 중 — 이동은 모터의 스크립트 궤적, 모든 효과 면역.</summary>
     public bool IsFlying { get; private set; }
@@ -76,6 +79,7 @@ public class Racer : MonoBehaviour
 
     public void SetTrackLength(float len) => trackLength = Mathf.Max(1f, len);
     public void SetLastPlace(bool last) => isLastPlace = last;
+    public void SetLeader(bool lead) => isLeader = lead;
 
     /// <summary>액티브 자동 발동 시점 도달 & 미사용이면 소비하고 true.
     /// 전역 시야가 필요한 스킬(호랑이 포효)용 — RaceManager가 매 틱 호출.</summary>
@@ -138,6 +142,15 @@ public class Racer : MonoBehaviour
         return true;
     }
 
+    /// <summary>[비둘기→모터] 무임승차 비행 요청 인수 — 모터가 FixedUpdate에서 소비하고 비행 개시.</summary>
+    public bool ConsumeFreeRideRequest()
+    {
+        if (!freeRideRequested) return false;
+        freeRideRequested = false;
+        IsFlying = true;
+        return true;
+    }
+
     /// <summary>[모터] 착지/비행 중단 통지.</summary>
     public void EndFlight() => IsFlying = false;
 
@@ -190,13 +203,16 @@ public class Racer : MonoBehaviour
         // 스킬 상태 초기화
         IsEliminated = false;
         isLastPlace = false;
+        isLeader = false;
         activeConsumed = false;
         flightRequested = false;
+        freeRideRequested = false;
         IsFlying = false;
         catWalkRemaining = 0f;
         clubRushRemaining = 0f;
         camouflageRemaining = 0f;
         sweepGhostRemaining = 0f;
+        colaDrinkRemaining = 0f;
         activeTriggerRatio = Random.Range(SkillTuning.ActiveMinRatio, SkillTuning.ActiveMaxRatio);
     }
 
@@ -249,6 +265,21 @@ public class Racer : MonoBehaviour
                         SkillTuning.CamouflageDuration, SkillTuning.CamouflageMult));
                     GameEvents.RaiseSkillEvent(SkillFeedEvent.Camouflage, RacerId);
                     break;
+
+                case AnimalSkill.Cola:
+                    activeConsumed = true;
+                    // 부스트는 들이키는 연출(ColaDrinkSeconds)이 끝나는 순간 — 연출-판정 타이밍 일치
+                    colaDrinkRemaining = SkillTuning.ColaDrinkSeconds;
+                    GameEvents.RaiseSkillEvent(SkillFeedEvent.Cola, RacerId);
+                    break;
+
+                case AnimalSkill.FreeRide:
+                    // 자기가 1등이면 발동하지 않고 대기 — 1등이 아니게 되는 순간 발동 (유저 확정).
+                    // activeConsumed를 안 건드려서 매 틱 재시도 (무전기 재발동의 5초 지연 중 1등이 된 경우도 커버)
+                    if (isLeader) break;
+                    activeConsumed = true;
+                    freeRideRequested = true;   // 실제 개시(연출/피드)는 모터가 다음 FixedUpdate에 (루돌프와 동일)
+                    break;
             }
         }
 
@@ -263,6 +294,15 @@ public class Racer : MonoBehaviour
 
         // [기린] 시전 유체화 잔여 시간 — 재운 동물들이 일어날 때까지 시체 벽을 통과해 계속 달린다
         if (sweepGhostRemaining > 0f) sweepGhostRemaining -= dt;
+
+        // [북극곰] 콜라 들이키기 — 연출이 끝나는 순간 부스트 개시 (셀프라 AddEffect 관문 안 거침, 치킨과 동일)
+        if (colaDrinkRemaining > 0f)
+        {
+            colaDrinkRemaining -= dt;
+            if (colaDrinkRemaining <= 0f && !HasFinished)
+                effects.Add(new StatusEffect(StatusEffectType.Boost,
+                    SkillTuning.ColaDuration, SkillTuning.ColaMult));
+        }
 
         // 상태이상 갱신
         for (int i = effects.Count - 1; i >= 0; i--)

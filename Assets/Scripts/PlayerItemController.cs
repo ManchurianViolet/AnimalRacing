@@ -220,10 +220,26 @@ public class PlayerItemController : MonoBehaviour
             AimBlocked = true;
             AimHint = Loc.Get("aim.blocked");
         }
+        // [비둘기] 1등에게는 무임승차 발동 불가 — 호스트 검증(ItemExecutor)과 같은 GetLeadRacer 공유
+        // (Progress는 클라에서도 미러 갱신이라 이 판정은 게스트 화면에서도 유효)
+        else if (HeldSlot == PlayerEquipment.SlotRadioSkill
+                 && racer.Definition.skill == AnimalSkill.FreeRide
+                 && LeadOf() == racer)
+        {
+            AimBlocked = true;
+            AimHint = Loc.Get("aim.blocked.leader");
+        }
         else
         {
             AimHint = Loc.Format("aim.use", racer.DisplayName);
         }
+    }
+
+    private RaceManager race;   // 1등 판정용 (복제 안전하게 자동 탐색 — §11 폴백 관례)
+    private Racer LeadOf()
+    {
+        if (race == null) race = Object.FindFirstObjectByType<RaceManager>();
+        return race != null ? race.GetLeadRacer() : null;
     }
 
     private void ClearAimHint()

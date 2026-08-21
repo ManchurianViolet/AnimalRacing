@@ -51,7 +51,10 @@ public static class BalanceExporter
         public float loyaltyMult;
         public float dashDuration, dashMult;
         public float camouflageDuration, camouflageMult;
-        public float neckSweepRadius, neckSweepStunSeconds, neckSweepWindupSeconds;
+        public float neckSweepRadius, neckSweepStunSeconds, neckSweepWindupSeconds, neckSweepSpinSeconds;
+        public int neckSweepSpinCount;
+        public float colaDrinkSeconds, colaDuration, colaMult;
+        public float freeRideBehindDistance, freeRideFlightSeconds;
         public int bananaCount;
         public float bananaStunSeconds, bananaTriggerRadius;
     }
@@ -176,6 +179,13 @@ public static class BalanceExporter
                 neckSweepRadius = SkillTuning.NeckSweepRadius,
                 neckSweepStunSeconds = SkillTuning.NeckSweepStunSeconds,
                 neckSweepWindupSeconds = SkillTuning.NeckSweepWindupSeconds,
+                neckSweepSpinSeconds = SkillTuning.NeckSweepSpinSeconds,
+                neckSweepSpinCount = SkillTuning.NeckSweepSpinCount,
+                colaDrinkSeconds = SkillTuning.ColaDrinkSeconds,
+                colaDuration = SkillTuning.ColaDuration,
+                colaMult = SkillTuning.ColaMult,
+                freeRideBehindDistance = SkillTuning.FreeRideBehindDistance,
+                freeRideFlightSeconds = SkillTuning.FreeRideFlightSeconds,
                 bananaCount = SkillTuning.BananaCount,
                 bananaStunSeconds = SkillTuning.BananaStunSeconds,
                 bananaTriggerRadius = SkillTuning.BananaTriggerRadius,

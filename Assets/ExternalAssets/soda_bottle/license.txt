@@ -1,0 +1,11 @@
+Model Information:
+* title:	Soda Bottle
+* source:	https://sketchfab.com/3d-models/soda-bottle-b11e9ccec4cb410a996a870bea4b4e54
+* author:	pedrobax (https://sketchfab.com/pedrobax)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Soda Bottle" (https://sketchfab.com/3d-models/soda-bottle-b11e9ccec4cb410a996a870bea4b4e54) by pedrobax (https://sketchfab.com/pedrobax) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -16,7 +16,7 @@ MonoBehaviour:
   lapCount: 2
   boostCount: 3
   slowCount: 3
-  radioSkillCount: 1
+  radioSkillCount: 5
   radioExecCount: 1
   itemCooldown: 5
   cooldownFor2P: 5
@@ -52,7 +52,7 @@ MonoBehaviour:
   ceremonyCamDistance: 6.5
   ceremonyCamHeight: 1.9
   defaultRounds: 3
-  bettingSeconds: 64.28
+  bettingSeconds: 15
   loadoutSeconds: 10
   countdownSeconds: 3
   resultSeconds: 15
@@ -111,6 +111,15 @@ MonoBehaviour:
   camoFadeSeconds: 0.5
   bananaPeelPrefab: {fileID: 946195520967672160, guid: d84a196b940276a42b9fec97ff79a49f, type: 3}
   bananaVisualSize: 0.5
+  colaCanPrefab: {fileID: 6514015005658918702, guid: d2cb79f79b0597a4a92a60b8a1b815e8, type: 3}
+  colaCanHeight: 0.45
+  colaCanForward: 0.42
+  colaCanUp: -0.22
+  colaShrinkScale: 0.6
+  colaShrinkSeconds: 0.35
+  colaSmokeRate: 26
+  colaSmokeColor: {r: 0.93, g: 0.93, b: 0.97, a: 0.9}
+  colaSmokeSize: 1
   hoverFlightHeight: 0.55
   hoverFlightBlendSeconds: 0.5
   hoverFlightMinSpeed: 1.5

@@ -67,6 +67,9 @@ public enum SkillFeedEvent : byte
     NeckSweep = 10,      // [기린] 목 휘두르기 (racerId = 기린 — 목 연출/스킬음용)
     Banana = 11,         // [원숭이] 바나나 뿌리기 (racerId = 원숭이 — 투척 연출/스킬음/피드)
     BananaSlip = 12,     // [원숭이] 껍질 밟힘 — 클라가 희생자 근처 시각 껍질 제거용, 피드 없음 (racerId = 밟은 동물)
+    Cola = 13,           // [북극곰] 콜라 원샷 (racerId = 북극곰 — 들이키기/축소/연기 연출·스킬음·피드)
+    FreeRide = 14,       // [비둘기] 무임승차 (racerId = 비둘기 — 비행 개시 순간 모터가 발행, 스킬음·피드)
+    NeckSweepHit = 15,   // [기린] 목에 맞아 기절 확정 — 타격음 전용, 피드 없음 (racerId = 피해자)
 }
 
 /// <summary>아이템 사용 거절 사유 — 개인 RPC로 byte 하나. 표시 문구는 수신 클라가 Loc로 조립.</summary>
@@ -77,6 +80,7 @@ public enum RejectReason : byte
     NotOwned = 2,        // 미보유
     InvalidTarget = 3,   // 유효하지 않은 타겟
     PassiveAnimal = 4,   // 패시브 동물 (발동 무전기 불가)
+    FreeRideLeader = 5,  // [비둘기] 1등에게 무임승차 발동 시도 — 무임승차할 상대가 없음 (유저 확정: 차단)
 }
 
 /// <summary>라운드 정산 결과 (포인트제): 상위 3두 + 플레이어별 획득 포인트.</summary>

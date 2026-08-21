@@ -241,7 +241,12 @@ internal static class LocData
         { "skill.desc.camouflage", new[] { "15초간 몸이 희미해지며 [[유체]]가 된다.\n[[이동속도 50% 증가]], 몸싸움과 몽둥이를 그대로 [[통과]].", "Fades to a [[ghost]] for 15 seconds.\n[[+50% speed]], [[phases through]] jostling and club hits.", "15秒間、体が薄れて[[幽体]]になる。\n[[移動速度50%増加]]、体当たりや棍棒を[[すり抜ける]]。" } },
         { "animal.giraffe", new[] { "기린", "Giraffe", "キリン" } },
         { "skill.name.necksweep", new[] { "목 휘두르기", "Neck Sweep", "ネックスイープ" } },
-        { "skill.desc.necksweep", new[] { "달리면서 목을 하늘로 쭉 뻗었다가 내리찍으며\n주변을 360도 휩쓴다. 닿은 동물은 [[3초 기절]].", "While running, stretches its neck sky-high, then swings it low\nin a full circle. Animals hit are [[stunned for 3s]].", "走りながら首を高く伸ばして振り下ろし、\n周囲を360度なぎ払う。当たった動物は[[3秒気絶]]。" } },
+        { "skill.desc.necksweep", new[] { "달리면서 목을 하늘로 쭉 뻗었다가 내리찍으며\n주변을 두 바퀴 휩쓴다. 닿은 동물은 [[3초 기절]].", "While running, stretches its neck sky-high, then swings it low\nin two full circles. Animals hit are [[stunned for 3s]].", "走りながら首を高く伸ばして振り下ろし、\n周囲を2回転なぎ払う。当たった動物は[[3秒気絶]]。" } },
+        { "skill.name.cola", new[] { "콜라 원샷", "Cola Chug", "コーラ一気飲み" } },
+        { "skill.desc.cola", new[] { "콜라를 흔들어 원샷! 몸이 작아지며\n10초간 [[1.8배속]]으로 폭주한다.", "Shakes up a cola and chugs it! Shrinks down and\nrockets at [[1.8x speed]] for 10 seconds.", "コーラを振って一気飲み！体が縮んで\n10秒間[[1.8倍速]]で爆走する。" } },
+        { "skill.name.freeride", new[] { "무임승차", "Free Ride", "タダ乗り" } },
+        { "skill.desc.freeride", new[] { "날아올라 현재 [[1등 바로 뒤]]로 빠르게 이동한다.\n비행 중엔 아무것도 닿지 않는다.", "Takes off and flies right [[behind the current leader]].\nNothing can touch it mid-flight.", "飛び上がって現在の[[1位のすぐ後ろ]]へ素早く移動する。\n飛行中は何も当たらない。" } },
+        { "aim.blocked.leader", new[] { "1등은 무임승차할 상대가 없습니다", "The leader has no one to ride behind", "1位にはタダ乗りする相手がいません" } },
         { "skill.name.banana", new[] { "바나나 뿌리기", "Banana Scatter", "バナナまき" } },
         { "skill.desc.banana", new[] { "달리면서 바나나 껍질 5개를 길에 흩뿌린다.\n밟은 동물은 [[3초 꽈당]]. 껍질은 레이스 끝까지 남는다.", "Scatters 5 banana peels on the track while running.\nStep on one and you [[slip flat for 3s]]. Peels stay until the race ends.", "走りながらバナナの皮を5枚ばらまく。\n踏んだ動物は[[3秒転倒]]。皮はレース終了まで残る。" } },
     };

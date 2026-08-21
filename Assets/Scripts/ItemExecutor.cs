@@ -41,6 +41,9 @@ public class ItemExecutor : MonoBehaviour
                 // 패시브(말/개/펭귄)는 무전기 무반응 — 클라 조준 단계에서도 차단되지만 호스트가 최종 검증
                 if (!SkillTuning.IsActive(target.Definition.skill))
                     return Reject(player, RejectReason.PassiveAnimal);
+                // [비둘기] 1등에게는 무임승차 발동 불가 — 얹혀 갈 상대가 없다 (유저 확정, 아이템 미소모)
+                if (target.Definition.skill == AnimalSkill.FreeRide && raceManager.GetLeadRacer() == target)
+                    return Reject(player, RejectReason.FreeRideLeader);
                 StartCoroutine(RadioSkillDelayed(target));
                 break;
             }

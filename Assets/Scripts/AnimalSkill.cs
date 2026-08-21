@@ -20,6 +20,8 @@ public enum AnimalSkill
     Camouflage = 9,    // 얼룩말: 위장 (액티브 — 1.5배속 + 유체화 + 반투명)
     NeckSweep = 10,    // 기린: 목 휘두르기 (액티브 — 달리면서 목을 뻗었다 내리찍어 주변 360° 훑기, 닿으면 3초 기절)
     Banana = 11,       // 원숭이: 바나나 뿌리기 (액티브 — 뒤로 껍질 5개 투척, 밟으면 3초 꽈당, 껍질은 레이스 끝까지 잔존)
+    Cola = 12,         // 북극곰: 콜라 원샷 (액티브 — 흔들어 들이킨 뒤 몸이 작아지며 10초 1.8배속 폭주 + 부스터 연기)
+    FreeRide = 13,     // 비둘기: 무임승차 (액티브 — 날아올라 현재 1등 뒤 4m로 3초 비행 이동, 실시간 추적)
 }
 
 public static class SkillTuning
@@ -65,16 +67,35 @@ public static class SkillTuning
     public const float CamouflageDuration = 15f;
     public const float CamouflageMult = 1.5f;
 
-    // 기린 — 목 휘두르기: 목을 뻗는 예열(Windup) 뒤 훑는 동안(SpinSeconds) 반경 안 전원 기절 (StunSeconds).
+    // 기린 — 목 휘두르기: 목을 뻗는 예열(Windup) 뒤 훑는 동안(SpinSeconds×SpinCount) 반경 안 전원 기절 (StunSeconds).
     // v22: 판정을 순간 1회 → 훑는 내내 창 판정으로 확장 (도는 원에 들어온 동물도 맞게 — 연출이 거짓말하지 않게).
+    // v23: 훑기 2회전 + 예열 완속(0.8→1.1) + 이미 기절해 누운 동물은 판정 제외 (유저 결정).
     // 펭귄 상호작용: AddEffect 관문에서 자동 면역 (포효와 동일 — 관전 피드 발행)
     public const float NeckSweepRadius = 2.5f;        // 훑기 반경 (연출 원과 일치)
     public const float NeckSweepStunSeconds = 3f;   // v22: 2→3초 (유저 결정. v21: 1→2)
-    public const float NeckSweepWindupSeconds = 0.8f; // 목 뻗기 예열 — 이 후에 기절 판정
-    public const float NeckSweepSpinSeconds = 1.0f;   // 360도 회전 연출 시간 (판정과 무관)
-    // 시전 유체화 — 재운 동물들이 일어날 때까지(예열+기절+여유) 시체 벽을 통과해 계속 달린다.
+    public const float NeckSweepWindupSeconds = 1.1f; // 목 뻗기 예열 — 이 후에 기절 판정 (v23: 0.8→1.1 완속)
+    public const float NeckSweepSpinSeconds = 1.0f;   // 360도 한 바퀴에 걸리는 시간
+    public const int NeckSweepSpinCount = 2;          // 회전 수 (v23: 1→2 — 판정 창·연출 각도 공통 출처)
+    // 시전 유체화 — 재운 동물들이 일어날 때까지(예열+훑기+기절+여유) 시체 벽을 통과해 계속 달린다.
     // 없으면 밀집 발동 때 기린이 자기가 만든 시체 더미에 갇혀 2초쯤 같이 멈추는 실사고(v22 실측 0.0m/s)
-    public const float NeckSweepGhostSeconds = NeckSweepWindupSeconds + NeckSweepStunSeconds + 0.5f;
+    public const float NeckSweepGhostSeconds = NeckSweepWindupSeconds
+        + NeckSweepSpinSeconds * NeckSweepSpinCount + NeckSweepStunSeconds + 0.5f;
+
+    // 북극곰 — 콜라 원샷 (v23 유저 확정): 캔을 흔들어 들이키는 연출(DrinkSeconds) 뒤 몸이 작아지며
+    // Duration 동안 Mult 배속 폭주 + 뒤로 부스터 연기. 부스트 개시 = 연출이 끝나는 순간 (연출-판정 일치).
+    // 축소는 순수 연출(ColaFx — 전 클라 로컬)이라 판정 무관. 펭귄 상호작용: 셀프 버프라 없음 (위장과 동일).
+    public const float ColaDrinkSeconds = 1.2f;  // 캔 흔들기+들이키기 — 이 후에 부스트 개시
+    public const float ColaDuration = 10f;       // 부스트 지속 (유저 확정)
+    public const float ColaMult = 1.8f;          // 부스트 배율 (유저 확정)
+
+    // 비둘기 — 무임승차 (v23 유저 확정): 날아올라 현재 1등 뒤(BehindDistance)로 FlightSeconds에 걸쳐 이동.
+    // 목표는 비행 내내 실시간 추적 — 도착 시점의 1등 뒤에 내린다 (처형 무전기의 "그 시점" 철학).
+    // 자기가 1등이면 자동 발동 대기(1등이 아니게 되는 순간 발동), 무전기도 1등 조준은 차단 (유저 확정).
+    // 완충 설계: 순간이동이 아니라 3초 비행(그동안 1등도 도망감) + 4m 뒤 착지(추월은 스스로).
+    // 비행 중 모든 효과 면역(루돌프와 동일 — IsFlying 관문). 펭귄 상호작용: 셀프 이동이라 없음.
+    public const float FreeRideBehindDistance = 4f;  // 1등 뒤 몇 m 지점에 내리는가
+    public const float FreeRideFlightSeconds = 3f;   // 비행 소요 시간
+    public const float FreeRidePeakHeight = 3f;      // 순항 고도 (루돌프와 동일)
 
     // 원숭이 — 바나나 뿌리기: 발동하면 SpreadSeconds 동안 뒤로 껍질 Count개 투척, 트랙에 잔존.
     // 밟으면(TriggerRadius) StunSeconds 꽈당(기존 스턴 눕기 연출 자동). 밟힌 껍질은 소멸
@@ -98,7 +119,8 @@ public static class SkillTuning
         s == AnimalSkill.Roar || s == AnimalSkill.Rudolph
         || s == AnimalSkill.CatWalk || s == AnimalSkill.Dash
         || s == AnimalSkill.ClubRush || s == AnimalSkill.Camouflage
-        || s == AnimalSkill.NeckSweep || s == AnimalSkill.Banana;
+        || s == AnimalSkill.NeckSweep || s == AnimalSkill.Banana
+        || s == AnimalSkill.Cola || s == AnimalSkill.FreeRide;
 
     /// <summary>안내판/타임라인용 표기. [로컬라이제이션] 문구는 strings.csv의 skill.name.* / skill.desc.*</summary>
     public static string DisplayName(AnimalSkill s) => s switch
@@ -114,6 +136,8 @@ public static class SkillTuning
         AnimalSkill.Camouflage  => Loc.Get("skill.name.camouflage"),
         AnimalSkill.NeckSweep   => Loc.Get("skill.name.necksweep"),
         AnimalSkill.Banana      => Loc.Get("skill.name.banana"),
+        AnimalSkill.Cola        => Loc.Get("skill.name.cola"),
+        AnimalSkill.FreeRide    => Loc.Get("skill.name.freeride"),
         _ => "-"
     };
 
@@ -138,6 +162,8 @@ public static class SkillTuning
             AnimalSkill.Camouflage  => Loc.Get("skill.desc.camouflage"),
             AnimalSkill.NeckSweep   => Loc.Get("skill.desc.necksweep"),
             AnimalSkill.Banana      => Loc.Get("skill.desc.banana"),
+            AnimalSkill.Cola        => Loc.Get("skill.desc.cola"),
+            AnimalSkill.FreeRide    => Loc.Get("skill.desc.freeride"),
             _ => Loc.Get("skill.none")
         };
         return Emph(raw);

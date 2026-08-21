@@ -238,6 +238,26 @@ public class GameConfig : ScriptableObject
     [Tooltip("껍질의 화면상 크기 — 가장 긴 변 기준 목표 길이 (m). 관전 거리에서 읽히게 일부러 큼직하게")]
     public float bananaVisualSize = 0.5f;
 
+    [Header("연출 — 콜라 원샷 (북극곰)")]
+    [Tooltip("콜라 캔 실물 모델 — 비면 코드 생성 빨간 캔 폴백 (에셋 받으면 여기 드래그)")]
+    public GameObject colaCanPrefab;
+    [Tooltip("콜라 캔의 화면상 크기 — 캔 높이 목표 (m). 실물(0.22)보다 큼직해야 관전 거리에서 개그가 읽힘")]
+    public float colaCanHeight = 0.45f;
+    [Tooltip("캔 위치: 머리 본(두개골 중심)에서 몸 전방으로 (m) — 북극곰 실측 head→코끝 0.28")]
+    public float colaCanForward = 0.42f;
+    [Tooltip("캔 위치: 머리 본에서 위로 (m, 음수 = 아래 = 입 높이)")]
+    public float colaCanUp = -0.22f;
+    [Tooltip("부스트 중 몸 축소 배율 (원래 크기 대비)")]
+    public float colaShrinkScale = 0.6f;
+    [Tooltip("축소/복원에 걸리는 시간 (초)")]
+    public float colaShrinkSeconds = 0.35f;
+    [Tooltip("부스터 연기 초당 배출 개수")]
+    public float colaSmokeRate = 26f;
+    [Tooltip("부스터 연기 색")]
+    public Color colaSmokeColor = new Color(0.93f, 0.93f, 0.97f, 0.9f);
+    [Tooltip("부스터 연기 크기 배율")]
+    public float colaSmokeSize = 1f;
+
     [Header("연출 — 비행 호버 (비둘기 등 hoverFlight 동물)")]
     [Tooltip("이동 중 몸을 띄우는 높이 (m, 월드 기준 — 스케일된 프리팹도 자동 보정)")]
     public float hoverFlightHeight = 0.55f;

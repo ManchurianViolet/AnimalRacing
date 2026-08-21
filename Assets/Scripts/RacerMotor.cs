@@ -95,6 +95,7 @@ public class RacerMotor : MonoBehaviour
         if (racer.HasFinished)
         {
             if (flightActive) AbortFlight();   // 비행 중 처형/완주 확정 — 공중 상태 정리 후 연출로
+            if (freeRideActive) AbortFreeRide();
             if (racer.IsEliminated) EliminatedCollapse(dt);
             else FinishCoast(dt);
             return;
@@ -103,6 +104,10 @@ public class RacerMotor : MonoBehaviour
         // ---- [사슴] 루돌프: 비행 중이면 스크립트 궤적이 전부, 요청이 오면 개시 ----
         if (flightActive) { FlightTick(dt); return; }
         if (racer.ConsumeFlightRequest()) { BeginFlight(); return; }
+
+        // ---- [비둘기] 무임승차: 1등 뒤로 호밍 비행 (루돌프와 같은 kinematic 궤적) ----
+        if (freeRideActive) { FreeRideTick(dt); return; }
+        if (racer.ConsumeFreeRideRequest()) { BeginFreeRide(); return; }
 
         // ---- [인간 몽둥이] 스턴: 탈락처럼 옆으로 넘어졌다가, 풀리면 일어나서 재주행 ----
         // 회전은 TransformView가 미러하므로 호스트만 처리하면 클라 화면도 같은 그림 (탈락과 동일 원리)
@@ -345,6 +350,89 @@ public class RacerMotor : MonoBehaviour
     private void AbortFlight()
     {
         flightActive = false;
+        racer.EndFlight();
+        rb.isKinematic = false;
+    }
+
+    // ================= [비둘기] 무임승차 비행 =================
+    // 현재 1등 뒤 FreeRideBehindDistance 지점까지 FreeRideFlightSeconds에 걸쳐 비행.
+    // 목표를 매 틱 다시 계산(호밍) — 비행 중 1등이 바뀌면 옮겨 타고, 도착 시점의 1등 뒤에 내린다
+    // (처형 무전기 "그 시점" 철학). 고도·물리 몰수·진행도 직접 기입은 루돌프 인프라 그대로.
+    private bool freeRideActive;
+    private float frT;
+    private Vector3 frStartPos;
+    private float frStartProg;
+    private float frLastTargetProg;   // 추적 대상이 사라졌을 때(전원 완주 등)의 착지점
+
+    private void BeginFreeRide()
+    {
+        var lead = raceManager.GetLeadRacer(racer);   // 자신 제외, 미완주 중 최고 진행도
+        if (lead == null) { racer.EndFlight(); return; }   // 얹혀 갈 상대가 없다 — 조용히 불발
+
+        Vector3 flatVel = rb.linearVelocity; flatVel.y = 0f;
+        flightSpeed = Mathf.Max(3f, flatVel.magnitude, racer.CurrentMaxSpeed);   // 착지 후 복귀 주행 속도
+
+        freeRideActive = true;
+        frT = 0f;
+        frStartPos = rb.position;
+        frStartProg = racer.Progress;
+        frLastTargetProg = racer.Progress;
+        rb.isKinematic = true;
+
+        GameEvents.RaiseSkillEvent(SkillFeedEvent.FreeRide, racer.RacerId);
+    }
+
+    private void FreeRideTick(float dt)
+    {
+        frT += dt / Mathf.Max(0.1f, SkillTuning.FreeRideFlightSeconds);
+        float t = Mathf.Clamp01(frT);
+
+        // 목표 = "지금" 1등 뒤 4m (매 틱 갱신 = 호밍). 1등이 결승 코앞이면 공중 완주 방지 클램프.
+        var lead = raceManager.GetLeadRacer(racer);
+        float targetProg = lead != null
+            ? Mathf.Max(frStartProg, lead.Progress - SkillTuning.FreeRideBehindDistance)
+            : frLastTargetProg;   // 추적 대상 소멸(전원 완주 직전 등) — 마지막 목표에 그대로 착지
+        targetProg = Mathf.Min(targetProg, raceManager.RaceLength - 1f);
+        frLastTargetProg = targetProg;
+        Vector3 targetPos = path.GetTargetOnSection(path.WrapProgress(targetProg), 0f);
+
+        // 등변사다리꼴 고도 (루돌프와 같은 클라이밍 비율)
+        float climb = SkillTuning.RudolphClimbRatio;
+        float hNorm = t < climb ? t / climb
+                    : t > 1f - climb ? (1f - t) / climb
+                    : 1f;
+        Vector3 pos = Vector3.Lerp(frStartPos, targetPos, t);   // 목표가 움직이므로 사실상 추적 곡선
+        pos.y += SkillTuning.FreeRidePeakHeight * hNorm;
+        // ⚠ kinematic 비행은 transform 단일 작성자 (MovePosition 금지 — §11 루돌프 실사고)
+        transform.position = pos;
+        racer.SetProgress(Mathf.Lerp(frStartProg, targetProg, t));   // 투영 대신 직접 기입 ([투영점프] 방지)
+
+        Vector3 dir = targetPos - pos; dir.y = 0f;
+        if (dir.sqrMagnitude > 1e-4f)
+            transform.rotation = Quaternion.Slerp(transform.rotation,
+                Quaternion.LookRotation(dir.normalized, Vector3.up), 6f * dt);
+
+        if (frT >= 1f) LandFreeRide();
+    }
+
+    private void LandFreeRide()
+    {
+        freeRideActive = false;
+        racer.EndFlight();
+        rb.isKinematic = false;
+
+        // 착지 직후 트랙 진행 방향으로 관성 주행 (도착점 기준이라 출발-도착 벡터는 무의미)
+        Vector3 tangent = path.GetTangent(path.WrapProgress(racer.Progress)); tangent.y = 0f;
+        if (tangent.sqrMagnitude > 1e-4f)
+            rb.linearVelocity = tangent.normalized * flightSpeed;
+
+        lateral = Mathf.Clamp(path.GetLateralOffset(rb.position), -MaxLat(), MaxLat());
+        lateralVel = 0f;
+    }
+
+    private void AbortFreeRide()
+    {
+        freeRideActive = false;
         racer.EndFlight();
         rb.isKinematic = false;
     }

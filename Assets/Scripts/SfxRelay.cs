@@ -88,11 +88,13 @@ public class SfxRelay : MonoBehaviour
     /// </summary>
     private void HandleSkillEvent(SkillFeedEvent evt, int rid)
     {
-        // [인간] 몽둥이 명중 — 지속음이 아니라 원샷 타격음 (PvP 빠따와 같은 소리, 유저 결정)
-        if (evt == SkillFeedEvent.ClubHit)
+        // 스턴 명중 타격음 — 전부 PvP 빠따와 같은 퍽 소리 (v23 유저 발주: 기린 목·바나나도 통일).
+        // ClubHit는 rid=때린 인간(스윙 연출 겸용), 나머지는 rid=피해자 — 어느 쪽이든 그 자리 3D
+        if (evt == SkillFeedEvent.ClubHit || evt == SkillFeedEvent.NeckSweepHit
+            || evt == SkillFeedEvent.BananaSlip)
         {
-            var hitter = Race != null ? Race.GetRacer(rid) : null;
-            if (hitter != null) SoundManager.PlaySfx(SfxId.BatHit, hitter.transform.position);
+            var at = Race != null ? Race.GetRacer(rid) : null;
+            if (at != null) SoundManager.PlaySfx(SfxId.BatHit, at.transform.position);
             else SoundManager.PlaySfx(SfxId.BatHit);
             return;
         }
@@ -108,6 +110,8 @@ public class SfxRelay : MonoBehaviour
             case SkillFeedEvent.Camouflage: id = SfxId.SkillCamouflage; break;
             case SkillFeedEvent.NeckSweep: id = SfxId.SkillNeckSweep; break;
             case SkillFeedEvent.Banana: id = SfxId.SkillBanana; break;
+            case SkillFeedEvent.Cola: id = SfxId.SkillCola; break;
+            case SkillFeedEvent.FreeRide: id = SfxId.SkillFreeRide; break;
             default: return;   // 처형 예고·펭귄 무관심 등 나머지 사건은 소리 없음
         }
 
@@ -116,6 +120,23 @@ public class SfxRelay : MonoBehaviour
         var racer = Race != null ? Race.GetRacer(rid) : null;
         if (racer != null) SoundManager.PlaySfx(id, racer.transform.position);
         else SoundManager.PlaySfx(id);
+
+        // 스킬 2단계음 (v23) — 연출 중간 시점에 한 번 더. 지연은 SkillTuning이 단일 출처라
+        // 연출(ColaFx/NeckSweepFx)·호스트 판정과 같은 시계를 쓴다 (통신 0, 각 클라 로컬).
+        if (evt == SkillFeedEvent.NeckSweep)   // 예열 끝 = 훑기 시작
+            StartCoroutine(DelayedSkillSfx(SfxId.SkillNeckSweepSwing, rid, SkillTuning.NeckSweepWindupSeconds));
+        else if (evt == SkillFeedEvent.Cola)   // 흔들기 끝 = 병 젖혀 들이키기 시작 (ColaFx 45% 지점)
+            StartCoroutine(DelayedSkillSfx(SfxId.SkillColaGulp, rid, SkillTuning.ColaDrinkSeconds * 0.45f));
+    }
+
+    /// <summary>스킬 2단계음 — 지연 후 그 동물의 "그 시점" 위치에서 원샷 (레이스가 끝났으면 침묵).</summary>
+    private IEnumerator DelayedSkillSfx(SfxId id, int rid, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (GameManager.Instance == null || GameManager.Instance.CurrentPhase != GamePhase.Racing) yield break;
+        var racer = Race != null ? Race.GetRacer(rid) : null;
+        if (racer == null || racer.HasFinished) yield break;
+        SoundManager.PlaySfx(id, racer.transform.position);
     }
 
     // ================= 페이즈 =================
